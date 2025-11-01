@@ -1,0 +1,103 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}בוטיק אריה - דף הבית{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+{% if site_settings and site_settings.hero_banner %}
+<section class="hero-banner">
+    <div class="hero-image">
+        <img src="{{ site_settings.hero_banner.url }}" alt="{{ site_settings.hero_title|default:'מוצרי תינוקות איכותיים' }}">
+        {% if site_settings.hero_title or site_settings.hero_subtitle %}
+        <div class="hero-content">
+            {% if site_settings.hero_title %}
+            <h1 class="hero-title">{{ site_settings.hero_title }}</h1>
+            {% endif %}
+            {% if site_settings.hero_subtitle %}
+            <p class="hero-subtitle">{{ site_settings.hero_subtitle }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% else %}
+<!-- Default banner if no settings configured -->
+<section class="hero-banner">
+    <div class="hero-image">
+        <img src="{% static 'images/hero-banner.jpg' %}" alt="מוצרי תינוקות איכותיים">
+    </div>
+</section>
+{% endif %}
+
+<!-- Categories Gallery -->
+<section class="categories-gallery">
+    <div class="container">
+        <div class="categories-grid">
+            {% for category in categories %}
+            <a href="#" class="category-card">
+                <div class="category-image">
+                    {% if category.image %}
+                        <img src="{{ category.image.url }}" alt="{{ category.name }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/600x400/E8D5C4/333333?text={{ category.name|urlencode }}" alt="{{ category.name }}">
+                    {% endif %}
+                    <div class="category-overlay">
+                        <h2 class="category-title">{{ category.name }}</h2>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <!-- Fallback if no categories exist -->
+            <p>אין קטגוריות זמינות</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Our Story Section -->
+<section class="our-story-section">
+    <!-- First div: Blue-gray background -->
+    <div class="story-top-bg">
+        <div class="container">
+            <h2 class="story-title">הסיפור שלנו</h2>
+            <p class="story-description">אריה בוטיק מעל 70 שנה של איכות, רכות ומזכרות ילדות</p>
+            <a href="#" class="story-button">עוד עלינו</a>
+        </div>
+    </div>
+    
+    <!-- Second div: White background -->
+    <div class="story-bottom-bg"></div>
+    
+    <!-- Third div: Absolute positioned gallery -->
+    <div class="story-gallery">
+        <div class="story-gallery-container">
+            <div class="story-image-card">
+                <div class="story-image-wrapper">
+                    <img src="{% static 'images/100 כותנה.png' %}" alt="100% כותנה" class="story-image">
+                </div>
+                <p class="story-caption">100% כותנה</p>
+            </div>
+            <div class="story-image-card">
+                <div class="story-image-wrapper">
+                    <img src="{% static 'images/בד פרימיום.png' %}" alt="בד פרימיום" class="story-image">
+                </div>
+                <p class="story-caption">בד פרימיום</p>
+            </div>
+            <div class="story-image-card">
+                <div class="story-image-wrapper">
+                    <img src="{% static 'images/רכות 100 אחוז.png' %}" alt="100% רכות" class="story-image">
+                </div>
+                <p class="story-caption">100% רכות</p>
+            </div>
+            <div class="story-image-card">
+                <div class="story-image-wrapper">
+                    <img src="{% static 'images/הדפסים יחודיים.png' %}" alt="הדפסים ייחודיים" class="story-image">
+                </div>
+                <p class="story-caption">הדפסים ייחודיים</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

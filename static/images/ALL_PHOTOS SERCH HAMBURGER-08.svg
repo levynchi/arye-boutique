@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_Ñëîé_1" data-name="Ñëîé 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 35">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M24.7,19.03l.76-5.9h-5.85v-3.76c0-1.71.47-2.87,2.92-2.87h3.1V1.23c-.54-.07-2.39-.23-4.54-.23-4.49,0-7.57,2.74-7.57,7.78v4.34h-5.07v5.9h5.07v14.97h6.09v-14.97h5.08Z"/>
+</svg>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_Ñëîé_1" data-name="Ñëîé 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #7594b1;
+        stroke-miterlimit: 10;
+        stroke-width: 1.57px;
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M16.01,17.19c-5.68,0-10.29,4.61-10.29,10.29h20.59c0-5.68-4.61-10.29-10.29-10.29Z"/>
+  <circle class="cls-1" cx="16.01" cy="9.58" r="5.09"/>
+</svg>

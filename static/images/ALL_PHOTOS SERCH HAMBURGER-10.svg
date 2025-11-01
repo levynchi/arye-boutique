@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_Ñëîé_1" data-name="Ñëîé 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 35">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #7594b1;
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M17.5,22.21l-4.08-3.57L1.74,28.65c.43.39,1,.64,1.63.64h28.25c.63,0,1.2-.25,1.62-.64l-11.67-10.01-4.08,3.57Z"/>
+  <path class="cls-1" d="M33.25,6.35c-.42-.4-.99-.64-1.63-.64H3.37c-.63,0-1.2.25-1.62.64l15.75,13.5,15.75-13.5Z"/>
+  <polygon class="cls-1" points="1 7.78 1 27.37 12.39 17.69 1 7.78"/>
+  <polygon class="cls-1" points="22.61 17.69 34 27.37 34 7.78 22.61 17.69"/>
+</svg>

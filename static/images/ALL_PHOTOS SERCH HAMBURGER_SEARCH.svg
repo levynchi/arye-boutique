@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_Ñëîé_1" data-name="Ñëîé 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 25.62">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #7594b1;
+        stroke-linecap: round;
+        stroke-miterlimit: 10;
+        stroke-width: 1.53px;
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M17.99,10.75c-.02,3.24-2.66,5.86-5.91,5.84-3.24-.02-5.86-2.66-5.84-5.91.02-3.24,2.66-5.86,5.91-5.84,3.24.02,5.86,2.66,5.84,5.91Z"/>
+  <line class="cls-1" x1="16.66" y1="14.44" x2="20.76" y2="18.59"/>
+</svg>

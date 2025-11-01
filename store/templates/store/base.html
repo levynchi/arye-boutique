@@ -1,0 +1,180 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}בוטיק אריה - מוצרי תינוקות איכותיים{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <div class="top-bar-spacer"></div>
+                <div class="welcome-text">
+                    WELCOME TO ARYE
+                </div>
+                <div class="social-links">
+                    <a href="#" class="social-link" aria-label="WhatsApp">
+                        <img src="{% static 'images/WATSAPP WHITE.svg' %}" alt="WhatsApp" class="social-icon-svg">
+                    </a>
+                    <a href="#" class="social-link" aria-label="מייל">
+                        <img src="{% static 'images/MAILL WHITE.svg' %}" alt="מייל" class="social-icon-svg">
+                    </a>
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <img src="{% static 'images/INSTEGRAM WHITE.svg' %}" alt="Instagram" class="social-icon-svg">
+                    </a>
+                    <a href="#" class="social-link" aria-label="פייסבוק">
+                        <img src="{% static 'images/FACEBOOK WHITE.svg' %}" alt="פייסבוק" class="social-icon-svg">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <!-- Header Icons -->
+                <div class="header-icons">
+                    <a href="#" class="icon-link">
+                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg">
+                    </a>
+                    <a href="#" class="icon-link">
+                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="Account" class="header-icon-svg">
+                    </a>
+                    <a href="#" class="icon-link cart-link">
+                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_CART copy 2.svg' %}" alt="Cart" class="header-icon-svg">
+                        <span class="cart-count">0</span>
+                    </a>
+                </div>
+
+                <!-- Logo -->
+                <div class="logo">
+                    <a href="{% url 'home' %}">
+                        <img src="{% static 'images/LOGO-21.png' %}" alt="ARYE בוטיק" class="logo-img">
+                    </a>
+                </div>
+
+                <!-- Search Box -->
+                <div class="search-box desktop-only">
+                    <input type="text" class="search-input" placeholder="חיפוש...">
+                    <button type="submit" class="search-button">
+                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_SEARCH.svg' %}" alt="Search" class="search-icon-svg">
+                    </button>
+                </div>
+
+                <!-- Search Icon (Mobile) -->
+                <div class="header-icon mobile-only">
+                    <a href="#" class="icon-link">
+                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Search" class="header-icon-svg">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Menu -->
+    <nav class="main-nav">
+        <div class="container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link">חיתולי בד / טטרה</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">לחדר השינה</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">סינר פליטה לתינוק</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">מגבות לתינוק</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <!-- Newsletter Section -->
+                <div class="footer-section newsletter-section">
+                    <h3>האצטרפו לניוזלטר שלנו</h3>
+                    <p class="newsletter-subtitle">! קבלו לפני 10% הנחה לרכישה הראשונה שלכם</p>
+                    <form class="newsletter-form">
+                        <input type="email" class="newsletter-input" placeholder="אימייל">
+                        <button type="submit" class="newsletter-button">הצטרפו עכשיו</button>
+                    </form>
+                </div>
+                
+                <!-- Help + Info Section -->
+                <div class="footer-section">
+                    <h4>עזרה + מידע</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">אודות</a></li>
+                        <li><a href="#">הוראות כביסה</a></li>
+                        <li><a href="#">שאלות ותשובות</a></li>
+                        <li><a href="#">משלוחים והחזרות</a></li>
+                        <li><a href="#">תנאי באתר</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact Section -->
+                <div class="footer-section">
+                    <h4>צרו קשר</h4>
+                    <ul class="footer-contact">
+                        <li>Arye.Baby@gmail.com</li>
+                        <li>הרצליה 7 תל אביב</li>
+                        <li>054-2367535</li>
+                        <li>ימים א'-ה': 9:00 - 16:00</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="footer-bottom-content">
+                    <div class="footer-social">
+                        <a href="#" class="footer-social-link">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER-10.svg' %}" alt="Facebook" class="footer-social-icon">
+                        </a>
+                        <a href="#" class="footer-social-link">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER-11.svg' %}" alt="Instagram" class="footer-social-icon">
+                        </a>
+                        <a href="#" class="footer-social-link">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER-12.svg' %}" alt="Email" class="footer-social-icon">
+                        </a>
+                    </div>
+                    <p class="footer-copyright"><span class="arye-text">ARYE BOUTIQUE</span> <span class="site-by">SITE BY</span> <span class="hadar-levy">HADAR LEVY</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

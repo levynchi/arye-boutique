@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_Ñëîé_1" data-name="Ñëîé 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+      }
+
+      .cls-1, .cls-2 {
+        stroke: #fff;
+        stroke-miterlimit: 10;
+        stroke-width: 1.51px;
+      }
+    </style>
+  </defs>
+  <polygon class="cls-1" points="4.5 12.34 9.38 26.42 22.71 26.42 27.5 12.34 4.5 12.34"/>
+  <line class="cls-2" x1="16" y1="5.58" x2="16" y2="12.34"/>
+</svg>

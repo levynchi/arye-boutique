@@ -413,13 +413,15 @@ ul {
 /* Newsletter Section */
 .newsletter-section {
     text-align: center;
+    padding: 20px 0 0 0;
 }
 
 .footer-logo {
-    width: 100px;
+    width: 70px;
     height: auto;
-    margin: 0 auto 20px;
+    margin: 0 auto 0px;
     display: block;
+    /* padding: 20px; */
 }
 
 .newsletter-section h3 {
@@ -572,7 +574,7 @@ ul {
 
 .footer-social {
     display: flex;
-    gap: 15px;
+    gap: 70px;
     justify-content: center;
     margin-top: 20px;
 }
@@ -593,7 +595,7 @@ ul {
 }
 
 .footer-social-icon {
-    width: 24px;
+    width: 30px;
     height: 24px;
     display: block;
 }

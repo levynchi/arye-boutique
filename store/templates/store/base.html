@@ -121,35 +121,51 @@
             <div class="footer-content">
                 <!-- Newsletter Section -->
                 <div class="footer-section newsletter-section">
-                    <h3>האצטרפו לניוזלטר שלנו</h3>
+                    <img src="{% static 'images/ARTBOARD_LOGO WHITE FOOTER.svg' %}" alt="ARYE Logo" class="footer-logo">
+                    <h3>הצטרפו לניוזלטר שלנו</h3>
                     <p class="newsletter-subtitle">! קבלו לפני 10% הנחה לרכישה הראשונה שלכם</p>
                     <form class="newsletter-form">
                         <input type="email" class="newsletter-input" placeholder="אימייל">
                         <button type="submit" class="newsletter-button">הצטרפו עכשיו</button>
                     </form>
+                    <div class="footer-social">
+                        <a href="#" class="footer-social-link">
+                            <img src="{% static 'images/FACEBOOK WHITE.svg' %}" alt="Facebook" class="footer-social-icon">
+                        </a>
+                        <a href="#" class="footer-social-link">
+                            <img src="{% static 'images/INSTEGRAM WHITE.svg' %}" alt="Instagram" class="footer-social-icon">
+                        </a>
+                        <a href="#" class="footer-social-link">
+                            <img src="{% static 'images/MAILL WHITE.svg' %}" alt="Email" class="footer-social-icon">
+                        </a>
+                    </div>
                 </div>
                 
                 <!-- Help + Info Section -->
                 <div class="footer-section">
-                    <h4>עזרה + מידע</h4>
-                    <ul class="footer-links">
-                        <li><a href="#">אודות</a></li>
-                        <li><a href="#">הוראות כביסה</a></li>
-                        <li><a href="#">שאלות ותשובות</a></li>
-                        <li><a href="#">משלוחים והחזרות</a></li>
-                        <li><a href="#">תנאי באתר</a></li>
-                    </ul>
+                    <div class="footer-info-wrapper">
+                        <h4>עזרה + מידע</h4>
+                        <ul class="footer-links">
+                            <li><a href="#">אודות</a></li>
+                            <li><a href="#">הוראות כביסה</a></li>
+                            <li><a href="#">שאלות ותשובות</a></li>
+                            <li><a href="#">משלוחים והחזרות</a></li>
+                            <li><a href="#">תנאי האתר</a></li>
+                        </ul>
+                    </div>
                 </div>
                 
                 <!-- Contact Section -->
                 <div class="footer-section">
-                    <h4>צרו קשר</h4>
-                    <ul class="footer-contact">
-                        <li>Arye.Baby@gmail.com</li>
-                        <li>הרצליה 7 תל אביב</li>
-                        <li>054-2367535</li>
-                        <li>ימים א'-ה': 9:00 - 16:00</li>
-                    </ul>
+                    <div class="footer-info-wrapper">
+                        <h4>צרו קשר</h4>
+                        <ul class="footer-contact">
+                            <li>אנחנו נמצאים ברחוב הקישון 6 תל אביב.</li>
+                            <li>שירות לקוחות וואטסאפ בלבד >> <img src="{% static 'images/WATSAPP WHITE.svg' %}" alt="WhatsApp" class="footer-whatsapp-icon"><br>בטלפון 053-3694264</li>
+                            <li>זמני פעילות שירות הלקוחות<br>ימים א' - ה' בין השעות 9:00 - 15:00</li>
+                            <li>מוזמנים לפנות אלינו למייל<br>Arye.Boutique@gmail.com</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -157,17 +173,6 @@
         <div class="footer-bottom">
             <div class="container">
                 <div class="footer-bottom-content">
-                    <div class="footer-social">
-                        <a href="#" class="footer-social-link">
-                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER-10.svg' %}" alt="Facebook" class="footer-social-icon">
-                        </a>
-                        <a href="#" class="footer-social-link">
-                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER-11.svg' %}" alt="Instagram" class="footer-social-icon">
-                        </a>
-                        <a href="#" class="footer-social-link">
-                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER-12.svg' %}" alt="Email" class="footer-social-icon">
-                        </a>
-                    </div>
                     <p class="footer-copyright"><span class="arye-text">ARYE BOUTIQUE</span> <span class="site-by">SITE BY</span> <span class="hadar-levy">HADAR LEVY</span></p>
                 </div>
             </div>

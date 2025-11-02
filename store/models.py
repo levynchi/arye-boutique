@@ -283,3 +283,24 @@ class CartItem(models.Model):
     def subtotal(self):
         """סכום ביניים של הפריט"""
         return self.product.price * self.quantity
+
+
+class ContactMessage(models.Model):
+    """
+    הודעת צור קשר
+    """
+    full_name = models.CharField(max_length=200, verbose_name='שם מלא')
+    phone = models.CharField(max_length=20, verbose_name='טלפון')
+    email = models.EmailField(verbose_name='אימייל')
+    order_number = models.CharField(max_length=50, blank=True, verbose_name='מספר הזמנה')
+    inquiry = models.TextField(verbose_name='מהות הפנייה')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
+    is_read = models.BooleanField(default=False, verbose_name='נקרא')
+    
+    class Meta:
+        verbose_name = 'הודעת צור קשר'
+        verbose_name_plural = 'הודעות צור קשר'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f'{self.full_name} - {self.email} ({self.created_at.strftime("%d/%m/%Y")})'

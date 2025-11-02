@@ -1,0 +1,111 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}צור קשר - בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">צור קשר</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="contact-section">
+    <div class="container">
+        <h1 class="contact-title">צור קשר</h1>
+        <p class="contact-intro">נשמח לעזור בכל שאלה ובכל פנייה מענה ינתן תוך 2 ימי עסקים מרגע שליחת ההודעה</p>
+        
+        <div class="contact-content">
+            <!-- Left: Contact Information (RTL) -->
+            <div class="contact-info-wrapper">
+                <div class="contact-info-item">
+                    <p class="contact-info-text">
+                        שירות הלקוחות שלנו זמין באימייל או וואטסאפ.<br>
+                        ניתן להשאיר פניה ואנו נחזור בהקדם.
+                    </p>
+                    <img src="{% static 'images/WATSAPP WHITE.svg' %}" alt="WhatsApp" class="contact-icon">
+                </div>
+                
+                <div class="contact-info-item">
+                    <p class="contact-info-text">
+                        המייל שלנו : arye.boutique@gmail.com
+                    </p>
+                    <img src="{% static 'images/MAILL WHITE.svg' %}" alt="Email" class="contact-icon">
+                </div>
+                
+                <div class="contact-info-item">
+                    <p class="contact-info-text">
+                        כתובת המפעל רחוב הקישון 6 תל אביב
+                    </p>
+                </div>
+                
+                <div class="contact-info-item">
+                    <p class="contact-info-label">: שעות הפעילות</p>
+                    <p class="contact-info-text">
+                        ימים א' - ה' בין השעות 9:00 - 15:00
+                    </p>
+                </div>
+                
+                <div class="contact-info-item">
+                    <p class="contact-info-text">
+                        אין אפשרות להגיע למקום לרכישת מוצרים. ניתן לבצע איסוף, החזרה או החלפה בתיאום מראש בלבד.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Right: Contact Form (RTL) - will appear on left in RTL -->
+            <div class="contact-form-wrapper">
+                <form method="POST" class="contact-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                            <div class="form-error">{{ form.full_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <div class="form-error">{{ form.phone.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="form-error">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.order_number }}
+                        {% if form.order_number.errors %}
+                            <div class="form-error">{{ form.order_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.inquiry }}
+                        {% if form.inquiry.errors %}
+                            <div class="form-error">{{ form.inquiry.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="contact-submit-btn">שלח הודעה</button>
+                    
+                    <p class="required-fields-note">שדות חובה*</p>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

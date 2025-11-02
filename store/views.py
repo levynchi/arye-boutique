@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.db.models import Q
-from .models import Product, Category, Subcategory, SiteSettings, ProductImage, Cart, CartItem
+from .models import Product, Category, Subcategory, SiteSettings, ProductImage, Cart, CartItem, ContactMessage
+from .forms import ContactForm
 
 
 def home(request):
@@ -185,3 +186,29 @@ def category_detail(request, slug):
     }
     
     return render(request, 'store/category_detail.html', context)
+
+
+def contact(request):
+    """
+    דף צור קשר
+    """
+    # קבלת קטגוריות לניווט
+    categories = Category.objects.filter(is_active=True)[:4]
+    
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            contact_message = form.save()
+            messages.success(request, 'הודעתך נשלחה בהצלחה! נחזור אליך תוך 2 ימי עסקים.')
+            return redirect('contact')
+        else:
+            messages.error(request, 'אירעה שגיאה במילוי הטופס. אנא בדוק את השדות ומלא מחדש.')
+    else:
+        form = ContactForm()
+    
+    context = {
+        'form': form,
+        'categories': categories,
+    }
+    
+    return render(request, 'store/contact.html', context)

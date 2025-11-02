@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SiteSettings, Category, Subcategory, Product, ProductImage, Order, OrderItem, Cart, CartItem
+from .models import SiteSettings, Category, Subcategory, Product, ProductImage, Order, OrderItem, Cart, CartItem, ContactMessage
 
 
 @admin.register(SiteSettings)
@@ -240,3 +240,27 @@ class ProductImageAdmin(admin.ModelAdmin):
     list_filter = ['is_primary', 'created_at']
     search_fields = ['product__name']
     list_editable = ['is_primary', 'order']
+
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    """
+    ניהול הודעות צור קשר
+    """
+    list_display = ['full_name', 'email', 'phone', 'created_at', 'is_read']
+    list_filter = ['is_read', 'created_at']
+    search_fields = ['full_name', 'email', 'phone', 'order_number']
+    list_editable = ['is_read']
+    readonly_fields = ['created_at']
+    
+    fieldsets = (
+        ('מידע אישי', {
+            'fields': ('full_name', 'phone', 'email', 'order_number')
+        }),
+        ('הודעה', {
+            'fields': ('inquiry',)
+        }),
+        ('סטטוס', {
+            'fields': ('is_read', 'created_at')
+        }),
+    )

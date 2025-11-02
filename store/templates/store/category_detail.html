@@ -1,0 +1,110 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} - בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">קטגוריה</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Category Detail Section -->
+<section class="category-detail-section">
+    <div class="container">
+        <!-- Category Title -->
+        <h1 class="category-title">{{ category.name }}</h1>
+        
+        <!-- Filters Section -->
+        <div class="category-filters">
+            <form method="GET" action="{% url 'category_detail' category.slug %}" class="filter-form" id="filter-form">
+                <div class="filter-group">
+                    <label for="price-filter" class="filter-label">מחיר</label>
+                    <select name="price" id="price-filter" class="filter-select">
+                        <option value="">כל המחירים</option>
+                        <option value="low_to_high" {% if current_price_sort == 'low_to_high' %}selected{% endif %}>נמוך לגבוה</option>
+                        <option value="high_to_low" {% if current_price_sort == 'high_to_low' %}selected{% endif %}>גבוה לנמוך</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="gender-filter" class="filter-label">מין</label>
+                    <select name="gender" id="gender-filter" class="filter-select">
+                        <option value="">כל המינים</option>
+                        <option value="boy" {% if current_gender == 'boy' %}selected{% endif %}>בן</option>
+                        <option value="girl" {% if current_gender == 'girl' %}selected{% endif %}>בת</option>
+                        <option value="both" {% if current_gender == 'both' %}selected{% endif %}>שניהם</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Products Gallery -->
+        <div class="products-gallery">
+            {% for product in products %}
+            <div class="product-card">
+                <!-- Heart Icon -->
+                <button type="button" class="product-heart-btn" data-product-id="{{ product.id }}" aria-label="הוסף לרשימת משאלות">
+                    <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="לב" class="product-heart-icon">
+                </button>
+                
+                <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
+                    <div class="product-image-wrapper">
+                        <!-- Product Image -->
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-image">
+                        {% else %}
+                            <div class="product-card-placeholder">אין תמונה</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="product-card-info">
+                        {% if product.subcategory %}
+                            <p class="product-card-subcategory">{{ product.subcategory.name }}</p>
+                        {% endif %}
+                        <p class="product-card-name">{{ product.name }}</p>
+                        <p class="product-card-price">{{ product.price }} ש"ח</p>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="no-products">
+                <p>לא נמצאו מוצרים בקטגוריה זו</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-submit form on filter change
+        const filterSelects = document.querySelectorAll('.filter-select');
+        filterSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                document.getElementById('filter-form').submit();
+            });
+        });
+        
+        // Heart button click handler (for future wishlist functionality)
+        const heartButtons = document.querySelectorAll('.product-heart-btn');
+        heartButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Future: Add to wishlist functionality
+                console.log('Add to wishlist:', this.getAttribute('data-product-id'));
+            });
+        });
+    });
+</script>
+{% endblock %}
+

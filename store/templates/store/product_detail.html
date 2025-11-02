@@ -10,7 +10,7 @@
         <nav class="breadcrumb-nav">
             <a href="{% url 'home' %}">דף הבית</a>
             <span class="breadcrumb-separator">></span>
-            <a href="#">{{ product.category.name }}</a>
+            <a href="{% url 'category_detail' product.category.slug %}">{{ product.category.name }}</a>
             <span class="breadcrumb-separator"><</span>
             <span class="breadcrumb-current">דף מוצר</span>
         </nav>

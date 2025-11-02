@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SiteSettings, Category, Product, ProductImage, Order, OrderItem, Cart, CartItem
+from .models import SiteSettings, Category, Subcategory, Product, ProductImage, Order, OrderItem, Cart, CartItem
 
 
 @admin.register(SiteSettings)
@@ -30,6 +30,15 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         return not SiteSettings.objects.exists()
 
 
+class SubcategoryInline(admin.TabularInline):
+    """
+    הצגת תת-קטגוריות בתוך הקטגוריה
+    """
+    model = Subcategory
+    extra = 1
+    fields = ('name', 'slug', 'is_active')
+
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     """
@@ -40,6 +49,51 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     prepopulated_fields = {'slug': ('name',)}
     list_editable = ['is_active']
+    readonly_fields = ['created_at']
+    inlines = [SubcategoryInline]
+    
+    fieldsets = (
+        ('מידע בסיסי', {
+            'fields': ('name', 'slug', 'description', 'image')
+        }),
+        ('הגדרות', {
+            'fields': ('is_active',)
+        }),
+        ('תאריכים', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(Subcategory)
+class SubcategoryAdmin(admin.ModelAdmin):
+    """
+    ניהול תת-קטגוריות
+    """
+    list_display = ['name', 'category', 'slug', 'is_active', 'created_at']
+    list_filter = ['category', 'is_active', 'created_at']
+    search_fields = ['name', 'description', 'category__name']
+    prepopulated_fields = {'slug': ('name',)}
+    list_editable = ['is_active']
+    readonly_fields = ['created_at']
+    
+    fieldsets = (
+        ('מידע בסיסי', {
+            'fields': ('name', 'slug', 'category', 'description', 'image')
+        }),
+        ('הגדרות', {
+            'fields': ('is_active',)
+        }),
+        ('תאריכים', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_queryset(self, request):
+        """שיפור ביצועים - טעינה מראש של category"""
+        return super().get_queryset(request).select_related('category')
 
 
 class OrderItemInline(admin.TabularInline):
@@ -65,8 +119,8 @@ class ProductAdmin(admin.ModelAdmin):
     """
     ניהול מוצרים
     """
-    list_display = ['name', 'category', 'price', 'stock_quantity', 'is_active', 'is_featured', 'created_at']
-    list_filter = ['category', 'is_active', 'is_featured', 'created_at']
+    list_display = ['name', 'category', 'subcategory', 'gender', 'price', 'stock_quantity', 'is_active', 'is_featured', 'created_at']
+    list_filter = ['category', 'subcategory', 'is_active', 'is_featured', 'created_at']
     search_fields = ['name', 'description']
     prepopulated_fields = {'slug': ('name',)}
     list_editable = ['price', 'stock_quantity', 'is_active', 'is_featured']
@@ -75,7 +129,7 @@ class ProductAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('מידע בסיסי', {
-            'fields': ('name', 'slug', 'category', 'description', 'size')
+            'fields': ('name', 'slug', 'category', 'subcategory', 'description', 'size', 'gender')
         }),
         ('מחיר ומלאי', {
             'fields': ('price', 'stock_quantity')

@@ -93,6 +93,11 @@
     <nav class="main-nav">
         <div class="container">
             <ul class="nav-menu">
+                {% for category in categories %}
+                <li class="nav-item">
+                    <a href="{% url 'category_detail' category.slug %}" class="nav-link">{{ category.name }}</a>
+                </li>
+                {% empty %}
                 <li class="nav-item">
                     <a href="#" class="nav-link">חיתולי בד / טטרה</a>
                 </li>
@@ -105,6 +110,7 @@
                 <li class="nav-item">
                     <a href="#" class="nav-link">מגבות לתינוק</a>
                 </li>
+                {% endfor %}
             </ul>
         </div>
     </nav>

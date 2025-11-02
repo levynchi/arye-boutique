@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from .models import Product, Category, SiteSettings, ProductImage, Cart, CartItem
+from django.db.models import Q
+from .models import Product, Category, Subcategory, SiteSettings, ProductImage, Cart, CartItem
 
 
 def home(request):
@@ -59,10 +60,14 @@ def product_detail(request, slug):
         # אם אין תמונה ראשית במודל ProductImage, נשתמש בתמונה הראשית של המוצר
         primary_image = product.image
     
+    # קבלת קטגוריות לניווט
+    categories = Category.objects.filter(is_active=True)[:4]
+    
     context = {
         'product': product,
         'primary_image': primary_image,
         'additional_images': additional_images,
+        'categories': categories,
     }
     
     return render(request, 'store/product_detail.html', context)
@@ -127,3 +132,56 @@ def add_to_cart(request, product_id):
     
     messages.success(request, f'המוצר "{product.name}" נוסף לסל בהצלחה!')
     return redirect('product_detail', slug=product.slug)
+
+
+def category_detail(request, slug):
+    """
+    עמוד קטגוריה - הצגת מוצרים לפי קטגוריה עם סינון
+    """
+    category = get_object_or_404(Category, slug=slug, is_active=True)
+    
+    # קבלת מוצרים פעילים של הקטגוריה + כל תת-קטגוריות
+    # אם יש תת-קטגוריות, נכלול גם את המוצרים שלהם
+    subcategories = category.subcategories.filter(is_active=True)
+    if subcategories.exists():
+        # יש תת-קטגוריות - נציג את המוצרים מהקטגוריה הראשית + כל התת-קטגוריות
+        products = Product.objects.filter(
+            Q(category=category) | Q(subcategory__in=subcategories),
+            is_active=True
+        )
+    else:
+        # אין תת-קטגוריות - רק מוצרים מהקטגוריה עצמה
+        products = Product.objects.filter(category=category, is_active=True)
+    
+    # סינון לפי מין
+    gender_filter = request.GET.get('gender', '')
+    if gender_filter:
+        if gender_filter == 'both':
+            # אם "שניהם", נציג את כל המוצרים
+            pass
+        else:
+            # סינון לפי מין ספציפי
+            products = products.filter(gender__in=[gender_filter, 'both'])
+    
+    # מיון לפי מחיר
+    price_sort = request.GET.get('price', '')
+    if price_sort == 'low_to_high':
+        products = products.order_by('price')
+    elif price_sort == 'high_to_low':
+        products = products.order_by('-price')
+    else:
+        # ברירת מחדל - לפי תאריך יצירה
+        products = products.order_by('-created_at')
+    
+    # קבלת קטגוריות לניווט
+    categories = Category.objects.filter(is_active=True)[:4]
+    
+    context = {
+        'category': category,
+        'products': products,
+        'current_gender': gender_filter,
+        'current_price_sort': price_sort,
+        'categories': categories,
+    }
+    
+    return render(request, 'store/category_detail.html', context)

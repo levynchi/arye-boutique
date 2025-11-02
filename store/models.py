@@ -51,6 +51,38 @@ class Category(models.Model):
         super().save(*args, **kwargs)
 
 
+class Subcategory(models.Model):
+    """
+    תת-קטגוריה של מוצרים - שייכת לקטגוריה ראשית
+    """
+    name = models.CharField(max_length=200, verbose_name='שם תת-קטגוריה')
+    slug = models.SlugField(max_length=200, verbose_name='סלאג')
+    description = models.TextField(blank=True, verbose_name='תיאור')
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name='subcategories',
+        verbose_name='קטגוריה'
+    )
+    image = models.ImageField(upload_to='subcategories/', blank=True, verbose_name='תמונה')
+    is_active = models.BooleanField(default=True, verbose_name='פעיל')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
+    
+    class Meta:
+        verbose_name = 'תת-קטגוריה'
+        verbose_name_plural = 'תת-קטגוריות'
+        ordering = ['name']
+        unique_together = [['slug', 'category']]  # slug צריך להיות unique רק בתוך אותה קטגוריה
+    
+    def __str__(self):
+        return f'{self.category.name} > {self.name}'
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
+
+
 class Product(models.Model):
     """
     מוצר בחנות
@@ -59,9 +91,31 @@ class Product(models.Model):
     slug = models.SlugField(max_length=200, unique=True, verbose_name='סלאג')
     description = models.TextField(verbose_name='תיאור')
     size = models.CharField(max_length=200, blank=True, verbose_name='גודל')
+    
+    GENDER_CHOICES = [
+        ('boy', 'בן'),
+        ('girl', 'בת'),
+        ('both', 'שניהם'),
+    ]
+    gender = models.CharField(
+        max_length=10,
+        choices=GENDER_CHOICES,
+        default='both',
+        blank=True,
+        verbose_name='מין'
+    )
+    
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='מחיר')
     stock_quantity = models.PositiveIntegerField(default=0, verbose_name='כמות במחסן')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', verbose_name='קטגוריה')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', null=True, blank=True, verbose_name='קטגוריה')
+    subcategory = models.ForeignKey(
+        'Subcategory',
+        on_delete=models.CASCADE,
+        related_name='products',
+        null=True,
+        blank=True,
+        verbose_name='תת-קטגוריה'
+    )
     image = models.ImageField(upload_to='products/', verbose_name='תמונה')
     is_active = models.BooleanField(default=True, verbose_name='פעיל')
     is_featured = models.BooleanField(default=False, verbose_name='מוצר מומלץ')

@@ -1,0 +1,214 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <a href="#">{{ product.category.name }}</a>
+            <span class="breadcrumb-separator"><</span>
+            <span class="breadcrumb-current">דף מוצר</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Product Detail Section -->
+<section class="product-detail-section">
+    <div class="container">
+        <div class="product-detail-container">
+            <!-- Right Side - Product Images -->
+            <div class="product-images-column">
+                <!-- Main Product Image -->
+                <div class="main-product-image">
+                    {% if primary_image %}
+                        <img src="{{ primary_image.url }}" alt="{{ product.name }}" id="main-product-img">
+                    {% else %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" id="main-product-img">
+                    {% endif %}
+                </div>
+                
+                <!-- Thumbnail Images -->
+                {% if additional_images %}
+                <div class="product-thumbnails">
+                    {% for img in additional_images %}
+                    <div class="thumbnail-item {% if img.is_primary %}active{% endif %}" data-image-url="{{ img.image.url }}">
+                        <img src="{{ img.image.url }}" alt="{{ product.name }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Left Side - Product Information -->
+            <div class="product-info-column">
+                <div class="product-header-info">
+                    <h1 class="product-name">{{ product.name }}</h1>
+                    
+                    {% if product.category %}
+                    <p class="product-category">{{ product.category.name }}</p>
+                    {% endif %}
+                    
+                    <p class="product-price">{{ product.price }} ש"ח</p>
+                    
+                    {% if product.category.name %}
+                    <p class="product-brand">אריה בוטיק</p>
+                    {% endif %}
+                </div>
+                
+                <div class="product-description">
+                    <p>{{ product.description }}</p>
+                </div>
+                
+                {% if product.size %}
+                <div class="product-size">
+                    <span class="size-label">גודל:</span>
+                    <span class="size-value">{{ product.size }}</span>
+                </div>
+                {% endif %}
+                
+                <!-- Quantity Selector -->
+                <div class="product-quantity">
+                    <label for="quantity-input" class="quantity-label">כמות</label>
+                    <div class="quantity-selector">
+                        <button type="button" class="quantity-btn quantity-minus" id="quantity-minus">-</button>
+                        <input type="number" id="quantity-input" class="quantity-input" value="1" min="1" max="{{ product.stock_quantity }}" readonly>
+                        <button type="button" class="quantity-btn quantity-plus" id="quantity-plus">+</button>
+                    </div>
+                </div>
+                
+                <!-- Add to Cart Form -->
+                <form method="POST" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" id="hidden-quantity" value="1">
+                    <button type="submit" class="add-to-cart-btn" {% if not product.is_in_stock %}disabled{% endif %}>
+                        {% if product.is_in_stock %}
+                            הוספה להזמנה
+                        {% else %}
+                            לא במלאי
+                        {% endif %}
+                    </button>
+                </form>
+                
+                <!-- Expandable Information Sections -->
+                <div class="product-info-sections">
+                    <div class="info-section">
+                        <div class="info-section-header">
+                            <span class="info-icon"><i class="fas fa-tshirt"></i></span>
+                            <h3 class="info-title">הרכב חומרים וטיפול</h3>
+                            <span class="info-toggle">+</span>
+                        </div>
+                        <div class="info-section-content" style="display: none;">
+                            <p>מידע על הרכב חומרים וטיפול יוצג כאן</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <div class="info-section-header">
+                            <span class="info-icon"><i class="fas fa-truck"></i></span>
+                            <h3 class="info-title">משלוחים והחזרות</h3>
+                            <span class="info-toggle">+</span>
+                        </div>
+                        <div class="info-section-content" style="display: none;">
+                            <p>מידע על משלוחים והחזרות יוצג כאן</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Thumbnail image click handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const thumbnails = document.querySelectorAll('.thumbnail-item');
+        const mainImage = document.getElementById('main-product-img');
+        
+        thumbnails.forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                // Remove active class from all thumbnails
+                thumbnails.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked thumbnail
+                this.classList.add('active');
+                // Update main image
+                const imageUrl = this.getAttribute('data-image-url');
+                if (mainImage && imageUrl) {
+                    mainImage.src = imageUrl;
+                }
+            });
+        });
+        
+        // Quantity selector
+        const quantityInput = document.getElementById('quantity-input');
+        const quantityMinus = document.getElementById('quantity-minus');
+        const quantityPlus = document.getElementById('quantity-plus');
+        const hiddenQuantity = document.getElementById('hidden-quantity');
+        
+        if (quantityMinus) {
+            quantityMinus.addEventListener('click', function() {
+                let currentValue = parseInt(quantityInput.value);
+                if (currentValue > 1) {
+                    quantityInput.value = currentValue - 1;
+                    hiddenQuantity.value = quantityInput.value;
+                }
+            });
+        }
+        
+        if (quantityPlus) {
+            quantityPlus.addEventListener('click', function() {
+                let currentValue = parseInt(quantityInput.value);
+                const maxValue = parseInt(quantityInput.getAttribute('max'));
+                if (currentValue < maxValue) {
+                    quantityInput.value = currentValue + 1;
+                    hiddenQuantity.value = quantityInput.value;
+                }
+            });
+        }
+        
+        // Expandable info sections
+        const infoToggles = document.querySelectorAll('.info-toggle');
+        infoToggles.forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const content = this.closest('.info-section').querySelector('.info-section-content');
+                const isOpen = content.style.display !== 'none';
+                
+                if (isOpen) {
+                    content.style.display = 'none';
+                    this.textContent = '+';
+                } else {
+                    content.style.display = 'block';
+                    this.textContent = '−';
+                }
+            });
+        });
+        
+        // Close message buttons
+        const messageCloseButtons = document.querySelectorAll('.message-close');
+        messageCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                this.closest('.message').style.display = 'none';
+            });
+        });
+        
+        // Auto-hide messages after 5 seconds
+        const messages = document.querySelectorAll('.message');
+        messages.forEach(message => {
+            setTimeout(() => {
+                message.style.opacity = '0';
+                message.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    message.style.display = 'none';
+                }, 300);
+            }, 5000);
+        });
+    });
+</script>
+{% endblock %}
+

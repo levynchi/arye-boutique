@@ -111,6 +111,18 @@
 
     <!-- Main Content -->
     <main class="main-content">
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="message message-{{ message.tags }}">
+                {{ message }}
+                <button type="button" class="message-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
         {% block content %}
         {% endblock %}
     </main>

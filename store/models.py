@@ -58,6 +58,7 @@ class Product(models.Model):
     name = models.CharField(max_length=200, verbose_name='שם מוצר')
     slug = models.SlugField(max_length=200, unique=True, verbose_name='סלאג')
     description = models.TextField(verbose_name='תיאור')
+    size = models.CharField(max_length=200, blank=True, verbose_name='גודל')
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='מחיר')
     stock_quantity = models.PositiveIntegerField(default=0, verbose_name='כמות במחסן')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', verbose_name='קטגוריה')
@@ -84,6 +85,25 @@ class Product(models.Model):
     def is_in_stock(self):
         """בדיקה אם המוצר במלאי"""
         return self.stock_quantity > 0
+
+
+class ProductImage(models.Model):
+    """
+    תמונות נוספות של מוצר
+    """
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images', verbose_name='מוצר')
+    image = models.ImageField(upload_to='products/', verbose_name='תמונה')
+    is_primary = models.BooleanField(default=False, verbose_name='תמונה ראשית')
+    order = models.PositiveIntegerField(default=0, verbose_name='סדר')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
+    
+    class Meta:
+        verbose_name = 'תמונת מוצר'
+        verbose_name_plural = 'תמונות מוצר'
+        ordering = ['-is_primary', 'order', 'created_at']
+    
+    def __str__(self):
+        return f'{self.product.name} - תמונה #{self.id}'
 
 
 class Order(models.Model):

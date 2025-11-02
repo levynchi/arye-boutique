@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SiteSettings, Category, Product, Order, OrderItem, Cart, CartItem
+from .models import SiteSettings, Category, Product, ProductImage, Order, OrderItem, Cart, CartItem
 
 
 @admin.register(SiteSettings)
@@ -51,6 +51,15 @@ class OrderItemInline(admin.TabularInline):
     readonly_fields = ['subtotal']
 
 
+class ProductImageInline(admin.TabularInline):
+    """
+    הצגת תמונות נוספות בתוך המוצר
+    """
+    model = ProductImage
+    extra = 1
+    fields = ('image', 'is_primary', 'order')
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     """
@@ -62,15 +71,16 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     list_editable = ['price', 'stock_quantity', 'is_active', 'is_featured']
     readonly_fields = ['created_at', 'updated_at']
+    inlines = [ProductImageInline]
     
     fieldsets = (
         ('מידע בסיסי', {
-            'fields': ('name', 'slug', 'category', 'description')
+            'fields': ('name', 'slug', 'category', 'description', 'size')
         }),
         ('מחיר ומלאי', {
             'fields': ('price', 'stock_quantity')
         }),
-        ('תמונה', {
+        ('תמונה ראשית', {
             'fields': ('image',)
         }),
         ('הגדרות', {
@@ -165,3 +175,14 @@ class CartItemAdmin(admin.ModelAdmin):
     list_filter = ['added_at']
     search_fields = ['product__name', 'cart__user__username']
     readonly_fields = ['subtotal', 'added_at']
+
+
+@admin.register(ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    """
+    ניהול תמונות מוצרים
+    """
+    list_display = ['product', 'is_primary', 'order', 'created_at']
+    list_filter = ['is_primary', 'created_at']
+    search_fields = ['product__name']
+    list_editable = ['is_primary', 'order']

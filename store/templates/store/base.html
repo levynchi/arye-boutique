@@ -52,12 +52,24 @@
             <div class="header-content">
                 <!-- Header Icons -->
                 <div class="header-icons">
-                    <a href="#" class="icon-link">
-                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg">
-                    </a>
-                    <a href="#" class="icon-link">
-                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="Account" class="header-icon-svg">
-                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'wishlist' %}" class="icon-link" title="רשימת המשאלות">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg">
+                        </a>
+                    {% else %}
+                        <a href="{% url 'users:login' %}?next=/wishlist/" class="icon-link" title="רשימת המשאלות">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg">
+                        </a>
+                    {% endif %}
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'users:logout' %}" class="icon-link" title="התנתק">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="Account" class="header-icon-svg">
+                        </a>
+                    {% else %}
+                        <a href="{% url 'users:login' %}" class="icon-link" title="התחבר">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="Account" class="header-icon-svg">
+                        </a>
+                    {% endif %}
                     <a href="#" class="icon-link cart-link">
                         <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_CART copy 2.svg' %}" alt="Cart" class="header-icon-svg">
                         <span class="cart-count">0</span>
@@ -199,6 +211,36 @@
     </footer>
 
     {% block extra_js %}{% endblock %}
+    
+    <!-- Messages Close Functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // סגירת הודעות
+            const messageCloseButtons = document.querySelectorAll('.message-close');
+            messageCloseButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const messageDiv = this.parentElement;
+                    messageDiv.style.transition = 'opacity 0.3s ease';
+                    messageDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        messageDiv.remove();
+                    }, 300);
+                });
+            });
+            
+            // סגירה אוטומטית אחרי 5 שניות
+            const messages = document.querySelectorAll('.message');
+            messages.forEach(message => {
+                setTimeout(() => {
+                    message.style.transition = 'opacity 0.3s ease';
+                    message.style.opacity = '0';
+                    setTimeout(() => {
+                        message.remove();
+                    }, 300);
+                }, 5000);
+            });
+        });
+    </script>
 </body>
 </html>
 

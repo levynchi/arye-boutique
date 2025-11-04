@@ -1,0 +1,72 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}התחברות - בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">התחברות</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Login Section -->
+<section class="contact-section">
+    <div class="container">
+        <h1 class="contact-title">התחברות</h1>
+        
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="message message-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="contact-content">
+            <!-- Login Form -->
+            <div class="auth-form-wrapper">
+                <form method="POST" class="contact-form auth-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="form-error">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="form-error">{{ form.password.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                        <div class="form-error">{{ form.non_field_errors }}</div>
+                    {% endif %}
+                    
+                    <button type="submit" class="contact-submit-btn">התחבר</button>
+                    
+                    <p class="auth-link-text">
+                        <a href="{% url 'users:password_reset' %}" class="auth-link">שכחתי סיסמה?</a>
+                    </p>
+                    
+                    <p class="auth-link-text">
+                        אין לך חשבון? <a href="{% url 'users:register' %}" class="auth-link">הירשם כאן!</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

@@ -1,0 +1,133 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}רשימת המשאלות שלי - בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">רשימת המשאלות שלי</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Wishlist Section -->
+<section class="category-detail-section">
+    <div class="container">
+        <!-- Wishlist Title -->
+        <h1 class="category-title">רשימת המשאלות שלי</h1>
+        
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="message message-{{ message.tags }}">
+                        {{ message }}
+                        <button type="button" class="message-close">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% if products %}
+            <!-- Products Gallery -->
+            <div class="products-gallery">
+                {% for product in products %}
+                <div class="product-card" data-product-id="{{ product.id }}">
+                    <!-- Remove Button (X) -->
+                    <button type="button" class="wishlist-remove-btn" data-product-id="{{ product.id }}" aria-label="הסר מרשימת משאלות">
+                        &times;
+                    </button>
+                    
+                    <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
+                        <div class="product-image-wrapper">
+                            <!-- Product Image -->
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-image">
+                            {% else %}
+                                <div class="product-card-placeholder">אין תמונה</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="product-card-info">
+                            {% if product.subcategory %}
+                                <p class="product-card-subcategory">{{ product.subcategory.name }}</p>
+                            {% endif %}
+                            <p class="product-card-name">{{ product.name }}</p>
+                            <p class="product-card-price">{{ product.price }} ש"ח</p>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty Wishlist Message -->
+            <div class="wishlist-empty">
+                <p class="wishlist-empty-text">רשימת המשאלות שלך ריקה</p>
+                <p class="wishlist-empty-subtext">התחל להוסיף מוצרים שאתה אוהב על ידי לחיצה על סמל הלב</p>
+                <a href="{% url 'home' %}" class="wishlist-empty-btn">המשך לקניות</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Remove from wishlist
+        const removeButtons = document.querySelectorAll('.wishlist-remove-btn');
+        removeButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const productId = this.getAttribute('data-product-id');
+                const productCard = this.closest('.product-card');
+                
+                // Get CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                 document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+                
+                // Send AJAX request
+                fetch(`/wishlist/remove/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove product card with animation
+                        productCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        productCard.style.opacity = '0';
+                        productCard.style.transform = 'scale(0.9)';
+                        
+                        setTimeout(() => {
+                            productCard.remove();
+                            
+                            // Check if wishlist is empty
+                            const remainingProducts = document.querySelectorAll('.product-card').length;
+                            if (remainingProducts === 0) {
+                                location.reload();
+                            }
+                        }, 300);
+                    } else {
+                        alert('אירעה שגיאה בהסרת המוצר');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('אירעה שגיאה בהסרת המוצר');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
+

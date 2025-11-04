@@ -9,6 +9,7 @@ class CustomUser(AbstractUser):
     phone_number = models.CharField(max_length=20, blank=True, verbose_name='מספר טלפון')
     address = models.CharField(max_length=255, blank=True, verbose_name='כתובת')
     city = models.CharField(max_length=100, blank=True, verbose_name='עיר')
+    email = models.EmailField(unique=True, verbose_name='כתובת מייל')  # הוספת unique constraint
     
     class Meta:
         verbose_name = 'משתמש'

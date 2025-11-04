@@ -24,6 +24,7 @@
         <!-- Filters Section -->
         <div class="category-filters">
             <form method="GET" action="{% url 'category_detail' category.slug %}" class="filter-form" id="filter-form">
+                {% csrf_token %}
                 <div class="filter-group">
                     <label for="price-filter" class="filter-label">מחיר</label>
                     <select name="price" id="price-filter" class="filter-select">
@@ -50,8 +51,12 @@
             {% for product in products %}
             <div class="product-card">
                 <!-- Heart Icon -->
-                <button type="button" class="product-heart-btn" data-product-id="{{ product.id }}" aria-label="הוסף לרשימת משאלות">
-                    <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="לב" class="product-heart-icon">
+                <button type="button" class="product-heart-btn {% if product.id in wishlist_product_ids %}active{% endif %}" data-product-id="{{ product.id }}" aria-label="הוסף לרשימת משאלות">
+                    {% if product.id in wishlist_product_ids %}
+                        <img src="{% static 'images/hert icon fill.svg' %}" alt="לב" class="product-heart-icon">
+                    {% else %}
+                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="לב" class="product-heart-icon">
+                    {% endif %}
                 </button>
                 
                 <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
@@ -94,14 +99,55 @@
             });
         });
         
-        // Heart button click handler (for future wishlist functionality)
+        // Heart button click handler - Wishlist toggle
         const heartButtons = document.querySelectorAll('.product-heart-btn');
         heartButtons.forEach(button => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                // Future: Add to wishlist functionality
-                console.log('Add to wishlist:', this.getAttribute('data-product-id'));
+                
+                {% if not user.is_authenticated %}
+                    // Redirect to login if not authenticated
+                    window.location.href = '/users/login/?next={{ request.path }}';
+                    return;
+                {% endif %}
+                
+                const productId = this.getAttribute('data-product-id');
+                const heartIcon = this.querySelector('.product-heart-icon');
+                
+                // Get CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+                
+                if (!csrfToken) {
+                    console.error('CSRF token not found');
+                    return;
+                }
+                
+                // Send AJAX request
+                fetch(`/wishlist/toggle/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Toggle heart button state and image
+                        const heartIcon = this.querySelector('.product-heart-icon');
+                        if (data.action === 'added') {
+                            this.classList.add('active');
+                            heartIcon.src = '/static/images/hert icon fill.svg';
+                        } else {
+                            this.classList.remove('active');
+                            heartIcon.src = '/static/images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
             });
         });
     });

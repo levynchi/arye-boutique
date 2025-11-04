@@ -1608,6 +1608,74 @@ ul {
     font-size: 18px;
 }
 
+/* Wishlist Styles */
+.product-heart-btn.active {
+    background-color: rgba(255, 255, 255, 1);
+}
+
+.wishlist-remove-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+}
+
+.wishlist-remove-btn:hover {
+    background-color: rgba(255, 77, 77, 1);
+    color: white;
+    transform: scale(1.1);
+}
+
+.wishlist-empty {
+    text-align: center;
+    padding: 80px 20px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.wishlist-empty-text {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 15px;
+}
+
+.wishlist-empty-subtext {
+    font-size: 16px;
+    color: var(--text-light);
+    margin: 0 0 30px;
+    line-height: 1.6;
+}
+
+.wishlist-empty-btn {
+    display: inline-block;
+    padding: 15px 40px;
+    background-color: #7594B1;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.wishlist-empty-btn:hover {
+    background-color: #5f7a93;
+}
+
 /* Responsive Design for Category Detail */
 @media (max-width: 1024px) {
     .products-gallery {
@@ -1700,9 +1768,9 @@ ul {
 }
 
 .contact-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 60px;
+    /* display: grid; */
+    /* grid-template-columns: 1fr 1fr; */
+    /* gap: 60px; */
     max-width: 1000px;
     margin: 0 auto;
 }
@@ -1752,6 +1820,14 @@ ul {
     color: #dc3545;
     font-size: 14px;
     margin-top: 5px;
+}
+
+.form-help-text {
+    display: block;
+    color: var(--text-light);
+    font-size: 13px;
+    margin-top: 5px;
+    line-height: 1.4;
 }
 
 /* Form Fields Container */
@@ -1867,5 +1943,123 @@ ul {
         font-size: 14px;
         margin-bottom: 30px;
     }
+}
+
+/* ==========================================================================
+   Authentication Pages (Register & Login)
+   ========================================================================== */
+
+/* Auth Form Wrapper - centered single column */
+.auth-form-wrapper {
+    max-width: 500px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Auth Link Text */
+.auth-link-text {
+    text-align: center;
+    margin-top: 20px;
+    color: var(--text-color);
+    font-size: 15px;
+}
+
+.auth-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.auth-link:hover {
+    color: var(--hover-color);
+    text-decoration: underline;
+}
+
+/* Messages Container */
+.messages-container {
+    max-width: 500px;
+    margin: 0 auto 30px;
+}
+
+.message {
+    padding: 12px 40px 12px 20px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.message-close {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+}
+
+.message-close:hover {
+    opacity: 1;
+}
+
+.message-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.message-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.message-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* Auth Success/Error Messages */
+.auth-success-message,
+.auth-error-message {
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.auth-success-message p,
+.auth-error-message p {
+    margin-bottom: 15px;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.auth-error-message {
+    color: #721c24;
 }
 

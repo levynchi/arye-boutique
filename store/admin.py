@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SiteSettings, Category, Subcategory, Product, ProductImage, Order, OrderItem, Cart, CartItem, ContactMessage
+from .models import SiteSettings, Category, Subcategory, Product, ProductImage, Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem
 
 
 @admin.register(SiteSettings)
@@ -262,5 +262,22 @@ class ContactMessageAdmin(admin.ModelAdmin):
         }),
         ('סטטוס', {
             'fields': ('is_read', 'created_at')
+        }),
+    )
+
+
+@admin.register(WishlistItem)
+class WishlistItemAdmin(admin.ModelAdmin):
+    """
+    ניהול פריטי רשימת משאלות
+    """
+    list_display = ['user', 'product', 'added_at']
+    list_filter = ['added_at']
+    search_fields = ['user__username', 'user__email', 'product__name']
+    readonly_fields = ['added_at']
+    
+    fieldsets = (
+        ('מידע', {
+            'fields': ('user', 'product', 'added_at')
         }),
     )

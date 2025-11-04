@@ -304,3 +304,31 @@ class ContactMessage(models.Model):
     
     def __str__(self):
         return f'{self.full_name} - {self.email} ({self.created_at.strftime("%d/%m/%Y")})'
+
+
+class WishlistItem(models.Model):
+    """
+    פריט ברשימת המשאלות של משתמש
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='wishlist_items',
+        verbose_name='משתמש'
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name='wishlisted_by',
+        verbose_name='מוצר'
+    )
+    added_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך הוספה')
+    
+    class Meta:
+        verbose_name = 'פריט ברשימת משאלות'
+        verbose_name_plural = 'פריטים ברשימת משאלות'
+        unique_together = ['user', 'product']
+        ordering = ['-added_at']
+    
+    def __str__(self):
+        return f'{self.user.username} - {self.product.name}'

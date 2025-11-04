@@ -1,7 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.db.models import Q
-from .models import Product, Category, Subcategory, SiteSettings, ProductImage, Cart, CartItem, ContactMessage
+from .models import Product, Category, Subcategory, SiteSettings, ProductImage, Cart, CartItem, ContactMessage, WishlistItem
 from .forms import ContactForm
 
 
@@ -174,6 +176,13 @@ def category_detail(request, slug):
         # ברירת מחדל - לפי תאריך יצירה
         products = products.order_by('-created_at')
     
+    # קבלת מוצרים ב-wishlist של המשתמש (אם מחובר)
+    wishlist_product_ids = []
+    if request.user.is_authenticated:
+        wishlist_product_ids = list(
+            WishlistItem.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    
     # קבלת קטגוריות לניווט
     categories = Category.objects.filter(is_active=True)[:4]
     
@@ -183,6 +192,7 @@ def category_detail(request, slug):
         'current_gender': gender_filter,
         'current_price_sort': price_sort,
         'categories': categories,
+        'wishlist_product_ids': wishlist_product_ids,
     }
     
     return render(request, 'store/category_detail.html', context)
@@ -212,3 +222,80 @@ def contact(request):
     }
     
     return render(request, 'store/contact.html', context)
+
+
+@login_required
+def wishlist_view(request):
+    """
+    דף רשימת המשאלות - הצגת כל המוצרים המועדפים
+    """
+    # קבלת פריטי Wishlist של המשתמש
+    wishlist_items = WishlistItem.objects.filter(user=request.user).select_related('product')
+    products = [item.product for item in wishlist_items]
+    
+    # קבלת קטגוריות לניווט
+    categories = Category.objects.filter(is_active=True)[:4]
+    
+    context = {
+        'products': products,
+        'wishlist_items': wishlist_items,
+        'categories': categories,
+    }
+    
+    return render(request, 'store/wishlist.html', context)
+
+
+@login_required
+def wishlist_toggle(request, product_id):
+    """
+    Toggle מוצר ב-Wishlist (הוספה/הסרה) - AJAX
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+    
+    product = get_object_or_404(Product, id=product_id, is_active=True)
+    
+    # בדיקה אם המוצר כבר ב-Wishlist
+    wishlist_item = WishlistItem.objects.filter(user=request.user, product=product).first()
+    
+    if wishlist_item:
+        # המוצר כבר קיים - נסיר אותו
+        wishlist_item.delete()
+        return JsonResponse({
+            'success': True,
+            'action': 'removed',
+            'message': f'המוצר "{product.name}" הוסר מרשימת המשאלות'
+        })
+    else:
+        # המוצר לא קיים - נוסיף אותו
+        WishlistItem.objects.create(user=request.user, product=product)
+        return JsonResponse({
+            'success': True,
+            'action': 'added',
+            'message': f'המוצר "{product.name}" נוסף לרשימת המשאלות'
+        })
+
+
+@login_required
+def wishlist_remove(request, product_id):
+    """
+    הסרת מוצר מ-Wishlist - AJAX
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+    
+    product = get_object_or_404(Product, id=product_id)
+    
+    # הסרת המוצר מ-Wishlist
+    deleted_count, _ = WishlistItem.objects.filter(user=request.user, product=product).delete()
+    
+    if deleted_count > 0:
+        return JsonResponse({
+            'success': True,
+            'message': f'המוצר "{product.name}" הוסר מרשימת המשאלות'
+        })
+    else:
+        return JsonResponse({
+            'success': False,
+            'error': 'המוצר לא נמצא ברשימת המשאלות'
+        }, status=404)

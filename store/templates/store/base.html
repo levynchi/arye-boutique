@@ -70,9 +70,9 @@
                             <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="Account" class="header-icon-svg">
                         </a>
                     {% endif %}
-                    <a href="#" class="icon-link cart-link">
+                    <a href="{% url 'cart' %}" class="icon-link cart-link">
                         <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_CART copy 2.svg' %}" alt="Cart" class="header-icon-svg">
-                        <span class="cart-count">0</span>
+                        <span class="cart-count" id="cart-count">{{ cart_count }}</span>
                     </a>
                 </div>
 

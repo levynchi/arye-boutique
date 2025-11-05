@@ -1,0 +1,101 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}עגלת קניות - בוטיק אריה{% endblock %}
+
+{% block content %}
+<div class="cart-page">
+    <div class="container">
+        <h1 class="page-title">עגלת קניות ({{ cart.total_items }})</h1>
+        
+        {% if cart_items %}
+        <div class="cart-content">
+            <!-- Cart Items Section -->
+            <div class="cart-items-section">
+                {% for item in cart_items %}
+                <div class="cart-item" data-item-id="{{ item.id }}">
+                    <button class="remove-item-btn" data-item-id="{{ item.id }}" title="הסר מוצר">
+                        ×
+                    </button>
+                    
+                    <div class="cart-item-image">
+                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                    </div>
+                    
+                    <div class="cart-item-details">
+                        <h3 class="cart-item-name">{{ item.product.name }}</h3>
+                        <p class="cart-item-description">{{ item.product.description|truncatewords:15 }}</p>
+                        <p class="cart-item-size">{{ item.product.size }}</p>
+                    </div>
+                    
+                    <div class="cart-item-quantity">
+                        <button class="quantity-btn quantity-decrease" data-item-id="{{ item.id }}">-</button>
+                        <input type="number" class="quantity-input" value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}" data-item-id="{{ item.id }}" readonly>
+                        <button class="quantity-btn quantity-increase" data-item-id="{{ item.id }}">+</button>
+                    </div>
+                    
+                    <div class="cart-item-price">
+                        <span class="item-subtotal" data-item-id="{{ item.id }}">{{ item.subtotal }} ₪</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Cart Summary Section -->
+            <div class="cart-summary">
+                <h2>סיכום ביניים</h2>
+                
+                <div class="summary-row">
+                    <span>סכום ביניים</span>
+                    <span class="cart-subtotal">{{ subtotal }} ₪</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>משלוח</span>
+                    <span class="shipping-fee">
+                        {% if subtotal >= 75 %}
+                            חינם
+                        {% else %}
+                            {{ shipping_fee }} ₪
+                        {% endif %}
+                    </span>
+                </div>
+                
+                {% if subtotal < 75 and subtotal > 0 %}
+                <div class="shipping-notice">
+                    <p>משלוח חינם מעל 75 ₪</p>
+                    <p class="remaining-amount">עוד {{ 75|add:"-"|add:subtotal|floatformat:2 }} ₪ למשלוח חינם</p>
+                </div>
+                {% endif %}
+                
+                <div class="summary-total">
+                    <span>סה״כ</span>
+                    <span class="cart-total">{{ total }} ₪</span>
+                </div>
+                
+                <a href="{% url 'checkout' %}" class="checkout-btn">לקופה</a>
+                
+                <a href="{% url 'home' %}" class="continue-shopping">המשך קניה</a>
+            </div>
+        </div>
+        
+        {% else %}
+        <div class="empty-cart">
+            <p>העגלה שלך ריקה</p>
+            <a href="{% url 'home' %}" class="btn-primary">המשך קניה</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- CSRF Token for AJAX requests -->
+<script>
+    const csrfToken = '{{ csrf_token }}';
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/cart.js' %}"></script>
+{% endblock %}
+
+

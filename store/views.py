@@ -3,8 +3,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q
-from .models import Product, Category, Subcategory, SiteSettings, ProductImage, Cart, CartItem, ContactMessage, WishlistItem
-from .forms import ContactForm
+from decimal import Decimal
+from .models import Product, Category, Subcategory, SiteSettings, ProductImage, Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem
+from .forms import ContactForm, CheckoutForm
 
 
 def home(request):
@@ -98,24 +99,7 @@ def add_to_cart(request, product_id):
         return redirect('product_detail', slug=product.slug)
     
     # קבלת או יצירת סל קניות
-    cart = None
-    if request.user.is_authenticated:
-        # משתמש מחובר - חיפוש או יצירת סל לפי משתמש
-        cart, created = Cart.objects.get_or_create(
-            user=request.user,
-            defaults={'session_key': ''}
-        )
-    else:
-        # משתמש לא מחובר - חיפוש או יצירת סל לפי session_key
-        session_key = request.session.session_key
-        if not session_key:
-            request.session.create()
-            session_key = request.session.session_key
-        
-        try:
-            cart = Cart.objects.get(session_key=session_key, user__isnull=True)
-        except Cart.DoesNotExist:
-            cart = Cart.objects.create(session_key=session_key, user=None)
+    cart = get_or_create_cart(request)
     
     # הוספה או עדכון פריט בסל
     cart_item, item_created = CartItem.objects.get_or_create(
@@ -299,3 +283,224 @@ def wishlist_remove(request, product_id):
             'success': False,
             'error': 'המוצר לא נמצא ברשימת המשאלות'
         }, status=404)
+
+
+def get_or_create_cart(request):
+    """
+    פונקציית עזר לקבלת או יצירת עגלת קניות
+    """
+    cart = None
+    if request.user.is_authenticated:
+        # משתמש מחובר - חיפוש או יצירת סל לפי משתמש
+        cart, created = Cart.objects.get_or_create(
+            user=request.user,
+            defaults={'session_key': ''}
+        )
+    else:
+        # משתמש לא מחובר - חיפוש או יצירת סל לפי session_key
+        session_key = request.session.session_key
+        if not session_key:
+            request.session.create()
+            session_key = request.session.session_key
+        
+        try:
+            cart = Cart.objects.get(session_key=session_key, user__isnull=True)
+        except Cart.DoesNotExist:
+            cart = Cart.objects.create(session_key=session_key, user=None)
+    
+    return cart
+
+
+def cart_view(request):
+    """
+    עמוד עגלת הקניות
+    """
+    cart = get_or_create_cart(request)
+    cart_items = cart.items.all().select_related('product')
+    
+    # חישוב סיכומים
+    subtotal = cart.total_price
+    shipping_fee = Decimal('0.00')
+    
+    # משלוח חינם מעל 75 ש"ח, אחרת 0 (או תעריף שתרצה)
+    if subtotal > 0 and subtotal < 75:
+        shipping_fee = Decimal('0.00')  # אפשר לשנות לתעריף משלוח
+    
+    total = subtotal + shipping_fee
+    
+    # קבלת קטגוריות לניווט
+    categories = Category.objects.filter(is_active=True)[:4]
+    
+    context = {
+        'cart': cart,
+        'cart_items': cart_items,
+        'subtotal': subtotal,
+        'shipping_fee': shipping_fee,
+        'total': total,
+        'categories': categories,
+    }
+    
+    return render(request, 'store/cart.html', context)
+
+
+def cart_update_quantity(request, item_id):
+    """
+    עדכון כמות פריט בעגלה - AJAX
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+    
+    cart = get_or_create_cart(request)
+    cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
+    
+    try:
+        new_quantity = int(request.POST.get('quantity', 1))
+    except (ValueError, TypeError):
+        return JsonResponse({'success': False, 'error': 'כמות לא תקינה'}, status=400)
+    
+    if new_quantity < 1:
+        return JsonResponse({'success': False, 'error': 'הכמות חייבת להיות לפחות 1'}, status=400)
+    
+    # בדיקת מלאי
+    if new_quantity > cart_item.product.stock_quantity:
+        return JsonResponse({
+            'success': False,
+            'error': f'הכמות המבוקשת גדולה מהמלאי הזמין ({cart_item.product.stock_quantity})'
+        }, status=400)
+    
+    # עדכון הכמות
+    cart_item.quantity = new_quantity
+    cart_item.save()
+    
+    # חישוב סיכומים מחדש
+    cart = get_or_create_cart(request)
+    subtotal = cart.total_price
+    shipping_fee = Decimal('0.00')
+    if subtotal > 0 and subtotal < 75:
+        shipping_fee = Decimal('0.00')
+    total = subtotal + shipping_fee
+    
+    return JsonResponse({
+        'success': True,
+        'item_subtotal': float(cart_item.subtotal),
+        'cart_subtotal': float(subtotal),
+        'shipping_fee': float(shipping_fee),
+        'cart_total': float(total),
+        'total_items': cart.total_items,
+    })
+
+
+def cart_remove_item(request, item_id):
+    """
+    הסרת פריט מהעגלה - AJAX
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+    
+    cart = get_or_create_cart(request)
+    cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
+    
+    product_name = cart_item.product.name
+    cart_item.delete()
+    
+    # חישוב סיכומים מחדש
+    cart = get_or_create_cart(request)
+    subtotal = cart.total_price
+    shipping_fee = Decimal('0.00')
+    if subtotal > 0 and subtotal < 75:
+        shipping_fee = Decimal('0.00')
+    total = subtotal + shipping_fee
+    
+    return JsonResponse({
+        'success': True,
+        'message': f'המוצר "{product_name}" הוסר מהעגלה',
+        'cart_subtotal': float(subtotal),
+        'shipping_fee': float(shipping_fee),
+        'cart_total': float(total),
+        'total_items': cart.total_items,
+    })
+
+
+def checkout(request):
+    """
+    עמוד ביצוע הזמנה
+    """
+    cart = get_or_create_cart(request)
+    cart_items = cart.items.all().select_related('product')
+    
+    # בדיקה שהעגלה לא ריקה
+    if not cart_items.exists():
+        messages.warning(request, 'העגלה שלך ריקה')
+        return redirect('cart')
+    
+    # חישוב סיכומים
+    subtotal = cart.total_price
+    shipping_fee = Decimal('0.00')
+    if subtotal > 0 and subtotal < 75:
+        shipping_fee = Decimal('0.00')
+    total = subtotal + shipping_fee
+    
+    if request.method == 'POST':
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            # יצירת הזמנה
+            order = Order.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                guest_name=form.cleaned_data['guest_name'],
+                guest_phone=form.cleaned_data['guest_phone'],
+                guest_email=form.cleaned_data['guest_email'],
+                guest_address=form.cleaned_data['guest_address'],
+                guest_city=form.cleaned_data['guest_city'],
+                notes=form.cleaned_data['notes'],
+                total_price=total,
+                status='pending'
+            )
+            
+            # יצירת פריטי הזמנה
+            for cart_item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=cart_item.product,
+                    quantity=cart_item.quantity,
+                    price=cart_item.product.price
+                )
+                
+                # עדכון מלאי
+                product = cart_item.product
+                product.stock_quantity -= cart_item.quantity
+                product.save()
+            
+            # ניקוי העגלה
+            cart_items.delete()
+            
+            messages.success(
+                request, 
+                f'ההזמנה שלך התקבלה בהצלחה! מספר הזמנה: {order.id}. נחזור אליך בהקדם.'
+            )
+            return redirect('home')
+        else:
+            messages.error(request, 'אנא תקן את השגיאות בטופס')
+    else:
+        # אם משתמש מחובר, מלא את הפרטים מראש
+        initial_data = {}
+        if request.user.is_authenticated:
+            initial_data = {
+                'guest_name': request.user.get_full_name() or request.user.username,
+                'guest_email': request.user.email,
+            }
+        form = CheckoutForm(initial=initial_data)
+    
+    # קבלת קטגוריות לניווט
+    categories = Category.objects.filter(is_active=True)[:4]
+    
+    context = {
+        'form': form,
+        'cart': cart,
+        'cart_items': cart_items,
+        'subtotal': subtotal,
+        'shipping_fee': shipping_fee,
+        'total': total,
+        'categories': categories,
+    }
+    
+    return render(request, 'store/checkout.html', context)

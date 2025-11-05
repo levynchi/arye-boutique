@@ -1,0 +1,126 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}ביצוע הזמנה - בוטיק אריה{% endblock %}
+
+{% block content %}
+<div class="checkout-page">
+    <div class="container">
+        <h1 class="page-title">ביצוע הזמנה</h1>
+        
+        <div class="checkout-content">
+            <!-- Checkout Form Section -->
+            <div class="checkout-form-section">
+                <h2>פרטי משלוח</h2>
+                
+                <form method="post" class="checkout-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        {{ form.guest_name.label_tag }}
+                        {{ form.guest_name }}
+                        {% if form.guest_name.errors %}
+                            <div class="form-error">{{ form.guest_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form.guest_phone.label_tag }}
+                            {{ form.guest_phone }}
+                            {% if form.guest_phone.errors %}
+                                <div class="form-error">{{ form.guest_phone.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.guest_email.label_tag }}
+                            {{ form.guest_email }}
+                            {% if form.guest_email.errors %}
+                                <div class="form-error">{{ form.guest_email.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.guest_address.label_tag }}
+                        {{ form.guest_address }}
+                        {% if form.guest_address.errors %}
+                            <div class="form-error">{{ form.guest_address.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.guest_city.label_tag }}
+                        {{ form.guest_city }}
+                        {% if form.guest_city.errors %}
+                            <div class="form-error">{{ form.guest_city.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.notes.label_tag }}
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="form-error">{{ form.notes.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="submit-order-btn">שלח הזמנה</button>
+                </form>
+            </div>
+            
+            <!-- Order Summary Section -->
+            <div class="order-summary">
+                <h2>סיכום הזמנה</h2>
+                
+                <div class="order-items">
+                    {% for item in cart_items %}
+                    <div class="order-item">
+                        <div class="order-item-image">
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                        </div>
+                        <div class="order-item-details">
+                            <h4>{{ item.product.name }}</h4>
+                            <p>כמות: {{ item.quantity }}</p>
+                        </div>
+                        <div class="order-item-price">
+                            {{ item.subtotal }} ₪
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="order-summary-totals">
+                    <div class="summary-row">
+                        <span>סכום ביניים</span>
+                        <span>{{ subtotal }} ₪</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span>משלוח</span>
+                        <span>
+                            {% if subtotal >= 75 %}
+                                חינם
+                            {% else %}
+                                {{ shipping_fee }} ₪
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="summary-total">
+                        <span>סה״כ</span>
+                        <span>{{ total }} ₪</span>
+                    </div>
+                </div>
+                
+                <div class="payment-notice">
+                    <p><strong>שימו לב:</strong> לאחר שליחת ההזמנה, נחזור אליכם עם פרטי תשלום.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

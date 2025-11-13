@@ -109,6 +109,13 @@
     <header class="main-header" role="banner">
         <div class="container">
             <div class="header-content">
+                <!-- Mobile Menu Toggle -->
+                <button type="button" class="menu-toggle" aria-label="פתח תפריט ניווט" data-menu-toggle>
+                    <span class="menu-toggle-bar"></span>
+                    <span class="menu-toggle-bar"></span>
+                    <span class="menu-toggle-bar"></span>
+                </button>
+
                 <!-- Header Icons -->
                 <div class="header-icons">
                     {% if user.is_authenticated %}
@@ -150,13 +157,6 @@
                         <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_SEARCH.svg' %}" alt="Search" class="search-icon-svg">
                     </button>
                 </div>
-
-                <!-- Search Icon (Mobile) -->
-                <div class="header-icon mobile-only">
-                    <a href="#" class="icon-link" aria-label="פתח חיפוש">
-                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Search" class="header-icon-svg">
-                    </a>
-                </div>
             </div>
         </div>
     </header>
@@ -164,7 +164,7 @@
     <!-- Navigation Menu -->
     <nav class="main-nav" aria-label="תפריט ראשי">
         <div class="container">
-            <ul class="nav-menu">
+            <ul class="nav-menu desktop-nav">
                 {% for category in categories %}
                 <li class="nav-item">
                     <a href="{% url 'category_detail' category.slug %}" class="nav-link">{{ category.name }}</a>
@@ -186,6 +186,29 @@
             </ul>
         </div>
     </nav>
+
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav-overlay" data-mobile-nav-overlay></div>
+    <aside class="mobile-nav-drawer" aria-hidden="true" aria-labelledby="mobile-nav-title" role="dialog" data-mobile-nav>
+        <div class="mobile-nav-header">
+            <h2 id="mobile-nav-title">תפריט</h2>
+            <button type="button" class="mobile-nav-close" aria-label="סגור תפריט" data-mobile-nav-close>&times;</button>
+        </div>
+        <nav class="mobile-nav-content" aria-label="תפריט ראשי נייד">
+            <ul class="nav-menu mobile-nav-menu">
+                {% for category in categories %}
+                <li class="nav-item">
+                    <a href="{% url 'category_detail' category.slug %}" class="nav-link" data-mobile-nav-link>{{ category.name }}</a>
+                </li>
+                {% empty %}
+                <li class="nav-item"><a href="#" class="nav-link" data-mobile-nav-link>חיתולי בד / טטרה</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-mobile-nav-link>לחדר השינה</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-mobile-nav-link">סינר פליטה לתינוק</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-mobile-nav-link">מגבות לתינוק</a></li>
+                {% endfor %}
+            </ul>
+        </nav>
+    </aside>
 
     <!-- Cart Sidebar -->
     <div id="cart-sidebar-overlay" class="cart-sidebar-overlay" aria-hidden="true"></div>
@@ -323,6 +346,9 @@
 
     <!-- Cart Sidebar JavaScript -->
     <script src="{% static 'js/cart-sidebar.js' %}"></script>
+
+    <!-- Mobile Navigation JavaScript -->
+    <script src="{% static 'js/mobile-nav.js' %}"></script>
     
     {% block extra_js %}{% endblock %}
     

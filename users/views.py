@@ -5,7 +5,8 @@ from django.contrib import messages
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
 from django.urls import reverse_lazy
-from .forms import RegisterForm, LoginForm, PasswordResetRequestForm, CustomSetPasswordForm
+from .forms import RegisterForm, LoginForm, PasswordResetRequestForm, CustomSetPasswordForm, ProfileEditForm
+from store.models import Order
 
 
 def register_view(request):
@@ -145,3 +146,29 @@ def password_reset_complete(request):
     דף אישור שהסיסמה שונתה בהצלחה
     """
     return render(request, 'users/password_reset_complete.html')
+
+
+@login_required
+def profile_view(request):
+    """
+    דף האזור האישי של המשתמש
+    מציג מידע אישי, טופס עריכה והיסטוריית הזמנות
+    """
+    if request.method == 'POST':
+        form = ProfileEditForm(request.POST, instance=request.user, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'הפרטים האישיים עודכנו בהצלחה!')
+            return redirect('users:profile')
+    else:
+        form = ProfileEditForm(instance=request.user, user=request.user)
+    
+    # שליפת כל ההזמנות של המשתמש עם הפריטים
+    orders = Order.objects.filter(user=request.user).prefetch_related('items__product').order_by('-created_at')
+    
+    context = {
+        'form': form,
+        'orders': orders,
+    }
+    
+    return render(request, 'users/profile.html', context)

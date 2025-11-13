@@ -19,44 +19,48 @@
 <section class="contact-section">
     <div class="container">
         <h1 class="contact-title">צור קשר</h1>
-        <p class="contact-intro">נשמח לעזור בכל שאלה ובכל פנייה מענה ינתן תוך 2 ימי עסקים מרגע שליחת ההודעה</p>
+        <p class="contact-intro">נשמח לעזור בכל שאלה ובכל פנייה<br>מענה ינתן תוך 2 ימי עסקים מרגע שליחת ההודעה</p>
         
         <div class="contact-content">
             <!-- Left: Contact Information (RTL) -->
             <div class="contact-info-wrapper">
-                <div class="contact-info-item">
-                    <p class="contact-info-text">
-                        שירות הלקוחות שלנו זמין באימייל או וואטסאפ.<br>
-                        ניתן להשאיר פניה ואנו נחזור בהקדם.
-                    </p>
-                    <img src="{% static 'images/WATSAPP WHITE.svg' %}" alt="WhatsApp" class="contact-icon">
+                <!-- Row 1: WhatsApp -->
+                <div class="contact-info-icon">
+                    <img src="{% static 'images/ARTBOARD_WATSAPP BLUE.svg' %}" alt="WhatsApp" style="width: 30px; height: 30px;">
                 </div>
+                <p class="contact-info-text">
+                    שירות הלקוחות שלנו זמין באימייל או וואטסאפ.<br>
+                    ניתן להשאיר פניה ואנו נחזור בהקדם.
+                </p>
                 
-                <div class="contact-info-item">
-                    <p class="contact-info-text">
-                        המייל שלנו : arye.boutique@gmail.com
-                    </p>
-                    <img src="{% static 'images/MAILL WHITE.svg' %}" alt="Email" class="contact-icon">
+                <!-- Row 2: Email -->
+                <div class="contact-info-icon">
+                    <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER-10.svg' %}" alt="Email" style="width: 30px; height: 30px;">
                 </div>
+                <p class="contact-info-text">
+                    המייל שלנו : arye.boutique@gmail.com
+                </p>
                 
-                <div class="contact-info-item">
-                    <p class="contact-info-text">
-                        כתובת המפעל רחוב הקישון 6 תל אביב
-                    </p>
-                </div>
+                <!-- Row 3: Address -->
+                <div></div>
+                <p class="contact-info-text">
+                    כתובת המפעל רחוב הקישון 6 תל אביב
+                </p>
                 
-                <div class="contact-info-item">
+                <!-- Row 4: Hours -->
+                <div></div>
+                <div>
                     <p class="contact-info-label">: שעות הפעילות</p>
                     <p class="contact-info-text">
                         ימים א' - ה' בין השעות 9:00 - 15:00
                     </p>
                 </div>
                 
-                <div class="contact-info-item">
-                    <p class="contact-info-text">
-                        אין אפשרות להגיע למקום לרכישת מוצרים. ניתן לבצע איסוף, החזרה או החלפה בתיאום מראש בלבד.
-                    </p>
-                </div>
+                <!-- Row 5: Pickup Note -->
+                <div></div>
+                <p class="contact-info-text">
+                    אין אפשרות להגיע למקום לרכישת מוצרים. ניתן לבצע איסוף, החזרה או החלפה בתיאום מראש בלבד.
+                </p>
             </div>
             
             <!-- Right: Contact Form (RTL) - will appear on left in RTL -->
@@ -67,6 +71,7 @@
                     <div class="form-fields-container">
                         <div class="form-fields-right">
                             <div class="form-group">
+                                {{ form.full_name.label_tag }}
                                 {{ form.full_name }}
                                 {% if form.full_name.errors %}
                                     <div class="form-error">{{ form.full_name.errors }}</div>
@@ -74,6 +79,7 @@
                             </div>
                             
                             <div class="form-group">
+                                {{ form.phone.label_tag }}
                                 {{ form.phone }}
                                 {% if form.phone.errors %}
                                     <div class="form-error">{{ form.phone.errors }}</div>
@@ -81,6 +87,7 @@
                             </div>
                             
                             <div class="form-group">
+                                {{ form.email.label_tag }}
                                 {{ form.email }}
                                 {% if form.email.errors %}
                                     <div class="form-error">{{ form.email.errors }}</div>
@@ -88,6 +95,7 @@
                             </div>
                             
                             <div class="form-group">
+                                {{ form.order_number.label_tag }}
                                 {{ form.order_number }}
                                 {% if form.order_number.errors %}
                                     <div class="form-error">{{ form.order_number.errors }}</div>
@@ -97,6 +105,7 @@
                         
                         <div class="form-fields-left">
                             <div class="form-group">
+                                {{ form.inquiry.label_tag }}
                                 {{ form.inquiry }}
                                 {% if form.inquiry.errors %}
                                     <div class="form-error">{{ form.inquiry.errors }}</div>

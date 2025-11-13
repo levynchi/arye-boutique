@@ -89,13 +89,21 @@ def add_to_cart(request, product_id):
     # קבלת הכמות מהטופס
     quantity = int(request.POST.get('quantity', 1))
     
+    # Check if this is an AJAX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
     if quantity < 1:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'הכמות חייבת להיות לפחות 1'})
         messages.error(request, 'הכמות חייבת להיות לפחות 1')
         return redirect('product_detail', slug=product.slug)
     
     # בדיקה אם המוצר במלאי
     if quantity > product.stock_quantity:
-        messages.error(request, f'הכמות המבוקשת גדולה מהמלאי הזמין ({product.stock_quantity})')
+        error_msg = f'הכמות המבוקשת גדולה מהמלאי הזמין ({product.stock_quantity})'
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': error_msg})
+        messages.error(request, error_msg)
         return redirect('product_detail', slug=product.slug)
     
     # קבלת או יצירת סל קניות
@@ -112,10 +120,21 @@ def add_to_cart(request, product_id):
         # הפריט כבר קיים בסל - עדכון הכמות
         new_quantity = cart_item.quantity + quantity
         if new_quantity > product.stock_quantity:
-            messages.error(request, f'הכמות הכוללת גדולה מהמלאי הזמין ({product.stock_quantity})')
+            error_msg = f'הכמות הכוללת גדולה מהמלאי הזמין ({product.stock_quantity})'
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': error_msg})
+            messages.error(request, error_msg)
             return redirect('product_detail', slug=product.slug)
         cart_item.quantity = new_quantity
         cart_item.save()
+    
+    # Success response
+    if is_ajax:
+        return JsonResponse({
+            'success': True,
+            'message': f'המוצר "{product.name}" נוסף לסל בהצלחה!',
+            'cart_count': cart.total_items
+        })
     
     messages.success(request, f'המוצר "{product.name}" נוסף לסל בהצלחה!')
     return redirect('product_detail', slug=product.slug)
@@ -206,6 +225,22 @@ def contact(request):
     }
     
     return render(request, 'store/contact.html', context)
+
+
+def accessibility_statement(request):
+    """
+    הצהרת נגישות ומידע אודות התאמות לבעלי מוגבלויות
+    """
+    categories = Category.objects.filter(is_active=True)[:4]
+
+    context = {
+        'categories': categories,
+        'accessibility_officer_name': 'ליאור לוי',
+        'accessibility_officer_phone': '052-8086466',
+        'accessibility_officer_email': 'arye.boutique@gmail.com',
+    }
+
+    return render(request, 'store/accessibility.html', context)
 
 
 @login_required
@@ -504,3 +539,47 @@ def checkout(request):
     }
     
     return render(request, 'store/checkout.html', context)
+
+
+def cart_data(request):
+    """
+    API endpoint להחזרת נתוני העגלה בפורמט JSON
+    """
+    cart = get_or_create_cart(request)
+    cart_items = cart.items.all().select_related('product')
+    
+    # חישוב סיכומים
+    subtotal = cart.total_price
+    shipping_fee = Decimal('0.00')
+    
+    # משלוח חינם מעל 75 ש"ח
+    if subtotal > 0 and subtotal < 75:
+        shipping_fee = Decimal('0.00')
+    
+    total = subtotal + shipping_fee
+    
+    # הכנת נתוני הפריטים
+    items_data = []
+    for item in cart_items:
+        items_data.append({
+            'id': item.id,
+            'product_id': item.product.id,
+            'product_name': item.product.name,
+            'product_image': item.product.image.url if item.product.image else '',
+            'product_price': float(item.product.price),
+            'product_size': item.product.size or '',
+            'quantity': item.quantity,
+            'max_quantity': item.product.stock_quantity,
+            'subtotal': float(item.subtotal),
+        })
+    
+    return JsonResponse({
+        'success': True,
+        'items': items_data,
+        'subtotal': float(subtotal),
+        'shipping_fee': float(shipping_fee),
+        'total': float(total),
+        'total_items': cart.total_items,
+        'free_shipping_threshold': 75,
+        'remaining_for_free_shipping': float(max(0, 75 - subtotal)),
+    })

@@ -149,3 +149,83 @@ class CustomSetPasswordForm(SetPasswordForm):
         self.fields['new_password1'].help_text = None
         self.fields['new_password2'].help_text = None
 
+
+class ProfileEditForm(forms.ModelForm):
+    """
+    טופס עריכת פרטים אישיים של משתמש
+    """
+    first_name = forms.CharField(
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'שם פרטי',
+        }),
+        label='שם פרטי'
+    )
+    
+    last_name = forms.CharField(
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'שם משפחה',
+        }),
+        label='שם משפחה'
+    )
+    
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'כתובת מייל',
+        }),
+        label='כתובת מייל*'
+    )
+    
+    phone_number = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'מספר טלפון',
+        }),
+        label='מספר טלפון'
+    )
+    
+    address = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'כתובת',
+        }),
+        label='כתובת'
+    )
+    
+    city = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'עיר',
+        }),
+        label='עיר'
+    )
+    
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'address', 'city']
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+    
+    def clean_email(self):
+        """
+        בדיקה שהמייל לא קיים כבר במערכת (אלא אם זה המייל של המשתמש הנוכחי)
+        """
+        email = self.cleaned_data.get('email')
+        if self.user and CustomUser.objects.filter(email=email).exclude(id=self.user.id).exists():
+            raise forms.ValidationError('כתובת המייל הזו כבר רשומה במערכת.')
+        return email

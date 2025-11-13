@@ -22,11 +22,11 @@
         <h1 class="category-title">רשימת המשאלות שלי</h1>
         
         {% if messages %}
-            <div class="messages-container">
+            <div class="messages-container" role="status" aria-live="polite" aria-atomic="true">
                 {% for message in messages %}
                     <div class="message message-{{ message.tags }}">
                         {{ message }}
-                        <button type="button" class="message-close">&times;</button>
+                        <button type="button" class="message-close" aria-label="סגור הודעה">&times;</button>
                     </div>
                 {% endfor %}
             </div>

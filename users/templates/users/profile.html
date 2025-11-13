@@ -1,0 +1,420 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}האזור האישי שלי - בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">האזור האישי שלי</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Profile Section -->
+<section class="contact-section profile-section">
+    <div class="container">
+        <h1 class="contact-title">האזור האישי שלי</h1>
+        
+        <div class="profile-content">
+            <!-- Personal Details Section -->
+            <div class="profile-info-section">
+                <h2 class="profile-section-title">הפרטים האישיים שלי</h2>
+                
+                <div class="auth-form-wrapper">
+                    <form method="POST" class="contact-form auth-form">
+                        {% csrf_token %}
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                {{ form.first_name.label_tag }}
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="form-error">{{ form.first_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                {{ form.last_name.label_tag }}
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="form-error">{{ form.last_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.email.label_tag }}
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="form-error">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.phone_number.label_tag }}
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                                <div class="form-error">{{ form.phone_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.address.label_tag }}
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <div class="form-error">{{ form.address.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.city.label_tag }}
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                                <div class="form-error">{{ form.city.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                            <div class="form-error">{{ form.non_field_errors }}</div>
+                        {% endif %}
+                        
+                        <div class="profile-actions">
+                            <button type="submit" class="contact-submit-btn">שמור שינויים</button>
+                            <a href="{% url 'users:logout' %}" class="logout-btn">התנתק</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Order History Section -->
+            <div class="profile-orders-section">
+                <h2 class="profile-section-title">היסטוריית הזמנות</h2>
+                
+                {% if orders %}
+                    <div class="orders-list">
+                        {% for order in orders %}
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div class="order-info">
+                                    <h3 class="order-number">הזמנה #{{ order.id }}</h3>
+                                    <p class="order-date">{{ order.created_at|date:"d/m/Y H:i" }}</p>
+                                </div>
+                                <div class="order-status-wrapper">
+                                    <span class="order-status order-status-{{ order.status }}">
+                                        {% if order.status == 'pending' %}ממתין
+                                        {% elif order.status == 'confirmed' %}אושר
+                                        {% elif order.status == 'shipped' %}נשלח
+                                        {% elif order.status == 'delivered' %}נמסר
+                                        {% elif order.status == 'cancelled' %}בוטל
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="order-items">
+                                <h4 class="order-items-title">מוצרים בהזמנה:</h4>
+                                <div class="order-items-list">
+                                    {% for item in order.items.all %}
+                                    <div class="order-item">
+                                        {% if item.product.image %}
+                                        <div class="order-item-image">
+                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                        </div>
+                                        {% endif %}
+                                        <div class="order-item-details">
+                                            <p class="order-item-name">{{ item.product.name }}</p>
+                                            <p class="order-item-quantity">כמות: {{ item.quantity }}</p>
+                                            <p class="order-item-price">{{ item.price }} ₪</p>
+                                        </div>
+                                        <div class="order-item-subtotal">
+                                            <p>{{ item.subtotal }} ₪</p>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="order-footer">
+                                <div class="order-total">
+                                    <span class="order-total-label">סה"כ:</span>
+                                    <span class="order-total-amount">{{ order.total_price }} ₪</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-orders">
+                        <p>עדיין לא ביצעת הזמנות.</p>
+                        <a href="{% url 'home' %}" class="contact-submit-btn">התחל לקנות!</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Profile Specific Styles */
+.profile-section {
+    padding: 40px 0 60px;
+}
+
+.profile-content {
+    display: grid;
+    gap: 40px;
+}
+
+.profile-info-section,
+.profile-orders-section {
+    background: var(--white);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.profile-section-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.logout-btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background-color: #e74c3c;
+    color: var(--white);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    text-align: center;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Orders List Styles */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.order-card {
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: var(--white);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.order-number {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 5px;
+}
+
+.order-date {
+    font-size: 14px;
+    color: var(--text-light);
+}
+
+.order-status {
+    display: inline-block;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.order-status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.order-status-confirmed {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.order-status-shipped {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.order-status-delivered {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.order-status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.order-items {
+    padding: 20px;
+}
+
+.order-items-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 15px;
+}
+
+.order-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: var(--white);
+    border-radius: 5px;
+}
+
+.order-item-image {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.order-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.order-item-details {
+    flex: 1;
+}
+
+.order-item-name {
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 5px;
+}
+
+.order-item-quantity,
+.order-item-price {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 3px;
+}
+
+.order-item-subtotal {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 16px;
+}
+
+.order-footer {
+    padding: 20px;
+    background: var(--white);
+    border-top: 1px solid var(--border-color);
+}
+
+.order-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-total-label {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.order-total-amount {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.no-orders {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.no-orders p {
+    font-size: 18px;
+    color: var(--text-light);
+    margin-bottom: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-actions {
+        flex-direction: column;
+    }
+    
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .order-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .order-item-image {
+        margin: 0 auto;
+    }
+}
+</style>
+{% endblock %}
+

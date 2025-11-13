@@ -21,7 +21,7 @@
         <h1 class="contact-title">יצירת משתמש</h1>
         
         {% if messages %}
-            <div class="messages-container">
+            <div class="messages-container" role="status" aria-live="polite" aria-atomic="true">
                 {% for message in messages %}
                     <div class="message message-{{ message.tags }}">
                         {{ message }}
@@ -37,6 +37,7 @@
                     {% csrf_token %}
                     
                     <div class="form-group">
+                        {{ form.first_name.label_tag }}
                         {{ form.first_name }}
                         {% if form.first_name.errors %}
                             <div class="form-error">{{ form.first_name.errors }}</div>
@@ -44,6 +45,7 @@
                     </div>
                     
                     <div class="form-group">
+                        {{ form.last_name.label_tag }}
                         {{ form.last_name }}
                         {% if form.last_name.errors %}
                             <div class="form-error">{{ form.last_name.errors }}</div>
@@ -51,6 +53,7 @@
                     </div>
                     
                     <div class="form-group">
+                        {{ form.email.label_tag }}
                         {{ form.email }}
                         {% if form.email.errors %}
                             <div class="form-error">{{ form.email.errors }}</div>
@@ -58,6 +61,7 @@
                     </div>
                     
                     <div class="form-group">
+                        {{ form.password1.label_tag }}
                         {{ form.password1 }}
                         {% if form.password1.help_text %}
                             <small class="form-help-text">{{ form.password1.help_text }}</small>
@@ -68,6 +72,7 @@
                     </div>
                     
                     <div class="form-group">
+                        {{ form.password2.label_tag }}
                         {{ form.password2 }}
                         {% if form.password2.errors %}
                             <div class="form-error">{{ form.password2.errors }}</div>

@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/opendyslexic">
     
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,6 +21,64 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <a class="skip-link" href="#main-content">דלג לתוכן הראשי</a>
+    <div class="accessibility-toolbar" id="accessibility-toolbar">
+        <button type="button" class="accessibility-toggle" id="accessibility-toggle" aria-expanded="false" aria-controls="accessibility-panel">
+            <span aria-hidden="true">♿</span>
+            <span class="visually-hidden">פתח תפריט נגישות</span>
+        </button>
+        <div class="accessibility-panel" id="accessibility-panel" hidden role="region" aria-labelledby="accessibility-panel-title">
+            <h2 class="accessibility-panel-title" id="accessibility-panel-title">תפריט נגישות</h2>
+            <p class="accessibility-panel-description">בחרו את ההתאמה המתאימה לכם</p>
+            <div class="accessibility-controls">
+                <button type="button" class="accessibility-control" data-action="increase-font">
+                    טקסט גדול יותר
+                </button>
+                <button type="button" class="accessibility-control" data-action="decrease-font">
+                    טקסט קטן יותר
+                </button>
+                <button type="button" class="accessibility-control" data-action="reset-font">
+                    אפס גודל טקסט
+                </button>
+                <button type="button" class="accessibility-control" data-action="toggle-contrast" aria-pressed="false">
+                    + ניגודיות
+                </button>
+                <button type="button" class="accessibility-control" data-action="toggle-links" aria-pressed="false">
+                    הדגשת קישורים
+                </button>
+                <button type="button" class="accessibility-control" data-action="toggle-text-spacing" aria-pressed="false">
+                    ריווח טקסט
+                </button>
+                <button type="button" class="accessibility-control" data-action="toggle-line-height" aria-pressed="false">
+                    גובה שורה
+                </button>
+                <button type="button" class="accessibility-control" data-action="toggle-text-align" aria-pressed="false">
+                    יישור טקסט
+                </button>
+                <button type="button" class="accessibility-control" data-action="toggle-dyslexia-font" aria-pressed="false">
+                    תמיכה בדיסלקסיה
+                </button>
+                <button type="button" class="accessibility-control" data-action="toggle-big-cursor" aria-pressed="false">
+                    סמן בולט
+                </button>
+                <button type="button" class="accessibility-control" data-action="toggle-tooltips" aria-pressed="false">
+                    תיאורי כלי
+                </button>
+                <button type="button" class="accessibility-control" data-action="toggle-reduce-motion" aria-pressed="false">
+                    ביטול הנפשות
+                </button>
+                <button type="button" class="accessibility-control" data-action="toggle-hide-images" aria-pressed="false">
+                    הסתרת תמונות
+                </button>
+                <button type="button" class="accessibility-control" data-action="toggle-low-saturation" aria-pressed="false">
+                    הפחתת צבע
+                </button>
+                <button type="button" class="accessibility-control" data-action="reset-settings">
+                    איפוס כל ההגדרות
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- Top Bar -->
     <div class="top-bar">
         <div class="container">
@@ -47,33 +106,33 @@
     </div>
 
     <!-- Main Header -->
-    <header class="main-header">
+    <header class="main-header" role="banner">
         <div class="container">
             <div class="header-content">
                 <!-- Header Icons -->
                 <div class="header-icons">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'wishlist' %}" class="icon-link" title="רשימת המשאלות">
+                        <a href="{% url 'wishlist' %}" class="icon-link" title="רשימת המשאלות" aria-label="פתח רשימת משאלות">
                             <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg">
                         </a>
                     {% else %}
-                        <a href="{% url 'users:login' %}?next=/wishlist/" class="icon-link" title="רשימת המשאלות">
+                        <a href="{% url 'users:login' %}?next=/wishlist/" class="icon-link" title="רשימת המשאלות" aria-label="פתח רשימת משאלות">
                             <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg">
                         </a>
                     {% endif %}
                     {% if user.is_authenticated %}
-                        <a href="{% url 'users:logout' %}" class="icon-link" title="התנתק">
+                        <a href="{% url 'users:profile' %}" class="icon-link" title="אזור אישי" aria-label="כניסה לאזור האישי">
                             <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="Account" class="header-icon-svg">
                         </a>
                     {% else %}
-                        <a href="{% url 'users:login' %}" class="icon-link" title="התחבר">
+                        <a href="{% url 'users:login' %}" class="icon-link" title="התחבר" aria-label="התחברות למערכת">
                             <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="Account" class="header-icon-svg">
                         </a>
                     {% endif %}
-                    <a href="{% url 'cart' %}" class="icon-link cart-link">
+                    <button type="button" id="cart-trigger" class="icon-link cart-link" aria-haspopup="dialog" aria-expanded="false" aria-controls="cart-sidebar" aria-label="פתח עגלת הקניות">
                         <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_CART copy 2.svg' %}" alt="Cart" class="header-icon-svg">
                         <span class="cart-count" id="cart-count">{{ cart_count }}</span>
-                    </a>
+                    </button>
                 </div>
 
                 <!-- Logo -->
@@ -85,15 +144,16 @@
 
                 <!-- Search Box -->
                 <div class="search-box desktop-only">
-                    <input type="text" class="search-input" placeholder="חיפוש...">
-                    <button type="submit" class="search-button">
+                    <label for="header-search" class="visually-hidden">חיפוש מוצרים</label>
+                    <input type="text" id="header-search" class="search-input" placeholder="חיפוש..." name="q">
+                    <button type="submit" class="search-button" aria-label="בצע חיפוש">
                         <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_SEARCH.svg' %}" alt="Search" class="search-icon-svg">
                     </button>
                 </div>
 
                 <!-- Search Icon (Mobile) -->
                 <div class="header-icon mobile-only">
-                    <a href="#" class="icon-link">
+                    <a href="#" class="icon-link" aria-label="פתח חיפוש">
                         <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Search" class="header-icon-svg">
                     </a>
                 </div>
@@ -102,7 +162,7 @@
     </header>
 
     <!-- Navigation Menu -->
-    <nav class="main-nav">
+    <nav class="main-nav" aria-label="תפריט ראשי">
         <div class="container">
             <ul class="nav-menu">
                 {% for category in categories %}
@@ -127,15 +187,62 @@
         </div>
     </nav>
 
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar-overlay" class="cart-sidebar-overlay" aria-hidden="true"></div>
+    <div id="cart-sidebar" class="cart-sidebar" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="cart-sidebar-title" tabindex="-1">
+        <div class="cart-sidebar-header">
+            <h2 id="cart-sidebar-title">עגלת קניות (<span id="sidebar-cart-count">0</span>)</h2>
+            <button id="cart-sidebar-close" class="cart-sidebar-close" aria-label="סגור עגלת הקניות">&times;</button>
+        </div>
+        
+        <div class="cart-sidebar-content">
+            <div id="cart-sidebar-items" class="cart-sidebar-items" role="list">
+                <!-- Cart items will be loaded here dynamically -->
+            </div>
+        </div>
+        
+        <div class="cart-sidebar-footer">
+            <div class="cart-sidebar-summary">
+                <div class="summary-row">
+                    <span>סכום ביניים</span>
+                    <span id="sidebar-subtotal">0 ₪</span>
+                </div>
+                
+                <div class="summary-row shipping-row">
+                    <span>משלוח</span>
+                    <span id="sidebar-shipping">חינם</span>
+                </div>
+                
+                <div id="sidebar-shipping-notice" class="shipping-notice" style="display: none;">
+                    <p>משלוח חינם מעל 75 ₪</p>
+                    <p class="remaining-amount">עוד <span id="sidebar-remaining">0</span> ₪ למשלוח חינם</p>
+                </div>
+                
+                <div class="summary-total">
+                    <span>סה״כ</span>
+                    <span id="sidebar-total">0 ₪</span>
+                </div>
+            </div>
+            
+            <a href="{% url 'checkout' %}" class="sidebar-checkout-btn">לקופה</a>
+            <button id="sidebar-continue-shopping" class="sidebar-continue-btn">המשך קניה</button>
+        </div>
+        
+        <div id="cart-sidebar-empty" class="cart-sidebar-empty" style="display: none;">
+            <p>העגלה שלך ריקה</p>
+            <button class="sidebar-continue-btn">המשך קניה</button>
+        </div>
+    </div>
+
     <!-- Main Content -->
-    <main class="main-content">
+    <main class="main-content" id="main-content" tabindex="-1">
         <!-- Messages -->
         {% if messages %}
-        <div class="messages-container">
+        <div class="messages-container" role="status" aria-live="polite" aria-atomic="true">
             {% for message in messages %}
             <div class="message message-{{ message.tags }}">
                 {{ message }}
-                <button type="button" class="message-close">&times;</button>
+                <button type="button" class="message-close" aria-label="סגור הודעה">&times;</button>
             </div>
             {% endfor %}
         </div>
@@ -181,6 +288,7 @@
                             <li><a href="#">שאלות ותשובות</a></li>
                             <li><a href="#">משלוחים והחזרות</a></li>
                             <li><a href="#">תנאי האתר</a></li>
+                            <li><a href="{% url 'accessibility_statement' %}">הצהרת נגישות</a></li>
                         </ul>
                     </div>
                 </div>
@@ -210,6 +318,12 @@
         </div>
     </footer>
 
+    <!-- Accessibility Toolbar JavaScript -->
+    <script src="{% static 'js/accessibility-toolbar.js' %}"></script>
+
+    <!-- Cart Sidebar JavaScript -->
+    <script src="{% static 'js/cart-sidebar.js' %}"></script>
+    
     {% block extra_js %}{% endblock %}
     
     <!-- Messages Close Functionality -->

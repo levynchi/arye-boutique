@@ -208,6 +208,41 @@
                 }, 300);
             }, 5000);
         });
+        
+        // Handle add to cart form with AJAX
+        const addToCartForm = document.querySelector('.add-to-cart-form');
+        if (addToCartForm) {
+            addToCartForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const actionUrl = this.getAttribute('action');
+                
+                fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Open cart sidebar
+                        if (typeof window.openCartSidebar === 'function') {
+                            window.openCartSidebar();
+                        }
+                    } else {
+                        // Show error message
+                        alert(data.error || 'אירעה שגיאה בהוספת המוצר לעגלה');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('אירעה שגיאה בהוספת המוצר לעגלה');
+                });
+            });
+        }
     });
 </script>
 {% endblock %}

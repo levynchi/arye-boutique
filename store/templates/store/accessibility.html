@@ -1,0 +1,83 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}הצהרת נגישות - בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav" aria-label="אתם נמצאים כאן">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">הצהרת נגישות</span>
+        </nav>
+    </div>
+</section>
+
+<section class="accessibility-statement-section">
+    <div class="container">
+        <h1 class="accessibility-title">הצהרת נגישות</h1>
+        <p class="accessibility-intro">
+            אתר בוטיק אריה מחויב להנגשת שירותיו הדיגיטליים לכלל הציבור, ובהם אנשים עם מוגבלות. ההנגשה בוצעה בהתאם לתקן ישראלי 5568 המתבסס על WCAG 2.0 ברמה AA.
+        </p>
+
+        <div class="accessibility-card">
+            <h2>אודות ההתאמות באתר</h2>
+            <ul class="accessibility-list">
+                <li>מבנה אתר סמנטי הכולל כותרות, אזורי ניווט וניווט מקלדת מלא.</li>
+                <li>קישורי "דלג לתוכן הראשי" והתאמות לשימוש בעזרי נגישות.</li>
+                <li>תיאורי alt לתמונות ותיאורי aria לרכיבים אינטראקטיביים.</li>
+                <li>תמיכה מלאה בשימוש במקלדת, לרבות מוקדי פוקוס בולטים.</li>
+                <li>תפריט נגישות ייעודי (עיגון ♿) המאפשר הגדלת טקסט, ניגודיות גבוהה והדגשת קישורים.</li>
+                <li>הודעות מערכת מונגשות עם aria-live, לצד טפסים עם תוויות ברורות והודעות שגיאה.</li>
+            </ul>
+        </div>
+
+        <div class="accessibility-card">
+            <h2>עמידה בדרישות התקן</h2>
+            <p>
+                האתר פותח בהתאם להנחיות ה-W3C Web Content Accessibility Guidelines (WCAG) 2.0 ברמה AA, ובכפוף להוראות תקן ישראלי 5568. בדיקות הנגישות בוצעו באמצעות:
+            </p>
+            <ul class="accessibility-list">
+                <li>כלי בדיקה אוטומטיים (Lighthouse, WAVE).</li>
+                <li>בדיקות ידניות באמצעות מקלדת.</li>
+                <li>בדיקה עם קורא מסך NVDA.</li>
+            </ul>
+        </div>
+
+        <div class="accessibility-card">
+            <h2>סיוע באנוש</h2>
+            <p>
+                אם נתקלתם בקושי בשימוש באתר או קיימת בעיה נגישותית, נשמח לסייע. תוכלו לפנות אלינו באחת מהדרכים הבאות:
+            </p>
+            <ul class="accessibility-contact">
+                <li><strong>אחראי נגישות:</strong> {{ accessibility_officer_name }}</li>
+                <li><strong>טלפון ישיר:</strong> <a href="tel:{{ accessibility_officer_phone }}">{{ accessibility_officer_phone }}</a></li>
+                <li><strong>דוא״ל:</strong> <a href="mailto:{{ accessibility_officer_email }}">{{ accessibility_officer_email }}</a></li>
+                <li><strong>טופס מקוון:</strong> <a href="{% url 'contact' %}">צור קשר באתר</a></li>
+            </ul>
+            <p>אנו מתחייבים לטפל בפניות נגישות תוך 7 ימי עסקים לכל היותר.</p>
+        </div>
+
+        <div class="accessibility-card">
+            <h2>מצבים הנמצאים בתהליך</h2>
+            <p>
+                אנו ממשיכים לפתח ולשפר את ההנגשה באתר. ייתכנו עמודים או רכיבים שטרם הותאמו באופן מלא. נשמח לקבל מכם משוב שיסייע לנו להשתפר.
+            </p>
+            <ul class="accessibility-list">
+                <li>תכני וידאו עתידיים ילוו בכתוביות ותמלול.</li>
+                <li>מספר מסמכים להורדה עשויים שלא להיות מונגשים במלואם; ניתן לפנות לקבלת גרסה נגישה.</li>
+            </ul>
+        </div>
+
+        <div class="accessibility-card">
+            <h2>עדכון ההצהרה</h2>
+            <p>
+                הצהרה זו עודכנה לאחרונה בתאריך {% now "d.m.Y" %}. נמשיך לעדכן אותה כחלק מהתחייבותנו לשיפור מתמיד.
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

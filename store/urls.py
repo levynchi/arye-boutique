@@ -8,12 +8,14 @@ urlpatterns = [
     
     # Cart URLs
     path('cart/', views.cart_view, name='cart'),
+    path('cart/data/', views.cart_data, name='cart_data'),
     path('cart/add/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
     path('cart/update/<int:item_id>/', views.cart_update_quantity, name='cart_update_quantity'),
     path('cart/remove/<int:item_id>/', views.cart_remove_item, name='cart_remove_item'),
     path('checkout/', views.checkout, name='checkout'),
     
     path('contact/', views.contact, name='contact'),
+    path('accessibility/', views.accessibility_statement, name='accessibility_statement'),
     
     # Wishlist URLs
     path('wishlist/', views.wishlist_view, name='wishlist'),

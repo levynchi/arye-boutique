@@ -981,11 +981,14 @@ ul {
         gap: 8px;
     }
     
-    .welcome-text,
-    .social-links {
+    .welcome-text {
         width: 100%;
         text-align: center;
         justify-content: center;
+    }
+    
+    .social-links {
+        display: none;
     }
     
     .desktop-only {
@@ -998,7 +1001,7 @@ ul {
     
     .header-content {
         padding: 10px 0;
-        grid-template-columns: auto 1fr auto;
+        grid-template-columns: 1fr auto 1fr;
         grid-template-areas: "menu logo icons";
         column-gap: 16px;
     }
@@ -1129,10 +1132,6 @@ ul {
     
     .top-bar-content {
         padding: 3px 0;
-    }
-    
-    .social-links {
-        gap: 30px;
     }
     
     .social-link {

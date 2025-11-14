@@ -14,26 +14,8 @@ def home(request):
     """
     featured_products = Product.objects.filter(is_active=True, is_featured=True)[:8]
     
-    # Fetch specific categories in the desired order
-    category_names = [
-        'חיתולי בד / טטרה',
-        'לחדר השינה',
-        'מגבות לתינוק',
-        'סינרי פליטה לתינוק'
-    ]
-    
-    # Get categories by name, preserving order
-    categories = []
-    for name in category_names:
-        try:
-            category = Category.objects.get(name=name, is_active=True)
-            categories.append(category)
-        except Category.DoesNotExist:
-            continue
-    
-    # If specific categories don't exist, fallback to all active categories
-    if not categories:
-        categories = list(Category.objects.filter(is_active=True)[:4])
+    # Fetch all active categories for navigation and gallery
+    categories = Category.objects.filter(is_active=True)
     
     site_settings = SiteSettings.get_settings()
     
@@ -65,7 +47,7 @@ def product_detail(request, slug):
         primary_image = product.image
     
     # קבלת קטגוריות לניווט
-    categories = Category.objects.filter(is_active=True)[:4]
+    categories = Category.objects.filter(is_active=True)
     
     context = {
         'product': product,
@@ -187,7 +169,7 @@ def category_detail(request, slug):
         )
     
     # קבלת קטגוריות לניווט
-    categories = Category.objects.filter(is_active=True)[:4]
+    categories = Category.objects.filter(is_active=True)
     
     context = {
         'category': category,
@@ -206,7 +188,7 @@ def contact(request):
     דף צור קשר
     """
     # קבלת קטגוריות לניווט
-    categories = Category.objects.filter(is_active=True)[:4]
+    categories = Category.objects.filter(is_active=True)
     
     if request.method == 'POST':
         form = ContactForm(request.POST)
@@ -231,7 +213,7 @@ def accessibility_statement(request):
     """
     הצהרת נגישות ומידע אודות התאמות לבעלי מוגבלויות
     """
-    categories = Category.objects.filter(is_active=True)[:4]
+    categories = Category.objects.filter(is_active=True)
 
     context = {
         'categories': categories,
@@ -253,7 +235,7 @@ def wishlist_view(request):
     products = [item.product for item in wishlist_items]
     
     # קבלת קטגוריות לניווט
-    categories = Category.objects.filter(is_active=True)[:4]
+    categories = Category.objects.filter(is_active=True)
     
     context = {
         'products': products,
@@ -364,7 +346,7 @@ def cart_view(request):
     total = subtotal + shipping_fee
     
     # קבלת קטגוריות לניווט
-    categories = Category.objects.filter(is_active=True)[:4]
+    categories = Category.objects.filter(is_active=True)
     
     context = {
         'cart': cart,
@@ -526,7 +508,7 @@ def checkout(request):
         form = CheckoutForm(initial=initial_data)
     
     # קבלת קטגוריות לניווט
-    categories = Category.objects.filter(is_active=True)[:4]
+    categories = Category.objects.filter(is_active=True)
     
     context = {
         'form': form,

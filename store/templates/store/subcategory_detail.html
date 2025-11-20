@@ -1,7 +1,7 @@
 {% extends 'store/base.html' %}
 {% load static %}
 
-{% block title %}{{ category.name }} - בוטיק אריה{% endblock %}
+{% block title %}{{ subcategory.name }} - {{ category.name }} - בוטיק אריה{% endblock %}
 
 {% block content %}
 <!-- Breadcrumb Navigation -->
@@ -10,46 +10,22 @@
         <nav class="breadcrumb-nav">
             <a href="{% url 'home' %}">דף הבית</a>
             <span class="breadcrumb-separator">></span>
-            <span class="breadcrumb-current">קטגוריה</span>
+            <a href="{% url 'category_detail' category.slug %}">{{ category.name }}</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">{{ subcategory.name }}</span>
         </nav>
     </div>
 </section>
 
-<!-- Category Detail Section -->
+<!-- Subcategory Detail Section -->
 <section class="category-detail-section">
     <div class="container">
-        <!-- Category Title -->
-        <h1 class="category-title">{{ category.name }}</h1>
+        <!-- Subcategory Title -->
+        <h1 class="category-title">{{ subcategory.name }}</h1>
         
-        {% if has_subcategories %}
-        <!-- Subcategories Gallery -->
-        <div class="products-gallery">
-            {% for subcategory in subcategories %}
-            <a href="{% url 'subcategory_detail' category.slug subcategory.slug %}" class="product-card subcategory-card">
-                <div class="product-image-wrapper">
-                    <!-- Subcategory Image -->
-                    {% if subcategory.image %}
-                        <img src="{{ subcategory.image.url }}" alt="{{ subcategory.name }}" class="product-card-image">
-                    {% else %}
-                        <div class="product-card-placeholder">אין תמונה</div>
-                    {% endif %}
-                </div>
-                
-                <div class="product-card-info">
-                    <p class="product-card-name">{{ subcategory.name }}</p>
-                </div>
-            </a>
-            {% empty %}
-            <div class="no-products">
-                <p>לא נמצאו תת-קטגוריות</p>
-            </div>
-            {% endfor %}
-        </div>
-        
-        {% else %}
         <!-- Filters Section -->
         <div class="category-filters">
-            <form method="GET" action="{% url 'category_detail' category.slug %}" class="filter-form" id="filter-form">
+            <form method="GET" action="{% url 'subcategory_detail' category.slug subcategory.slug %}" class="filter-form" id="filter-form">
                 {% csrf_token %}
                 <div class="filter-group">
                     <label for="price-filter" class="filter-label">מחיר</label>
@@ -96,9 +72,6 @@
                     </div>
                     
                     <div class="product-card-info">
-                        {% if product.subcategory %}
-                            <p class="product-card-subcategory">{{ product.subcategory.name }}</p>
-                        {% endif %}
                         <p class="product-card-name">{{ product.name }}</p>
                         <p class="product-card-price">{{ product.price }} ש"ח</p>
                     </div>
@@ -106,11 +79,10 @@
             </div>
             {% empty %}
             <div class="no-products">
-                <p>לא נמצאו מוצרים בקטגוריה זו</p>
+                <p>לא נמצאו מוצרים בתת-קטגוריה זו</p>
             </div>
             {% endfor %}
         </div>
-        {% endif %}
     </div>
 </section>
 {% endblock %}
@@ -180,4 +152,8 @@
     });
 </script>
 {% endblock %}
+
+
+
+
 

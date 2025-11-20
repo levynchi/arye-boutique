@@ -1,5 +1,15 @@
 from django.contrib import admin
-from .models import SiteSettings, Category, Subcategory, Product, ProductImage, Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem
+from django.urls import path, reverse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.utils.html import format_html
+from .models import (
+    SiteSettings, Category, Subcategory, Product, ProductImage, 
+    Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
+    BelowBestsellersGallery, Testimonial, InstagramGallery,
+    Size, SizeGroup, FabricType, ProductVariant
+)
+from .forms import BulkVariantCreationForm, ProductAdminForm
 
 
 @admin.register(SiteSettings)
@@ -28,6 +38,34 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         """מגביל יצירה - רק אם אין כרטיס קיים"""
         return not SiteSettings.objects.exists()
+
+
+@admin.register(BelowBestsellersGallery)
+class BelowBestsellersGalleryAdmin(admin.ModelAdmin):
+    """
+    ניהול גלריה מתחת להכי נמכרים
+    """
+    list_display = ['__str__', 'is_active', 'has_images']
+    list_editable = ['is_active']
+    
+    fieldsets = (
+        ('תמונות', {
+            'fields': ('right_image', 'left_image')
+        }),
+        ('הגדרות', {
+            'fields': ('is_active',)
+        }),
+    )
+    
+    def has_images(self, obj):
+        """בדיקה אם יש תמונות"""
+        return bool(obj.right_image and obj.left_image)
+    has_images.short_description = 'יש תמונות'
+    has_images.boolean = True
+    
+    def has_add_permission(self, request):
+        """מגביל יצירה - רק אם אין רשומה קיימת"""
+        return not BelowBestsellersGallery.objects.exists()
 
 
 class SubcategoryInline(admin.TabularInline):
@@ -102,7 +140,15 @@ class OrderItemInline(admin.TabularInline):
     """
     model = OrderItem
     extra = 0
-    readonly_fields = ['subtotal']
+    readonly_fields = ['subtotal', 'get_warehouse_location']
+    fields = ['product', 'variant', 'quantity', 'price', 'subtotal', 'get_warehouse_location']
+    
+    def get_warehouse_location(self, obj):
+        """הצגת מיקום תא במחסן למלקט"""
+        if obj.variant and obj.variant.warehouse_location:
+            return f'📦 {obj.variant.warehouse_location}'
+        return '-'
+    get_warehouse_location.short_description = 'מיקום במחסן'
 
 
 class ProductImageInline(admin.TabularInline):
@@ -114,37 +160,222 @@ class ProductImageInline(admin.TabularInline):
     fields = ('image', 'is_primary', 'order')
 
 
+class ProductVariantInline(admin.TabularInline):
+    """
+    הצגת וריאנטים (בד + מידה) בתוך המוצר
+    """
+    model = ProductVariant
+    extra = 0
+    can_delete = True
+    show_change_link = False
+    fields = ('fabric_type', 'size', 'is_available', 'warehouse_location')
+    ordering = ['fabric_type__order', 'size__order']
+    
+    def get_readonly_fields(self, request, obj=None):
+        """
+        הגדרת שדות לקריאה בלבד
+        בווריאנטים קיימים - לא ניתן לשנות בד או מידה (ללא X ועיפרון)
+        """
+        return []
+    
+    def get_formset(self, request, obj=None, **kwargs):
+        """
+        התאמת formset - ווריאנטים קיימים לא יאפשרו עריכת בד ומידה
+        ווריאנטים חדשים - יהיה אייקון + להוספת בד/מידה חדשה
+        """
+        formset = super().get_formset(request, obj, **kwargs)
+        original_form = formset.form
+        
+        class VariantFormReadonly(original_form):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                
+                # רק אם זה ווריאנט קיים ממש (יש instance עם pk)
+                # לא נגע ב-empty form template
+                if self.instance and self.instance.pk:
+                    # הפיכת הבד והמידה ל-readonly
+                    self.fields['fabric_type'].disabled = True
+                    self.fields['size'].disabled = True
+                    # הסרת כל האייקונים (X, עיפרון, +, 👁️)
+                    if hasattr(self.fields['fabric_type'], 'widget') and hasattr(self.fields['fabric_type'].widget, 'can_add_related'):
+                        self.fields['fabric_type'].widget.can_add_related = False
+                        self.fields['fabric_type'].widget.can_change_related = False
+                        self.fields['fabric_type'].widget.can_delete_related = False
+                        self.fields['fabric_type'].widget.can_view_related = False
+                    if hasattr(self.fields['size'], 'widget') and hasattr(self.fields['size'].widget, 'can_add_related'):
+                        self.fields['size'].widget.can_add_related = False
+                        self.fields['size'].widget.can_change_related = False
+                        self.fields['size'].widget.can_delete_related = False
+                        self.fields['size'].widget.can_view_related = False
+                else:
+                    # זה שורה חדשה או empty template - נשאיר את האייקונים ברירת מחדל של Django
+                    # רק נסיר את X ו-✏️, נשאיר ➕ ו-👁️
+                    if hasattr(self.fields['fabric_type'], 'widget') and hasattr(self.fields['fabric_type'].widget, 'can_add_related'):
+                        self.fields['fabric_type'].widget.can_add_related = True
+                        self.fields['fabric_type'].widget.can_change_related = False
+                        self.fields['fabric_type'].widget.can_delete_related = False
+                        self.fields['fabric_type'].widget.can_view_related = True
+                    if hasattr(self.fields['size'], 'widget') and hasattr(self.fields['size'].widget, 'can_add_related'):
+                        self.fields['size'].widget.can_add_related = True
+                        self.fields['size'].widget.can_change_related = False
+                        self.fields['size'].widget.can_delete_related = False
+                        self.fields['size'].widget.can_view_related = True
+        
+        formset.form = VariantFormReadonly
+        return formset
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """סינון בדים ומידות פעילים בלבד"""
+        if db_field.name == "fabric_type":
+            kwargs["queryset"] = FabricType.objects.filter(is_active=True)
+        elif db_field.name == "size":
+            kwargs["queryset"] = Size.objects.filter(is_active=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     """
     ניהול מוצרים
     """
-    list_display = ['name', 'category', 'subcategory', 'gender', 'price', 'stock_quantity', 'is_active', 'is_featured', 'created_at']
-    list_filter = ['category', 'subcategory', 'is_active', 'is_featured', 'created_at']
+    list_display = ['name', 'category', 'subcategory', 'gender', 'price', 'stock_quantity', 'is_active', 'is_featured', 'is_bestseller', 'created_at']
+    list_filter = ['category', 'subcategory', 'is_active', 'is_featured', 'is_bestseller', 'created_at']
     search_fields = ['name', 'description']
     prepopulated_fields = {'slug': ('name',)}
-    list_editable = ['price', 'stock_quantity', 'is_active', 'is_featured']
-    readonly_fields = ['created_at', 'updated_at']
-    inlines = [ProductImageInline]
+    list_editable = ['price', 'stock_quantity', 'is_active', 'is_featured', 'is_bestseller']
+    readonly_fields = ['created_at', 'updated_at', 'variant_creation_button']
+    inlines = [ProductImageInline, ProductVariantInline]
+    
+    class Media:
+        js = ('admin/js/product_variants.js',)
     
     fieldsets = (
         ('מידע בסיסי', {
-            'fields': ('name', 'slug', 'category', 'subcategory', 'description', 'size', 'gender')
+            'fields': ('name', 'slug', 'category', 'subcategory', 'description', 'gender'),
+            'description': 'מידע כללי על המוצר'
+        }),
+        ('גודל ישן (Deprecated)', {
+            'fields': ('size',),
+            'classes': ('collapse',),
+            'description': 'שדה זה נשמר לתאימות אחורית. השתמש בוריאנטים למטה'
         }),
         ('מחיר ומלאי', {
-            'fields': ('price', 'stock_quantity')
+            'fields': ('price', 'stock_quantity'),
+            'description': 'מחיר ומלאי כללי של המוצר (לא תלוי בוריאנט)'
         }),
         ('תמונה ראשית', {
             'fields': ('image',)
         }),
         ('הגדרות', {
-            'fields': ('is_active', 'is_featured')
+            'fields': ('is_active', 'is_featured', 'is_bestseller')
+        }),
+        ('יצירת וריאנטים', {
+            'fields': ('variant_creation_button',),
+            'description': 'צור וריאנטים למוצר בצורה אוטומטית'
         }),
         ('תאריכים', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
+    
+    def variant_creation_button(self, obj):
+        """כפתור ליצירת וריאנטים - עובד גם בלי שמירה"""
+        # בדיקה אם המוצר באמת נשמר במסד הנתונים
+        if obj and obj.pk and not obj._state.adding:
+            # אם המוצר כבר נשמר - קישור ישיר
+            url = reverse('admin:create_product_variants', args=[obj.pk])
+            return format_html(
+                '<a class="button" href="{}" style="padding: 10px 15px; background-color: #417690; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">➕ צור וריאנטים אוטומטית</a>',
+                url
+            )
+        else:
+            # אם זה מוצר חדש - כפתור שישמור ויעביר
+            return format_html(
+                '<button type="button" id="create-variants-btn" class="button" style="padding: 10px 15px; background-color: #417690; color: white; border: none; border-radius: 4px; cursor: pointer; display: inline-block;">➕ צור וריאנטים אוטומטית</button>'
+                '<p style="color: #666; font-size: 12px; margin-top: 5px;">המוצר יישמר אוטומטית</p>'
+            )
+    variant_creation_button.short_description = 'יצירת וריאנטים'
+    
+    def response_add(self, request, obj, post_url_continue=None):
+        """תגובה מותאמת לאחר הוספת מוצר"""
+        if '_continue_to_variants' in request.POST:
+            # הפניה לדף יצירת וריאנטים
+            return redirect('admin:create_product_variants', product_id=obj.pk)
+        return super().response_add(request, obj, post_url_continue)
+    
+    def response_change(self, request, obj):
+        """תגובה מותאמת לאחר עריכת מוצר"""
+        if '_continue_to_variants' in request.POST:
+            # הפניה לדף יצירת וריאנטים
+            return redirect('admin:create_product_variants', product_id=obj.pk)
+        return super().response_change(request, obj)
+    
+    def get_urls(self):
+        """הוספת URL מותאם ליצירת וריאנטים"""
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                '<int:product_id>/create-variants/',
+                self.admin_site.admin_view(self.create_variants_view),
+                name='create_product_variants',
+            ),
+        ]
+        return custom_urls + urls
+    
+    def create_variants_view(self, request, product_id):
+        """View ליצירת וריאנטים אוטומטית"""
+        product = get_object_or_404(Product, pk=product_id)
+        
+        if request.method == 'POST':
+            form = BulkVariantCreationForm(request.POST)
+            if form.is_valid():
+                sizes_list = form.get_sizes_list()
+                fabric_types = form.cleaned_data['fabric_types']
+                
+                created_count = 0
+                skipped_count = 0
+                
+                # יצירת וריאנטים עבור כל שילוב של בד + מידה
+                for fabric in fabric_types:
+                    for size in sizes_list:
+                        # בדיקה אם הוריאנט כבר קיים
+                        variant, created = ProductVariant.objects.get_or_create(
+                            product=product,
+                            fabric_type=fabric,
+                            size=size,
+                            defaults={
+                                'is_available': True,
+                                'warehouse_location': ''
+                            }
+                        )
+                        
+                        if created:
+                            created_count += 1
+                        else:
+                            skipped_count += 1
+                
+                messages.success(
+                    request,
+                    f'נוצרו {created_count} וריאנטים חדשים. '
+                    f'{skipped_count} וריאנטים כבר היו קיימים.'
+                )
+                
+                # חזרה לעמוד עריכת המוצר
+                return redirect('admin:store_product_change', product_id)
+        else:
+            form = BulkVariantCreationForm()
+        
+        context = {
+            'form': form,
+            'product': product,
+            'title': f'יצירת וריאנטים - {product.name}',
+            'site_title': 'ניהול אתר',
+            'site_header': 'ניהול אתר',
+            'has_permission': True,
+        }
+        
+        return render(request, 'admin/store/create_variants.html', context)
 
 
 @admin.register(Order)
@@ -214,10 +445,24 @@ class OrderItemAdmin(admin.ModelAdmin):
     """
     ניהול פריטי הזמנה
     """
-    list_display = ['order', 'product', 'quantity', 'price', 'subtotal']
+    list_display = ['order', 'product', 'get_variant_display', 'quantity', 'price', 'get_warehouse_location', 'subtotal']
     list_filter = ['order__status', 'order__created_at']
     search_fields = ['product__name', 'order__id']
     readonly_fields = ['subtotal']
+    
+    def get_variant_display(self, obj):
+        """הצגת פרטי הוריאנט"""
+        if obj.variant:
+            return obj.variant.get_display_name()
+        return '-'
+    get_variant_display.short_description = 'וריאנט'
+    
+    def get_warehouse_location(self, obj):
+        """הצגת מיקום תא במחסן למלקט"""
+        if obj.variant and obj.variant.warehouse_location:
+            return f'📦 {obj.variant.warehouse_location}'
+        return '-'
+    get_warehouse_location.short_description = 'מיקום במחסן'
 
 
 @admin.register(CartItem)
@@ -281,3 +526,161 @@ class WishlistItemAdmin(admin.ModelAdmin):
             'fields': ('user', 'product', 'added_at')
         }),
     )
+
+
+@admin.register(Testimonial)
+class TestimonialAdmin(admin.ModelAdmin):
+    """
+    ניהול המלצות לקוחות
+    """
+    list_display = ['author', 'quote_preview', 'order', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['author', 'quote']
+    list_editable = ['order', 'is_active']
+    readonly_fields = ['created_at']
+    
+    fieldsets = (
+        ('תוכן ההמלצה', {
+            'fields': ('quote', 'author')
+        }),
+        ('הגדרות', {
+            'fields': ('order', 'is_active', 'created_at')
+        }),
+    )
+    
+    def quote_preview(self, obj):
+        """תצוגה מקוצרת של הציטוט"""
+        return obj.quote[:50] + '...' if len(obj.quote) > 50 else obj.quote
+    quote_preview.short_description = 'ציטוט'
+
+
+@admin.register(InstagramGallery)
+class InstagramGalleryAdmin(admin.ModelAdmin):
+    """
+    ניהול גלריית אינסטגרם
+    """
+    list_display = ['__str__', 'instagram_url', 'is_active', 'has_images']
+    list_editable = ['is_active']
+    
+    fieldsets = (
+        ('תמונות', {
+            'fields': ('image_1', 'image_2', 'image_3')
+        }),
+        ('קישור', {
+            'fields': ('instagram_url',)
+        }),
+        ('הגדרות', {
+            'fields': ('is_active',)
+        }),
+    )
+    
+    def has_images(self, obj):
+        """בדיקה אם יש תמונות"""
+        return bool(obj.image_1 and obj.image_2 and obj.image_3)
+    has_images.short_description = 'יש תמונות'
+    has_images.boolean = True
+    
+    def has_add_permission(self, request):
+        """מגביל יצירה - רק אם אין רשומה קיימת"""
+        return not InstagramGallery.objects.exists()
+
+
+@admin.register(Size)
+class SizeAdmin(admin.ModelAdmin):
+    """
+    ניהול מידות
+    """
+    list_display = ['name', 'display_name', 'order', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['name', 'display_name']
+    list_editable = ['order', 'is_active']
+    ordering = ['order', 'name']
+    
+    fieldsets = (
+        ('מידע מידה', {
+            'fields': ('name', 'display_name', 'order', 'is_active')
+        }),
+    )
+
+
+@admin.register(SizeGroup)
+class SizeGroupAdmin(admin.ModelAdmin):
+    """
+    ניהול קבוצות מידות
+    """
+    list_display = ['name', 'get_sizes_count', 'get_sizes_preview', 'order', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['name']
+    list_editable = ['order', 'is_active']
+    filter_horizontal = ['sizes']
+    ordering = ['order', 'name']
+    
+    fieldsets = (
+        ('מידע קבוצה', {
+            'fields': ('name', 'order', 'is_active')
+        }),
+        ('מידות בקבוצה', {
+            'fields': ('sizes',),
+            'description': 'בחר את המידות שישתייכו לקבוצה זו'
+        }),
+    )
+    
+    def get_sizes_count(self, obj):
+        """החזרת מספר המידות בקבוצה"""
+        return obj.sizes.count()
+    get_sizes_count.short_description = 'מספר מידות'
+    
+    def get_sizes_preview(self, obj):
+        """תצוגה מקוצרת של המידות"""
+        sizes = list(obj.sizes.all()[:5])
+        preview = ', '.join([s.name for s in sizes])
+        if obj.sizes.count() > 5:
+            preview += '...'
+        return preview
+    get_sizes_preview.short_description = 'מידות'
+
+
+@admin.register(FabricType)
+class FabricTypeAdmin(admin.ModelAdmin):
+    """
+    ניהול סוגי בד גלובליים
+    """
+    list_display = ['name', 'order', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['name']
+    list_editable = ['order', 'is_active']
+    ordering = ['order', 'name']
+    
+    fieldsets = (
+        ('מידע בד', {
+            'fields': ('name', 'order', 'is_active')
+        }),
+    )
+
+
+@admin.register(ProductVariant)
+class ProductVariantAdmin(admin.ModelAdmin):
+    """
+    ניהול וריאנטים של מוצרים
+    """
+    list_display = ['product', 'fabric_type', 'size', 'is_available', 'warehouse_location']
+    list_filter = ['is_available', 'product', 'fabric_type']
+    search_fields = ['product__name', 'fabric_type__name', 'size', 'warehouse_location']
+    list_editable = ['is_available', 'warehouse_location']
+    
+    fieldsets = (
+        ('פרטי וריאנט', {
+            'fields': ('product', 'fabric_type', 'size')
+        }),
+        ('זמינות ומיקום', {
+            'fields': ('is_available', 'warehouse_location'),
+            'description': 'מיקום תא במחסן למלקט (למשל: A12, B05, C23)'
+        }),
+    )
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """סינון סוגי הבד לפי המוצר שנבחר"""
+        if db_field.name == "fabric_type":
+            # כאן נוכל להוסיף לוגיקה מתקדמת יותר אם נדרש
+            pass
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)

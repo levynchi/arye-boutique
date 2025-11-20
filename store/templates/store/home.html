@@ -99,5 +99,244 @@
         </div>
     </div>
 </section>
+
+<!-- Bestseller Products Section -->
+{% if bestseller_products %}
+<section class="bestsellers-section">
+    <div class="container">
+        <h2 class="bestsellers-title">הכי נמכרים שלנו</h2>
+        
+        <div class="products-gallery">
+            {% for product in bestseller_products %}
+            <div class="product-card">
+                <!-- Heart Icon -->
+                <button type="button" class="product-heart-btn {% if product.id in wishlist_product_ids %}active{% endif %}" data-product-id="{{ product.id }}" aria-label="הוסף לרשימת משאלות">
+                    {% if product.id in wishlist_product_ids %}
+                        <img src="{% static 'images/hert icon fill.svg' %}" alt="לב" class="product-heart-icon">
+                    {% else %}
+                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="לב" class="product-heart-icon">
+                    {% endif %}
+                </button>
+                
+                <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
+                    <div class="product-image-wrapper">
+                        <!-- Product Image -->
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-image">
+                        {% else %}
+                            <div class="product-card-placeholder">אין תמונה</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="product-card-info">
+                        {% if product.subcategory %}
+                            <p class="product-card-subcategory">{{ product.subcategory.name }}</p>
+                        {% endif %}
+                        <p class="product-card-name">{{ product.name }}</p>
+                        <p class="product-card-price">{{ product.price }} ש"ח</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Gallery Below Bestsellers Section -->
+{% if below_bestsellers_gallery and below_bestsellers_gallery.right_image and below_bestsellers_gallery.left_image %}
+<section class="below-bestsellers-gallery">
+    <div class="gallery-images">
+        <div class="gallery-image-wrapper">
+            <img src="{{ below_bestsellers_gallery.right_image.url }}" alt="תמונה ימנית" class="gallery-image">
+        </div>
+        <div class="gallery-image-wrapper">
+            <img src="{{ below_bestsellers_gallery.left_image.url }}" alt="תמונה שמאלית" class="gallery-image">
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Testimonials Carousel Section -->
+{% if testimonials %}
+<section class="testimonials-section">
+    <div class="container">
+        <h2 class="testimonials-title">מילים טובות</h2>
+        
+        <div class="testimonials-carousel">
+            <button class="carousel-arrow carousel-arrow-prev" aria-label="המלצה קודמת">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            
+            <div class="testimonials-wrapper">
+                <div class="testimonials-track">
+                    {% for testimonial in testimonials %}
+                    <div class="testimonial-slide {% if forloop.first %}active{% endif %}">
+                        <blockquote class="testimonial-quote">
+                            <p class="testimonial-text">"{{ testimonial.quote }}"</p>
+                            <footer class="testimonial-author">{{ testimonial.author }}</footer>
+                        </blockquote>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <button class="carousel-arrow carousel-arrow-next" aria-label="המלצה הבאה">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Instagram Gallery Section -->
+{% if instagram_gallery %}
+<section class="instagram-gallery-section">
+    <div class="container">
+        <h2 class="instagram-gallery-title">חפשו אותנו באינסטגרם</h2>
+        
+        <div class="instagram-gallery-grid">
+            <a href="{{ instagram_gallery.instagram_url }}" target="_blank" rel="noopener noreferrer" class="instagram-gallery-item">
+                <img src="{{ instagram_gallery.image_1.url }}" alt="Instagram 1" class="instagram-gallery-image">
+            </a>
+            <a href="{{ instagram_gallery.instagram_url }}" target="_blank" rel="noopener noreferrer" class="instagram-gallery-item">
+                <img src="{{ instagram_gallery.image_2.url }}" alt="Instagram 2" class="instagram-gallery-image">
+            </a>
+            <a href="{{ instagram_gallery.instagram_url }}" target="_blank" rel="noopener noreferrer" class="instagram-gallery-item">
+                <img src="{{ instagram_gallery.image_3.url }}" alt="Instagram 3" class="instagram-gallery-image">
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Heart button click handler - Wishlist toggle
+        const heartButtons = document.querySelectorAll('.product-heart-btn');
+        heartButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                {% if not user.is_authenticated %}
+                    // Redirect to login if not authenticated
+                    window.location.href = '/users/login/?next={{ request.path }}';
+                    return;
+                {% endif %}
+                
+                const productId = this.getAttribute('data-product-id');
+                const heartIcon = this.querySelector('.product-heart-icon');
+                
+                // Get CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                  document.querySelector('[name="csrfmiddlewaretoken"]')?.value ||
+                                  '{{ csrf_token }}';
+                
+                if (!csrfToken) {
+                    console.error('CSRF token not found');
+                    return;
+                }
+                
+                // Send AJAX request
+                fetch(`/wishlist/toggle/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Toggle heart button state and image
+                        const heartIcon = this.querySelector('.product-heart-icon');
+                        if (data.action === 'added') {
+                            this.classList.add('active');
+                            heartIcon.src = '/static/images/hert icon fill.svg';
+                        } else {
+                            this.classList.remove('active');
+                            heartIcon.src = '/static/images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+        
+        // Testimonials Carousel functionality
+        const carousel = document.querySelector('.testimonials-carousel');
+        if (carousel) {
+            const track = carousel.querySelector('.testimonials-track');
+            const slides = carousel.querySelectorAll('.testimonial-slide');
+            const prevButton = carousel.querySelector('.carousel-arrow-prev');
+            const nextButton = carousel.querySelector('.carousel-arrow-next');
+            
+            if (slides.length > 0) {
+                let currentIndex = 0;
+                let autoplayInterval;
+                
+                function showSlide(index) {
+                    slides.forEach((slide, i) => {
+                        slide.classList.remove('active');
+                        if (i === index) {
+                            slide.classList.add('active');
+                        }
+                    });
+                }
+                
+                function nextSlide() {
+                    currentIndex = (currentIndex + 1) % slides.length;
+                    showSlide(currentIndex);
+                }
+                
+                function prevSlide() {
+                    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+                    showSlide(currentIndex);
+                }
+                
+                function startAutoplay() {
+                    autoplayInterval = setInterval(nextSlide, 5000); // Change every 5 seconds
+                }
+                
+                function stopAutoplay() {
+                    clearInterval(autoplayInterval);
+                }
+                
+                // Event listeners for arrows
+                if (nextButton) {
+                    nextButton.addEventListener('click', () => {
+                        nextSlide();
+                        stopAutoplay();
+                        startAutoplay(); // Restart autoplay after manual navigation
+                    });
+                }
+                
+                if (prevButton) {
+                    prevButton.addEventListener('click', () => {
+                        prevSlide();
+                        stopAutoplay();
+                        startAutoplay(); // Restart autoplay after manual navigation
+                    });
+                }
+                
+                // Pause autoplay on hover
+                carousel.addEventListener('mouseenter', stopAutoplay);
+                carousel.addEventListener('mouseleave', startAutoplay);
+                
+                // Start autoplay
+                startAutoplay();
+            }
+        }
+    });
+</script>
 {% endblock %}
 

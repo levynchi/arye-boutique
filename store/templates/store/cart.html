@@ -25,7 +25,11 @@
                     <div class="cart-item-details">
                         <h3 class="cart-item-name">{{ item.product.name }}</h3>
                         <p class="cart-item-description">{{ item.product.description|truncatewords:15 }}</p>
+                        {% if item.variant %}
+                        <p class="cart-item-variant">{{ item.variant.get_display_name }}</p>
+                        {% elif item.product.size %}
                         <p class="cart-item-size">{{ item.product.size }}</p>
+                        {% endif %}
                     </div>
                     
                     <div class="cart-item-quantity">

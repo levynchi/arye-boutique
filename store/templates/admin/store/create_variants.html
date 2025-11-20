@@ -1,0 +1,183 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .variant-form {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background: #fff;
+        border-radius: 4px;
+    }
+    .form-row {
+        margin-bottom: 20px;
+    }
+    .form-row label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .radio-group, .checkbox-group {
+        padding: 10px;
+        background: #f8f8f8;
+        border-radius: 4px;
+    }
+    .radio-group label, .checkbox-group label {
+        font-weight: normal;
+        display: inline-block;
+        margin-left: 10px;
+    }
+    .helptext {
+        display: block;
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+    }
+    .submit-row {
+        padding: 10px 0;
+        text-align: left;
+    }
+    .btn-primary {
+        background-color: #417690;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .btn-primary:hover {
+        background-color: #205067;
+    }
+    .errorlist {
+        color: #ba2121;
+        margin: 5px 0;
+        padding: 0;
+        list-style: none;
+    }
+    .size-group-section, .sizes-section {
+        display: none;
+    }
+    .size-group-section.active, .sizes-section.active {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="variant-form">
+    <h1>יצירת וריאנטים עבור: {{ product.name }}</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="messagelist {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <form method="post" id="variant-form">
+        {% csrf_token %}
+        
+        <div class="form-row">
+            <label>{{ form.choice_type.label }}</label>
+            <div class="radio-group">
+                {{ form.choice_type }}
+            </div>
+            {% if form.choice_type.errors %}
+                <ul class="errorlist">
+                    {% for error in form.choice_type.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-row sizes-section" id="sizes-section">
+            <label>{{ form.sizes.label }}</label>
+            <div class="checkbox-group">
+                {{ form.sizes }}
+            </div>
+            <span class="helptext">{{ form.sizes.help_text }}</span>
+            {% if form.sizes.errors %}
+                <ul class="errorlist">
+                    {% for error in form.sizes.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-row size-group-section" id="size-group-section">
+            <label>{{ form.size_group.label }}</label>
+            {{ form.size_group }}
+            <span class="helptext">{{ form.size_group.help_text }}</span>
+            {% if form.size_group.errors %}
+                <ul class="errorlist">
+                    {% for error in form.size_group.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-row">
+            <label>{{ form.fabric_types.label }}</label>
+            <div class="checkbox-group">
+                {{ form.fabric_types }}
+            </div>
+            <span class="helptext">{{ form.fabric_types.help_text }}</span>
+            {% if form.fabric_types.errors %}
+                <ul class="errorlist">
+                    {% for error in form.fabric_types.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        {% if form.non_field_errors %}
+            <ul class="errorlist">
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        
+        <div class="submit-row">
+            <button type="submit" class="btn-primary">צור וריאנטים</button>
+            <a href="{% url 'admin:store_product_change' product.id %}" style="margin-right: 10px;">ביטול</a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const choiceTypeInputs = document.querySelectorAll('input[name="choice_type"]');
+    const sizesSection = document.getElementById('sizes-section');
+    const sizeGroupSection = document.getElementById('size-group-section');
+    
+    function updateSections() {
+        const selectedType = document.querySelector('input[name="choice_type"]:checked').value;
+        
+        if (selectedType === 'single') {
+            sizesSection.classList.add('active');
+            sizeGroupSection.classList.remove('active');
+        } else {
+            sizesSection.classList.remove('active');
+            sizeGroupSection.classList.add('active');
+        }
+    }
+    
+    choiceTypeInputs.forEach(function(input) {
+        input.addEventListener('change', updateSections);
+    });
+    
+    // Initialize on load
+    updateSections();
+});
+</script>
+{% endblock %}
+

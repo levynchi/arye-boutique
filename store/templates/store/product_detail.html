@@ -64,10 +64,36 @@
                     <p>{{ product.description }}</p>
                 </div>
                 
-                {% if product.size %}
+                {% if product.size and not has_variants %}
                 <div class="product-size">
                     <span class="size-label">גודל:</span>
                     <span class="size-value">{{ product.size }}</span>
+                </div>
+                {% endif %}
+                
+                {% if has_variants %}
+                <!-- Variant Selection -->
+                <div class="variant-selection">
+                    <!-- Fabric Type Selection -->
+                    <div class="fabric-selection">
+                        <label class="selection-label">בחר סוג בד:</label>
+                        <div class="fabric-options" id="fabric-options">
+                            {% for fabric in fabric_types %}
+                            <button type="button" class="fabric-option" data-fabric-id="{{ fabric.id }}">
+                                {{ fabric.name }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Size Selection -->
+                    <div class="size-selection" id="size-selection" style="display: none;">
+                        <label class="selection-label">בחר מידה:</label>
+                        <div class="size-options" id="size-options">
+                            <!-- Sizes will be populated by JavaScript -->
+                        </div>
+                        <p class="selection-hint">אנא בחר סוג בד תחילה</p>
+                    </div>
                 </div>
                 {% endif %}
                 
@@ -85,9 +111,16 @@
                 <form method="POST" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
                     {% csrf_token %}
                     <input type="hidden" name="quantity" id="hidden-quantity" value="1">
-                    <button type="submit" class="add-to-cart-btn" {% if not product.is_in_stock %}disabled{% endif %}>
+                    {% if has_variants %}
+                    <input type="hidden" name="variant_id" id="hidden-variant-id" value="">
+                    {% endif %}
+                    <button type="submit" class="add-to-cart-btn" {% if not product.is_in_stock %}disabled{% endif %} id="add-to-cart-btn">
                         {% if product.is_in_stock %}
-                            הוספה להזמנה
+                            {% if has_variants %}
+                                בחר אפשרויות להוספה
+                            {% else %}
+                                הוספה להזמנה
+                            {% endif %}
                         {% else %}
                             לא במלאי
                         {% endif %}
@@ -126,6 +159,14 @@
 
 {% block extra_js %}
 <script>
+    // Variants data from server
+    const variantsData = {{ variants_json|safe }};
+    const hasVariants = {{ has_variants|yesno:"true,false" }};
+    
+    // State
+    let selectedFabricId = null;
+    let selectedVariantId = null;
+    
     // Thumbnail image click handler
     document.addEventListener('DOMContentLoaded', function() {
         const thumbnails = document.querySelectorAll('.thumbnail-item');
@@ -144,6 +185,81 @@
                 }
             });
         });
+        
+        // Variant selection logic
+        if (hasVariants) {
+            const fabricOptions = document.querySelectorAll('.fabric-option');
+            const sizeSelection = document.getElementById('size-selection');
+            const sizeOptions = document.getElementById('size-options');
+            const hiddenVariantId = document.getElementById('hidden-variant-id');
+            const addToCartBtn = document.getElementById('add-to-cart-btn');
+            
+            // Fabric selection
+            fabricOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove active class from all fabric options
+                    fabricOptions.forEach(opt => opt.classList.remove('active'));
+                    // Add active to clicked option
+                    this.classList.add('active');
+                    
+                    // Get selected fabric ID
+                    selectedFabricId = this.getAttribute('data-fabric-id');
+                    
+                    // Show size selection
+                    sizeSelection.style.display = 'block';
+                    
+                    // Populate sizes for this fabric
+                    populateSizes(selectedFabricId);
+                    
+                    // Reset size selection
+                    selectedVariantId = null;
+                    hiddenVariantId.value = '';
+                    updateAddToCartButton();
+                });
+            });
+            
+            function populateSizes(fabricId) {
+                const fabric = variantsData[fabricId];
+                if (!fabric || !fabric.sizes || fabric.sizes.length === 0) {
+                    sizeOptions.innerHTML = '<p class="no-sizes">אין מידות זמינות לבד זה</p>';
+                    return;
+                }
+                
+                sizeOptions.innerHTML = '';
+                fabric.sizes.forEach(sizeData => {
+                    const sizeBtn = document.createElement('button');
+                    sizeBtn.type = 'button';
+                    sizeBtn.className = 'size-option';
+                    sizeBtn.textContent = sizeData.size;
+                    sizeBtn.setAttribute('data-variant-id', sizeData.id);
+                    
+                    sizeBtn.addEventListener('click', function() {
+                        // Remove active from all size options
+                        document.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('active'));
+                        // Add active to clicked option
+                        this.classList.add('active');
+                        
+                        // Set selected variant
+                        selectedVariantId = this.getAttribute('data-variant-id');
+                        hiddenVariantId.value = selectedVariantId;
+                        
+                        updateAddToCartButton();
+                    });
+                    
+                    sizeOptions.appendChild(sizeBtn);
+                });
+            }
+            
+            function updateAddToCartButton() {
+                if (selectedVariantId) {
+                    addToCartBtn.disabled = false;
+                    addToCartBtn.textContent = 'הוספה להזמנה';
+                } else {
+                    addToCartBtn.disabled = true;
+                    addToCartBtn.textContent = 'בחר אפשרויות להוספה';
+                }
+            }
+        }
         
         // Quantity selector
         const quantityInput = document.getElementById('quantity-input');

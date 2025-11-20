@@ -26,6 +26,69 @@ class SiteSettings(models.Model):
         return cls.objects.filter(is_active=True).first()
 
 
+class BelowBestsellersGallery(models.Model):
+    """
+    גלריה של 2 תמונות מתחת לסקשן הכי נמכרים
+    """
+    right_image = models.ImageField(upload_to='gallery/', verbose_name='תמונה ימנית')
+    left_image = models.ImageField(upload_to='gallery/', verbose_name='תמונה שמאלית')
+    is_active = models.BooleanField(default=True, verbose_name='גלריה פעילה')
+    
+    class Meta:
+        verbose_name = 'גלריה מתחת להכי נמכרים'
+        verbose_name_plural = 'גלריה מתחת להכי נמכרים'
+    
+    def __str__(self):
+        return 'גלריה מתחת להכי נמכרים'
+    
+    @classmethod
+    def get_gallery(cls):
+        """מחזיר את הגלריה הפעילה"""
+        return cls.objects.filter(is_active=True).first()
+
+
+class Testimonial(models.Model):
+    """
+    המלצת לקוח
+    """
+    quote = models.TextField(verbose_name='ציטוט/המלצה')
+    author = models.CharField(max_length=100, verbose_name='שם הממליץ')
+    order = models.PositiveIntegerField(default=0, verbose_name='סדר תצוגה')
+    is_active = models.BooleanField(default=True, verbose_name='פעיל')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
+    
+    class Meta:
+        verbose_name = 'המלצת לקוח'
+        verbose_name_plural = 'המלצות לקוחות'
+        ordering = ['order', '-created_at']
+    
+    def __str__(self):
+        return f'{self.author} - {self.quote[:50]}...'
+
+
+class InstagramGallery(models.Model):
+    """
+    גלריית אינסטגרם - 3 תמונות שמובילות לפרופיל האינסטגרם
+    """
+    image_1 = models.ImageField(upload_to='instagram/', verbose_name='תמונה 1')
+    image_2 = models.ImageField(upload_to='instagram/', verbose_name='תמונה 2')
+    image_3 = models.ImageField(upload_to='instagram/', verbose_name='תמונה 3')
+    instagram_url = models.URLField(max_length=500, verbose_name='קישור לאינסטגרם', help_text='קישור לפרופיל האינסטגרם של החברה')
+    is_active = models.BooleanField(default=True, verbose_name='גלריה פעילה')
+    
+    class Meta:
+        verbose_name = 'גלריית אינסטגרם'
+        verbose_name_plural = 'גלריית אינסטגרם'
+    
+    def __str__(self):
+        return 'גלריית אינסטגרם'
+    
+    @classmethod
+    def get_gallery(cls):
+        """מחזיר את הגלריה הפעילה"""
+        return cls.objects.filter(is_active=True).first()
+
+
 class Category(models.Model):
     """
     קטגוריה של מוצרים
@@ -119,6 +182,7 @@ class Product(models.Model):
     image = models.ImageField(upload_to='products/', verbose_name='תמונה')
     is_active = models.BooleanField(default=True, verbose_name='פעיל')
     is_featured = models.BooleanField(default=False, verbose_name='מוצר מומלץ')
+    is_bestseller = models.BooleanField(default=False, verbose_name='הכי נמכר')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='תאריך עדכון')
     
@@ -210,6 +274,14 @@ class OrderItem(models.Model):
     """
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name='הזמנה')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='מוצר')
+    variant = models.ForeignKey(
+        'ProductVariant',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='order_items',
+        verbose_name='וריאנט'
+    )
     quantity = models.PositiveIntegerField(default=1, verbose_name='כמות')
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='מחיר')
     
@@ -218,6 +290,8 @@ class OrderItem(models.Model):
         verbose_name_plural = 'פריטים בהזמנה'
     
     def __str__(self):
+        if self.variant:
+            return f'{self.product.name} ({self.variant.get_display_name()}) x {self.quantity}'
         return f'{self.product.name} x {self.quantity}'
     
     @property
@@ -268,15 +342,25 @@ class CartItem(models.Model):
     """
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items', verbose_name='סל')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='מוצר')
+    variant = models.ForeignKey(
+        'ProductVariant',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='cart_items',
+        verbose_name='וריאנט'
+    )
     quantity = models.PositiveIntegerField(default=1, verbose_name='כמות')
     added_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך הוספה')
     
     class Meta:
         verbose_name = 'פריט בסל'
         verbose_name_plural = 'פריטים בסל'
-        unique_together = ('cart', 'product')
+        unique_together = ('cart', 'product', 'variant')
     
     def __str__(self):
+        if self.variant:
+            return f'{self.product.name} ({self.variant.get_display_name()}) x {self.quantity}'
         return f'{self.product.name} x {self.quantity}'
     
     @property
@@ -304,6 +388,131 @@ class ContactMessage(models.Model):
     
     def __str__(self):
         return f'{self.full_name} - {self.email} ({self.created_at.strftime("%d/%m/%Y")})'
+
+
+class Size(models.Model):
+    """
+    מידה גלובלית - ניתנת לשימוש חוזר בכל המוצרים
+    """
+    name = models.CharField(max_length=100, unique=True, verbose_name='שם מידה')
+    slug = models.SlugField(max_length=100, unique=True, verbose_name='סלאג')
+    display_name = models.CharField(max_length=200, blank=True, verbose_name='שם מלא לתצוגה')
+    order = models.PositiveIntegerField(default=0, verbose_name='סדר תצוגה')
+    is_active = models.BooleanField(default=True, verbose_name='פעיל')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
+    
+    class Meta:
+        verbose_name = 'מידה'
+        verbose_name_plural = 'מידות'
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.display_name or self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        if not self.display_name:
+            self.display_name = self.name
+        super().save(*args, **kwargs)
+
+
+class SizeGroup(models.Model):
+    """
+    קבוצת מידות - למשל "בגדי גוף", "תינוק שנולד"
+    מאפשרת להוסיף מספר מידות במכה אחת למוצר
+    """
+    name = models.CharField(max_length=100, unique=True, verbose_name='שם קבוצה')
+    slug = models.SlugField(max_length=100, unique=True, verbose_name='סלאג')
+    sizes = models.ManyToManyField(
+        Size, 
+        related_name='size_groups',
+        verbose_name='מידות',
+        help_text='בחר את המידות שנכללות בקבוצה זו'
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name='סדר תצוגה')
+    is_active = models.BooleanField(default=True, verbose_name='פעיל')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
+    
+    class Meta:
+        verbose_name = 'קבוצת מידות'
+        verbose_name_plural = 'קבוצות מידות'
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
+    
+    def get_sizes_list(self):
+        """החזרת רשימת המידות בקבוצה"""
+        return ', '.join([size.name for size in self.sizes.all()])
+
+
+class FabricType(models.Model):
+    """
+    סוג בד גלובלי - ניתן לשימוש חוזר בכל המוצרים
+    """
+    name = models.CharField(max_length=100, unique=True, verbose_name='סוג בד')
+    order = models.PositiveIntegerField(default=0, verbose_name='סדר תצוגה')
+    is_active = models.BooleanField(default=True, verbose_name='פעיל')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
+    
+    class Meta:
+        verbose_name = 'סוג בד'
+        verbose_name_plural = 'סוגי בד'
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.name
+
+
+class ProductVariant(models.Model):
+    """
+    וריאנט מוצר - שילוב של בד + מידה
+    כל שילוב מסומן כזמין/לא זמין ויש לו מיקום תא במחסן
+    """
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name='variants',
+        verbose_name='מוצר'
+    )
+    fabric_type = models.ForeignKey(
+        FabricType,
+        on_delete=models.PROTECT,
+        related_name='variants',
+        verbose_name='סוג בד'
+    )
+    size = models.ForeignKey(
+        Size,
+        on_delete=models.PROTECT,
+        related_name='variants',
+        verbose_name='מידה'
+    )
+    is_available = models.BooleanField(default=True, verbose_name='זמין')
+    warehouse_location = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='מיקום תא במחסן',
+        help_text='למשל: A12, B05, C23'
+    )
+    
+    class Meta:
+        verbose_name = 'וריאנט מוצר'
+        verbose_name_plural = 'וריאנטים של מוצרים'
+        ordering = ['fabric_type__order', 'size__order']
+        unique_together = ['product', 'fabric_type', 'size']
+    
+    def __str__(self):
+        return f'{self.product.name} - {self.fabric_type.name} - {self.size.name}'
+    
+    def get_display_name(self):
+        """שם לתצוגה ללקוח"""
+        return f'{self.fabric_type.name}, מידה {self.size.display_name}'
 
 
 class WishlistItem(models.Model):

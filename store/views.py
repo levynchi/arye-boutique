@@ -4,7 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q
 from decimal import Decimal
-from .models import Product, Category, Subcategory, SiteSettings, ProductImage, Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem
+import json
+from .models import (
+    Product, Category, Subcategory, SiteSettings, ProductImage, 
+    Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem, 
+    BelowBestsellersGallery, Testimonial, InstagramGallery,
+    FabricType, ProductVariant
+)
 from .forms import ContactForm, CheckoutForm
 
 
@@ -14,15 +20,39 @@ def home(request):
     """
     featured_products = Product.objects.filter(is_active=True, is_featured=True)[:8]
     
+    # Fetch bestseller products (limited to 4)
+    bestseller_products = Product.objects.filter(is_active=True, is_bestseller=True)[:4]
+    
     # Fetch all active categories for navigation and gallery
     categories = Category.objects.filter(is_active=True)
     
     site_settings = SiteSettings.get_settings()
     
+    # Get gallery below bestsellers
+    below_bestsellers_gallery = BelowBestsellersGallery.get_gallery()
+    
+    # Get testimonials (limited to 4, active only)
+    testimonials = Testimonial.objects.filter(is_active=True)[:4]
+    
+    # Get Instagram gallery
+    instagram_gallery = InstagramGallery.get_gallery()
+    
+    # Get wishlist product IDs for logged-in users
+    wishlist_product_ids = []
+    if request.user.is_authenticated:
+        wishlist_product_ids = list(
+            WishlistItem.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    
     context = {
         'featured_products': featured_products,
+        'bestseller_products': bestseller_products,
         'categories': categories,
         'site_settings': site_settings,
+        'below_bestsellers_gallery': below_bestsellers_gallery,
+        'testimonials': testimonials,
+        'instagram_gallery': instagram_gallery,
+        'wishlist_product_ids': wishlist_product_ids,
     }
     
     return render(request, 'store/home.html', context)
@@ -46,6 +76,34 @@ def product_detail(request, slug):
         # אם אין תמונה ראשית במודל ProductImage, נשתמש בתמונה הראשית של המוצר
         primary_image = product.image
     
+    # קבלת סוגי בד ווריאנטים
+    fabric_types = product.fabric_types.all().order_by('order', 'name')
+    
+    # בניית מבנה נתונים לוריאנטים - לכל בד, רשימת המידות הזמינות
+    variants_data = {}
+    for fabric in fabric_types:
+        variants_data[fabric.id] = {
+            'name': fabric.name,
+            'order': fabric.order,
+            'sizes': []
+        }
+    
+    # קבלת כל הוריאנטים
+    all_variants = product.variants.select_related('fabric_type').filter(is_available=True)
+    for variant in all_variants:
+        if variant.fabric_type_id in variants_data:
+            variants_data[variant.fabric_type_id]['sizes'].append({
+                'id': variant.id,
+                'size': variant.size,
+                'warehouse_location': variant.warehouse_location
+            })
+    
+    # המרה ל-JSON עבור JavaScript
+    variants_json = json.dumps(variants_data)
+    
+    # האם למוצר יש וריאנטים
+    has_variants = fabric_types.exists()
+    
     # קבלת קטגוריות לניווט
     categories = Category.objects.filter(is_active=True)
     
@@ -53,6 +111,9 @@ def product_detail(request, slug):
         'product': product,
         'primary_image': primary_image,
         'additional_images': additional_images,
+        'fabric_types': fabric_types,
+        'variants_json': variants_json,
+        'has_variants': has_variants,
         'categories': categories,
     }
     
@@ -70,6 +131,25 @@ def add_to_cart(request, product_id):
     
     # קבלת הכמות מהטופס
     quantity = int(request.POST.get('quantity', 1))
+    
+    # קבלת וריאנט אם יש
+    variant_id = request.POST.get('variant_id')
+    variant = None
+    
+    if variant_id:
+        try:
+            variant = ProductVariant.objects.get(
+                id=variant_id, 
+                product=product,
+                is_available=True
+            )
+        except ProductVariant.DoesNotExist:
+            is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+            error_msg = 'הוריאנט שנבחר אינו זמין'
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': error_msg})
+            messages.error(request, error_msg)
+            return redirect('product_detail', slug=product.slug)
     
     # Check if this is an AJAX request
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -95,6 +175,7 @@ def add_to_cart(request, product_id):
     cart_item, item_created = CartItem.objects.get_or_create(
         cart=cart,
         product=product,
+        variant=variant,
         defaults={'quantity': quantity}
     )
     
@@ -111,35 +192,48 @@ def add_to_cart(request, product_id):
         cart_item.save()
     
     # Success response
+    success_msg = f'המוצר "{product.name}"'
+    if variant:
+        success_msg += f' ({variant.get_display_name()})'
+    success_msg += ' נוסף לסל בהצלחה!'
+    
     if is_ajax:
         return JsonResponse({
             'success': True,
-            'message': f'המוצר "{product.name}" נוסף לסל בהצלחה!',
+            'message': success_msg,
             'cart_count': cart.total_items
         })
     
-    messages.success(request, f'המוצר "{product.name}" נוסף לסל בהצלחה!')
+    messages.success(request, success_msg)
     return redirect('product_detail', slug=product.slug)
 
 
 def category_detail(request, slug):
     """
-    עמוד קטגוריה - הצגת מוצרים לפי קטגוריה עם סינון
+    עמוד קטגוריה - הצגת תת-קטגוריות או מוצרים
     """
     category = get_object_or_404(Category, slug=slug, is_active=True)
     
-    # קבלת מוצרים פעילים של הקטגוריה + כל תת-קטגוריות
-    # אם יש תת-קטגוריות, נכלול גם את המוצרים שלהם
+    # קבלת תת-קטגוריות פעילות
     subcategories = category.subcategories.filter(is_active=True)
-    if subcategories.exists():
-        # יש תת-קטגוריות - נציג את המוצרים מהקטגוריה הראשית + כל התת-קטגוריות
-        products = Product.objects.filter(
-            Q(category=category) | Q(subcategory__in=subcategories),
-            is_active=True
-        )
-    else:
-        # אין תת-קטגוריות - רק מוצרים מהקטגוריה עצמה
-        products = Product.objects.filter(category=category, is_active=True)
+    has_subcategories = subcategories.exists()
+    
+    # אם יש תת-קטגוריות - להציג רק אותן (ללא מוצרים)
+    if has_subcategories:
+        # קבלת קטגוריות לניווט
+        categories = Category.objects.filter(is_active=True)
+        
+        context = {
+            'category': category,
+            'subcategories': subcategories,
+            'has_subcategories': True,
+            'categories': categories,
+        }
+        
+        return render(request, 'store/category_detail.html', context)
+    
+    # אין תת-קטגוריות - להציג מוצרים
+    products = Product.objects.filter(category=category, is_active=True)
     
     # סינון לפי מין
     gender_filter = request.GET.get('gender', '')
@@ -174,6 +268,7 @@ def category_detail(request, slug):
     context = {
         'category': category,
         'products': products,
+        'has_subcategories': False,
         'current_gender': gender_filter,
         'current_price_sort': price_sort,
         'categories': categories,
@@ -181,6 +276,64 @@ def category_detail(request, slug):
     }
     
     return render(request, 'store/category_detail.html', context)
+
+
+def subcategory_detail(request, category_slug, subcategory_slug):
+    """
+    עמוד תת-קטגוריה - הצגת מוצרים של תת-קטגוריה ספציפית
+    """
+    category = get_object_or_404(Category, slug=category_slug, is_active=True)
+    subcategory = get_object_or_404(
+        Subcategory, 
+        slug=subcategory_slug, 
+        category=category,
+        is_active=True
+    )
+    
+    # קבלת מוצרים של התת-קטגוריה
+    products = Product.objects.filter(subcategory=subcategory, is_active=True)
+    
+    # סינון לפי מין
+    gender_filter = request.GET.get('gender', '')
+    if gender_filter:
+        if gender_filter == 'both':
+            # אם "שניהם", נציג את כל המוצרים
+            pass
+        else:
+            # סינון לפי מין ספציפי
+            products = products.filter(gender__in=[gender_filter, 'both'])
+    
+    # מיון לפי מחיר
+    price_sort = request.GET.get('price', '')
+    if price_sort == 'low_to_high':
+        products = products.order_by('price')
+    elif price_sort == 'high_to_low':
+        products = products.order_by('-price')
+    else:
+        # ברירת מחדל - לפי תאריך יצירה
+        products = products.order_by('-created_at')
+    
+    # קבלת מוצרים ב-wishlist של המשתמש (אם מחובר)
+    wishlist_product_ids = []
+    if request.user.is_authenticated:
+        wishlist_product_ids = list(
+            WishlistItem.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    
+    # קבלת קטגוריות לניווט
+    categories = Category.objects.filter(is_active=True)
+    
+    context = {
+        'category': category,
+        'subcategory': subcategory,
+        'products': products,
+        'current_gender': gender_filter,
+        'current_price_sort': price_sort,
+        'categories': categories,
+        'wishlist_product_ids': wishlist_product_ids,
+    }
+    
+    return render(request, 'store/subcategory_detail.html', context)
 
 
 def contact(request):
@@ -478,6 +631,7 @@ def checkout(request):
                 OrderItem.objects.create(
                     order=order,
                     product=cart_item.product,
+                    variant=cart_item.variant,
                     quantity=cart_item.quantity,
                     price=cart_item.product.price
                 )
@@ -543,6 +697,10 @@ def cart_data(request):
     # הכנת נתוני הפריטים
     items_data = []
     for item in cart_items:
+        variant_display = ''
+        if item.variant:
+            variant_display = item.variant.get_display_name()
+        
         items_data.append({
             'id': item.id,
             'product_id': item.product.id,
@@ -550,6 +708,7 @@ def cart_data(request):
             'product_image': item.product.image.url if item.product.image else '',
             'product_price': float(item.product.price),
             'product_size': item.product.size or '',
+            'variant_display': variant_display,
             'quantity': item.quantity,
             'max_quantity': item.product.stock_quantity,
             'subtotal': float(item.subtotal),

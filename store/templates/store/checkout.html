@@ -82,6 +82,9 @@
                         </div>
                         <div class="order-item-details">
                             <h4>{{ item.product.name }}</h4>
+                            {% if item.variant %}
+                            <p class="order-item-variant">{{ item.variant.get_display_name }}</p>
+                            {% endif %}
                             <p>כמות: {{ item.quantity }}</p>
                         </div>
                         <div class="order-item-price">

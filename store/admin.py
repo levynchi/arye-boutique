@@ -171,6 +171,10 @@ class ProductVariantInline(admin.TabularInline):
     fields = ('fabric_type', 'size', 'is_available', 'warehouse_location')
     ordering = ['fabric_type__order', 'size__order']
     
+    # אפשר הוספת related objects (אייקון +)
+    def has_add_permission(self, request, obj=None):
+        return True
+    
     def get_readonly_fields(self, request, obj=None):
         """
         הגדרת שדות לקריאה בלבד
@@ -191,35 +195,19 @@ class ProductVariantInline(admin.TabularInline):
                 super().__init__(*args, **kwargs)
                 
                 # רק אם זה ווריאנט קיים ממש (יש instance עם pk)
-                # לא נגע ב-empty form template
                 if self.instance and self.instance.pk:
-                    # הפיכת הבד והמידה ל-readonly
+                    # הפיכת הבד והמידה ל-readonly (אבל שומרים את האייקונים!)
                     self.fields['fabric_type'].disabled = True
                     self.fields['size'].disabled = True
-                    # הסרת כל האייקונים (X, עיפרון, +, 👁️)
-                    if hasattr(self.fields['fabric_type'], 'widget') and hasattr(self.fields['fabric_type'].widget, 'can_add_related'):
-                        self.fields['fabric_type'].widget.can_add_related = False
-                        self.fields['fabric_type'].widget.can_change_related = False
-                        self.fields['fabric_type'].widget.can_delete_related = False
-                        self.fields['fabric_type'].widget.can_view_related = False
-                    if hasattr(self.fields['size'], 'widget') and hasattr(self.fields['size'].widget, 'can_add_related'):
-                        self.fields['size'].widget.can_add_related = False
-                        self.fields['size'].widget.can_change_related = False
-                        self.fields['size'].widget.can_delete_related = False
-                        self.fields['size'].widget.can_view_related = False
-                else:
-                    # זה שורה חדשה או empty template - נשאיר את האייקונים ברירת מחדל של Django
-                    # רק נסיר את X ו-✏️, נשאיר ➕ ו-👁️
-                    if hasattr(self.fields['fabric_type'], 'widget') and hasattr(self.fields['fabric_type'].widget, 'can_add_related'):
-                        self.fields['fabric_type'].widget.can_add_related = True
-                        self.fields['fabric_type'].widget.can_change_related = False
-                        self.fields['fabric_type'].widget.can_delete_related = False
-                        self.fields['fabric_type'].widget.can_view_related = True
-                    if hasattr(self.fields['size'], 'widget') and hasattr(self.fields['size'].widget, 'can_add_related'):
-                        self.fields['size'].widget.can_add_related = True
-                        self.fields['size'].widget.can_change_related = False
-                        self.fields['size'].widget.can_delete_related = False
-                        self.fields['size'].widget.can_view_related = True
+                    # אייקון + ו-👁️ יישארו, אבל נסיר ✏️ ו-X
+                    for field_name in ['fabric_type', 'size']:
+                        field = self.fields[field_name]
+                        if hasattr(field, 'widget') and hasattr(field.widget, 'can_add_related'):
+                            field.widget.can_add_related = True  # ✅ שומרים את אייקון ה-+
+                            field.widget.can_change_related = False  # ❌ מסירים עיפרון
+                            field.widget.can_delete_related = False  # ❌ מסירים X
+                            field.widget.can_view_related = True  # ✅ שומרים את העין
+                # אם זה שורה חדשה - Django יוסיף את האייקונים אוטומטית
         
         formset.form = VariantFormReadonly
         return formset

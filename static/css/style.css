@@ -3703,6 +3703,20 @@ ul {
    About Us Page
    ========================================================================== */
 
+/* About Page Title */
+.about-title-section {
+    padding: 10px;
+    background-color: var(--white);
+}
+
+.about-page-title {
+    font-size: 32px;
+    font-weight: 500;
+    color: #7594B1;
+    text-align: center;
+    margin: 0;
+}
+
 /* About Banner */
 .about-banner {
     position: relative;
@@ -3716,36 +3730,10 @@ ul {
     overflow: hidden;
 }
 
-.about-banner::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 0;
-}
-
-.about-banner-overlay {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    padding: 20px;
-}
-
-.about-banner-title {
-    font-size: 48px;
-    font-weight: 700;
-    color: var(--white);
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    margin: 0;
-}
-
 /* About Intro Section */
 .about-intro-section {
     padding: 60px 0;
-    background-color: var(--bg-light);
+    background-color: var(--white);
 }
 
 .about-intro-content {
@@ -3757,7 +3745,7 @@ ul {
 .about-intro-text {
     font-size: 20px;
     line-height: 1.8;
-    color: var(--text-color);
+    color: #7594B1;
     margin: 0;
 }
 
@@ -3772,7 +3760,7 @@ ul {
 }
 
 .about-content-section:nth-child(even) {
-    background-color: var(--bg-light);
+    background-color: var(--white);
 }
 
 .about-content-row {
@@ -3805,16 +3793,15 @@ ul {
 }
 
 .about-section-title {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--primary-color);
+    font-size: 28px;
+    color: #7594B1;
     margin-bottom: 20px;
 }
 
 .about-section-text {
-    font-size: 18px;
+    font-size: 16px;
     line-height: 1.8;
-    color: var(--text-color);
+    color: #7594B1;
     margin-bottom: 16px;
 }
 
@@ -3833,23 +3820,23 @@ ul {
 .about-content-image img {
     width: 100%;
     height: auto;
-    border-radius: 8px;
+    max-height: 300px;
+    object-fit: cover;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.about-content-image img:hover {
-    transform: scale(1.02);
 }
 
 /* Responsive Design for About Page */
 @media (max-width: 768px) {
-    .about-banner {
-        height: 250px;
+    .about-title-section {
+        padding: 10px;
     }
     
-    .about-banner-title {
-        font-size: 28px;
+    .about-page-title {
+        font-size: 26px;
+    }
+    
+    .about-banner {
+        height: 250px;
     }
     
     .about-intro-section {
@@ -3889,17 +3876,21 @@ ul {
     }
     
     .about-section-text {
-        font-size: 16px;
+        font-size: 15px;
     }
 }
 
 @media (max-width: 480px) {
-    .about-banner {
-        height: 200px;
+    .about-title-section {
+        padding: 10px;
     }
     
-    .about-banner-title {
+    .about-page-title {
         font-size: 22px;
+    }
+    
+    .about-banner {
+        height: 200px;
     }
     
     .about-intro-section {
@@ -3919,7 +3910,7 @@ ul {
     }
     
     .about-section-text {
-        font-size: 15px;
+        font-size: 14px;
     }
 }
 

@@ -7,7 +7,7 @@ from .models import (
     SiteSettings, Category, Subcategory, Product, ProductImage, 
     Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
     BelowBestsellersGallery, Testimonial, InstagramGallery, AboutPageSettings,
-    Size, SizeGroup, FabricType, ProductVariant
+    GalleriesHub, Size, SizeGroup, FabricType, ProductVariant
 )
 from .forms import BulkVariantCreationForm, ProductAdminForm
 
@@ -15,10 +15,33 @@ from .forms import BulkVariantCreationForm, ProductAdminForm
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
     """
-    ניהול הגדרות האתר והבאנר הראשי
+    ניהול גלריה ראשית - הבאנר הראשי של דף הבית
     """
     list_display = ['site_name', 'is_active', 'has_banner']
     list_editable = ['is_active']
+    
+    def has_module_permission(self, request):
+        """הסתר מרשימת Store - נגיש רק דרך GalleriesHub"""
+        return False
+    
+    def response_add(self, request, obj, post_url_continue=None):
+        """חזרה לגלריות אחרי הוספה"""
+        if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
+            return redirect('/admin/store/gallerieshub/')
+        return super().response_add(request, obj, post_url_continue)
+    
+    def response_change(self, request, obj):
+        """חזרה לגלריות אחרי עריכה"""
+        if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
+            if '_continue' not in request.POST and '_addanother' not in request.POST and '_saveasnew' not in request.POST:
+                return redirect('/admin/store/gallerieshub/')
+        return super().response_change(request, obj)
+    
+    def response_delete(self, request, obj_display, obj_id):
+        """חזרה לגלריות אחרי מחיקה"""
+        if 'from_galleries_hub' in request.META.get('HTTP_REFERER', ''):
+            return redirect('/admin/store/gallerieshub/')
+        return super().response_delete(request, obj_display, obj_id)
     
     fieldsets = (
         ('מידע כללי', {
@@ -43,10 +66,33 @@ class SiteSettingsAdmin(admin.ModelAdmin):
 @admin.register(BelowBestsellersGallery)
 class BelowBestsellersGalleryAdmin(admin.ModelAdmin):
     """
-    ניהול גלריה מתחת להכי נמכרים
+    ניהול גלריה מתחת להכי נמכרים - 2 תמונות
     """
     list_display = ['__str__', 'is_active', 'has_images']
     list_editable = ['is_active']
+    
+    def has_module_permission(self, request):
+        """הסתר מרשימת Store - נגיש רק דרך GalleriesHub"""
+        return False
+    
+    def response_add(self, request, obj, post_url_continue=None):
+        """חזרה לגלריות אחרי הוספה"""
+        if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
+            return redirect('/admin/store/gallerieshub/')
+        return super().response_add(request, obj, post_url_continue)
+    
+    def response_change(self, request, obj):
+        """חזרה לגלריות אחרי עריכה"""
+        if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
+            if '_continue' not in request.POST and '_addanother' not in request.POST and '_saveasnew' not in request.POST:
+                return redirect('/admin/store/gallerieshub/')
+        return super().response_change(request, obj)
+    
+    def response_delete(self, request, obj_display, obj_id):
+        """חזרה לגלריות אחרי מחיקה"""
+        if 'from_galleries_hub' in request.META.get('HTTP_REFERER', ''):
+            return redirect('/admin/store/gallerieshub/')
+        return super().response_delete(request, obj_display, obj_id)
     
     fieldsets = (
         ('תמונות', {
@@ -551,10 +597,33 @@ class TestimonialAdmin(admin.ModelAdmin):
 @admin.register(InstagramGallery)
 class InstagramGalleryAdmin(admin.ModelAdmin):
     """
-    ניהול גלריית אינסטגרם
+    ניהול גלריית אינסטגרם - 3 תמונות וקישור
     """
     list_display = ['__str__', 'instagram_url', 'is_active', 'has_images']
     list_editable = ['is_active']
+    
+    def has_module_permission(self, request):
+        """הסתר מרשימת Store - נגיש רק דרך GalleriesHub"""
+        return False
+    
+    def response_add(self, request, obj, post_url_continue=None):
+        """חזרה לגלריות אחרי הוספה"""
+        if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
+            return redirect('/admin/store/gallerieshub/')
+        return super().response_add(request, obj, post_url_continue)
+    
+    def response_change(self, request, obj):
+        """חזרה לגלריות אחרי עריכה"""
+        if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
+            if '_continue' not in request.POST and '_addanother' not in request.POST and '_saveasnew' not in request.POST:
+                return redirect('/admin/store/gallerieshub/')
+        return super().response_change(request, obj)
+    
+    def response_delete(self, request, obj_display, obj_id):
+        """חזרה לגלריות אחרי מחיקה"""
+        if 'from_galleries_hub' in request.META.get('HTTP_REFERER', ''):
+            return redirect('/admin/store/gallerieshub/')
+        return super().response_delete(request, obj_display, obj_id)
     
     fieldsets = (
         ('תמונות', {
@@ -582,10 +651,33 @@ class InstagramGalleryAdmin(admin.ModelAdmin):
 @admin.register(AboutPageSettings)
 class AboutPageSettingsAdmin(admin.ModelAdmin):
     """
-    ניהול תמונות דף אודות
+    ניהול תמונות דף אודות - באנר ו-4 תמונות תוכן
     """
     list_display = ['__str__', 'is_active', 'has_all_images']
     list_editable = ['is_active']
+    
+    def has_module_permission(self, request):
+        """הסתר מרשימת Store - נגיש רק דרך GalleriesHub"""
+        return False
+    
+    def response_add(self, request, obj, post_url_continue=None):
+        """חזרה לגלריות אחרי הוספה"""
+        if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
+            return redirect('/admin/store/gallerieshub/')
+        return super().response_add(request, obj, post_url_continue)
+    
+    def response_change(self, request, obj):
+        """חזרה לגלריות אחרי עריכה"""
+        if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
+            if '_continue' not in request.POST and '_addanother' not in request.POST and '_saveasnew' not in request.POST:
+                return redirect('/admin/store/gallerieshub/')
+        return super().response_change(request, obj)
+    
+    def response_delete(self, request, obj_display, obj_id):
+        """חזרה לגלריות אחרי מחיקה"""
+        if 'from_galleries_hub' in request.META.get('HTTP_REFERER', ''):
+            return redirect('/admin/store/gallerieshub/')
+        return super().response_delete(request, obj_display, obj_id)
     
     fieldsets = (
         ('תמונת באנר', {
@@ -616,6 +708,72 @@ class AboutPageSettingsAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         """מגביל יצירה - רק אם אין רשומה קיימת"""
         return not AboutPageSettings.objects.exists()
+
+
+@admin.register(GalleriesHub)
+class GalleriesHubAdmin(admin.ModelAdmin):
+    """
+    דף מרכזי לניהול כל הגלריות
+    """
+    
+    def has_add_permission(self, request):
+        """לא ניתן להוסיף - זה רק דף תצוגה"""
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """לא ניתן למחוק - זה רק דף תצוגה"""
+        return False
+    
+    def changelist_view(self, request, extra_context=None):
+        """תצוגה מותאמת אישית - מציגה את כל הגלריות"""
+        extra_context = extra_context or {}
+        
+        # קבלת כל הגלריות
+        site_settings = SiteSettings.objects.first()
+        below_bestsellers = BelowBestsellersGallery.objects.first()
+        instagram_gallery = InstagramGallery.objects.first()
+        about_settings = AboutPageSettings.objects.first()
+        
+        # הכנת נתונים לטמפלייט
+        galleries = [
+            {
+                'name': 'גלריה ראשית',
+                'description': 'הבאנר הראשי של דף הבית',
+                'model_name': 'sitesettings',
+                'obj_id': site_settings.id if site_settings else None,
+                'exists': bool(site_settings),
+                'has_content': bool(site_settings and site_settings.hero_banner),
+            },
+            {
+                'name': 'גלריה מתחת להכי נמכרים',
+                'description': '2 תמונות מתחת לסקשן המוצרים הנמכרים',
+                'model_name': 'belowbestsellersgallery',
+                'obj_id': below_bestsellers.id if below_bestsellers else None,
+                'exists': bool(below_bestsellers),
+                'has_content': bool(below_bestsellers and below_bestsellers.right_image and below_bestsellers.left_image),
+            },
+            {
+                'name': 'גלריית אינסטגרם',
+                'description': '3 תמונות וקישור לאינסטגרם',
+                'model_name': 'instagramgallery',
+                'obj_id': instagram_gallery.id if instagram_gallery else None,
+                'exists': bool(instagram_gallery),
+                'has_content': bool(instagram_gallery and instagram_gallery.image_1),
+            },
+            {
+                'name': 'הגדרות דף אודות',
+                'description': 'באנר ו-4 תמונות תוכן לדף אודות',
+                'model_name': 'aboutpagesettings',
+                'obj_id': about_settings.id if about_settings else None,
+                'exists': bool(about_settings),
+                'has_content': bool(about_settings and about_settings.banner_image),
+            },
+        ]
+        
+        extra_context['galleries'] = galleries
+        extra_context['title'] = 'ניהול גלריות'
+        
+        return render(request, 'admin/store/galleries_hub.html', extra_context)
 
 
 @admin.register(Size)

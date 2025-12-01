@@ -5,7 +5,7 @@ from django.utils.text import slugify
 
 class SiteSettings(models.Model):
     """
-    הגדרות כלליות של האתר - באנרים, טקסטים וכו'
+    גלריה ראשית - באנר ראשי של דף הבית
     """
     site_name = models.CharField(max_length=200, default='בוטיק אריה', verbose_name='שם האתר')
     hero_banner = models.ImageField(upload_to='banners/', verbose_name='באנר ראשי')
@@ -14,11 +14,11 @@ class SiteSettings(models.Model):
     is_active = models.BooleanField(default=True, verbose_name='באנר פעיל')
     
     class Meta:
-        verbose_name = 'הגדרות אתר'
-        verbose_name_plural = 'הגדרות אתר'
+        verbose_name = 'גלריות - גלריה ראשית'
+        verbose_name_plural = 'גלריות - גלריה ראשית'
     
     def __str__(self):
-        return f'הגדרות אתר - {self.site_name}'
+        return 'גלריה ראשית'
     
     @classmethod
     def get_settings(cls):
@@ -35,8 +35,8 @@ class BelowBestsellersGallery(models.Model):
     is_active = models.BooleanField(default=True, verbose_name='גלריה פעילה')
     
     class Meta:
-        verbose_name = 'גלריה מתחת להכי נמכרים'
-        verbose_name_plural = 'גלריה מתחת להכי נמכרים'
+        verbose_name = 'גלריות - גלריה מתחת להכי נמכרים'
+        verbose_name_plural = 'גלריות - גלריה מתחת להכי נמכרים'
     
     def __str__(self):
         return 'גלריה מתחת להכי נמכרים'
@@ -77,8 +77,8 @@ class InstagramGallery(models.Model):
     is_active = models.BooleanField(default=True, verbose_name='גלריה פעילה')
     
     class Meta:
-        verbose_name = 'גלריית אינסטגרם'
-        verbose_name_plural = 'גלריית אינסטגרם'
+        verbose_name = 'גלריות - גלריית אינסטגרם'
+        verbose_name_plural = 'גלריות - גלריית אינסטגרם'
     
     def __str__(self):
         return 'גלריית אינסטגרם'
@@ -101,8 +101,8 @@ class AboutPageSettings(models.Model):
     is_active = models.BooleanField(default=True, verbose_name='הגדרות פעילות')
     
     class Meta:
-        verbose_name = 'הגדרות דף אודות'
-        verbose_name_plural = 'הגדרות דף אודות'
+        verbose_name = 'גלריות - הגדרות דף אודות'
+        verbose_name_plural = 'גלריות - הגדרות דף אודות'
     
     def __str__(self):
         return 'הגדרות דף אודות'
@@ -111,6 +111,21 @@ class AboutPageSettings(models.Model):
     def get_settings(cls):
         """מחזיר את ההגדרות הפעילות"""
         return cls.objects.filter(is_active=True).first()
+
+
+class GalleriesHub(models.Model):
+    """
+    מודל וירטואלי לניהול כל הגלריות מדף אחד באדמין
+    לא מחזיק נתונים בפועל - רק נקודת כניסה
+    """
+    class Meta:
+        verbose_name = 'גלריות'
+        verbose_name_plural = 'גלריות'
+        managed = False  # לא ליצור טבלה במסד הנתונים
+        default_permissions = ()  # ללא הרשאות
+    
+    def __str__(self):
+        return 'גלריות'
 
 
 class Category(models.Model):

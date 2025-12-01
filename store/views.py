@@ -8,7 +8,7 @@ import json
 from .models import (
     Product, Category, Subcategory, SiteSettings, ProductImage, 
     Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem, 
-    BelowBestsellersGallery, Testimonial, InstagramGallery,
+    BelowBestsellersGallery, Testimonial, InstagramGallery, AboutPageSettings,
     FabricType, ProductVariant
 )
 from .forms import ContactForm, CheckoutForm
@@ -76,8 +76,12 @@ def product_detail(request, slug):
         # אם אין תמונה ראשית במודל ProductImage, נשתמש בתמונה הראשית של המוצר
         primary_image = product.image
     
-    # קבלת סוגי בד ווריאנטים
-    fabric_types = product.fabric_types.all().order_by('order', 'name')
+    # קבלת סוגי בד זמינים דרך הוריאנטים של המוצר
+    fabric_types = FabricType.objects.filter(
+        variants__product=product,
+        variants__is_available=True,
+        is_active=True
+    ).distinct().order_by('order', 'name')
     
     # בניית מבנה נתונים לוריאנטים - לכל בד, רשימת המידות הזמינות
     variants_data = {}
@@ -89,12 +93,12 @@ def product_detail(request, slug):
         }
     
     # קבלת כל הוריאנטים
-    all_variants = product.variants.select_related('fabric_type').filter(is_available=True)
+    all_variants = product.variants.select_related('fabric_type', 'size').filter(is_available=True)
     for variant in all_variants:
         if variant.fabric_type_id in variants_data:
             variants_data[variant.fabric_type_id]['sizes'].append({
                 'id': variant.id,
-                'size': variant.size,
+                'size': str(variant.size),  # המרה למחרוזת עבור JSON
                 'warehouse_location': variant.warehouse_location
             })
     
@@ -376,6 +380,21 @@ def accessibility_statement(request):
     }
 
     return render(request, 'store/accessibility.html', context)
+
+
+def about_us(request):
+    """
+    דף אודות - מידע על אריה בוטיק תינוקות וילדים
+    """
+    categories = Category.objects.filter(is_active=True)
+    about_settings = AboutPageSettings.get_settings()
+    
+    context = {
+        'categories': categories,
+        'about_settings': about_settings,
+    }
+    
+    return render(request, 'store/about_us.html', context)
 
 
 @login_required

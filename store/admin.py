@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from .models import (
     SiteSettings, Category, Subcategory, Product, ProductImage, 
     Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
-    BelowBestsellersGallery, Testimonial, InstagramGallery,
+    BelowBestsellersGallery, Testimonial, InstagramGallery, AboutPageSettings,
     Size, SizeGroup, FabricType, ProductVariant
 )
 from .forms import BulkVariantCreationForm, ProductAdminForm
@@ -187,6 +187,9 @@ class ProductVariantInline(admin.TabularInline):
         התאמת formset - ווריאנטים קיימים לא יאפשרו עריכת בד ומידה
         ווריאנטים חדשים - יהיה אייקון + להוספת בד/מידה חדשה
         """
+        # הסרת variant_display_name מה-fields שנשלחים ל-formset
+        # כי זה readonly field בלבד
+        kwargs.setdefault('fields', ('fabric_type', 'size', 'is_available', 'warehouse_location'))
         formset = super().get_formset(request, obj, **kwargs)
         original_form = formset.form
         
@@ -236,6 +239,9 @@ class ProductAdmin(admin.ModelAdmin):
     
     class Media:
         js = ('admin/js/product_variants.js',)
+        css = {
+            'all': ('admin/css/variant_display.css',)
+        }
     
     fieldsets = (
         ('מידע בסיסי', {
@@ -571,6 +577,45 @@ class InstagramGalleryAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         """מגביל יצירה - רק אם אין רשומה קיימת"""
         return not InstagramGallery.objects.exists()
+
+
+@admin.register(AboutPageSettings)
+class AboutPageSettingsAdmin(admin.ModelAdmin):
+    """
+    ניהול תמונות דף אודות
+    """
+    list_display = ['__str__', 'is_active', 'has_all_images']
+    list_editable = ['is_active']
+    
+    fieldsets = (
+        ('תמונת באנר', {
+            'fields': ('banner_image',),
+            'description': 'תמונה לבאנר בראש דף האודות'
+        }),
+        ('תמונות תוכן', {
+            'fields': ('content_image_1', 'content_image_2', 'content_image_3', 'content_image_4'),
+            'description': 'תמונות לכל אחד מהסקשנים בדף'
+        }),
+        ('הגדרות', {
+            'fields': ('is_active',)
+        }),
+    )
+    
+    def has_all_images(self, obj):
+        """בדיקה אם כל התמונות מועלות"""
+        return bool(
+            obj.banner_image and 
+            obj.content_image_1 and 
+            obj.content_image_2 and 
+            obj.content_image_3 and 
+            obj.content_image_4
+        )
+    has_all_images.short_description = 'כל התמונות קיימות'
+    has_all_images.boolean = True
+    
+    def has_add_permission(self, request):
+        """מגביל יצירה - רק אם אין רשומה קיימת"""
+        return not AboutPageSettings.objects.exists()
 
 
 @admin.register(Size)

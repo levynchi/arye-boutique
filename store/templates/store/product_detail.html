@@ -49,10 +49,6 @@
                 <div class="product-header-info">
                     <h1 class="product-name">{{ product.name }}</h1>
                     
-                    {% if product.category %}
-                    <p class="product-category">{{ product.category.name }}</p>
-                    {% endif %}
-                    
                     <p class="product-price">{{ product.price }} ש"ח</p>
                     
                     {% if product.category.name %}

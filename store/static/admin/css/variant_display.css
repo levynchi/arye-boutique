@@ -1,0 +1,29 @@
+/* הסתרת עמודת "שם וריאנט" המיותרת */
+#variants-group th.original,
+#variants-group td.original,
+.dynamic-variants th.original,
+.dynamic-variants td.original {
+    display: none !important;
+}
+
+/* שיפור עיצוב טבלת הוריאנטים */
+#variants-group table,
+.dynamic-variants table {
+    width: 100%;
+}
+
+/* שיפור כותרות */
+#variants-group th,
+.dynamic-variants th {
+    font-weight: 600;
+    background-color: #f8f8f8;
+    padding: 10px !important;
+}
+
+/* שיפור תאים */
+#variants-group td,
+.dynamic-variants td {
+    padding: 8px !important;
+    vertical-align: middle;
+}
+

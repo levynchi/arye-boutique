@@ -89,6 +89,30 @@ class InstagramGallery(models.Model):
         return cls.objects.filter(is_active=True).first()
 
 
+class AboutPageSettings(models.Model):
+    """
+    הגדרות תמונות לדף אודות
+    """
+    banner_image = models.ImageField(upload_to='about/', verbose_name='תמונת באנר ראשי', help_text='תמונה לבאנר בראש דף האודות')
+    content_image_1 = models.ImageField(upload_to='about/', verbose_name='תמונה 1 - אריה', help_text='תמונה לסקשן אריה (משמאל)')
+    content_image_2 = models.ImageField(upload_to='about/', verbose_name='תמונה 2 - אריה בוטיק', help_text='תמונה לסקשן אריה בוטיק (מימין)')
+    content_image_3 = models.ImageField(upload_to='about/', verbose_name='תמונה 3 - הייחוד שלנו', help_text='תמונה לסקשן הייחוד שלנו (משמאל)')
+    content_image_4 = models.ImageField(upload_to='about/', verbose_name='תמונה 4 - האיכות שלנו', help_text='תמונה לסקשן האיכות שלנו (מימין)')
+    is_active = models.BooleanField(default=True, verbose_name='הגדרות פעילות')
+    
+    class Meta:
+        verbose_name = 'הגדרות דף אודות'
+        verbose_name_plural = 'הגדרות דף אודות'
+    
+    def __str__(self):
+        return 'הגדרות דף אודות'
+    
+    @classmethod
+    def get_settings(cls):
+        """מחזיר את ההגדרות הפעילות"""
+        return cls.objects.filter(is_active=True).first()
+
+
 class Category(models.Model):
     """
     קטגוריה של מוצרים

@@ -16,6 +16,7 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     
     path('contact/', views.contact, name='contact'),
+    path('about-us/', views.about_us, name='about_us'),
     path('accessibility/', views.accessibility_statement, name='accessibility_statement'),
     
     # Wishlist URLs

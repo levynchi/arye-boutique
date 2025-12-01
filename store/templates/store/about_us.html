@@ -1,0 +1,150 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}אודות - בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">אודות</span>
+        </nav>
+    </div>
+</section>
+
+<!-- About Banner -->
+<section class="about-banner" {% if about_settings and about_settings.banner_image %}style="background-image: url('{{ about_settings.banner_image.url }}');"{% endif %}>
+    <div class="about-banner-overlay">
+        <h1 class="about-banner-title">על אריה בוטיק תינוקות וילדים</h1>
+    </div>
+</section>
+
+<!-- Main Intro Section -->
+<section class="about-intro-section">
+    <div class="container">
+        <div class="about-intro-content">
+            <p class="about-intro-text">
+                אריה בוטיק תינוקות וילדים, מפעל ותיק בישראל לייצור ושווק מגוון רחב של בגדים ומוצרים לתינוקות וילדים בגילאים 0-10 שנים.
+                היו לנו יותר מ-7 עשורים כדי להגיע לבד הכי איכותי שאפשר כשהבטיחות של התינוק מעל הכל.
+                באריה בוטיק אנחנו לוקחים את האיכות הבלתי מתפשרת ומעניקים לכם מוצרי חובה שיש להם הרבה סטייל וחדשנות
+                עם מגוון פתרונות עיצוביים לכם ההורים האוהבים.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Content Section 1: Text Right, Image Left -->
+<section class="about-content-section">
+    <div class="container">
+        <div class="about-content-row">
+            <div class="about-content-text">
+                <h2 class="about-section-title">אריה</h2>
+                <p class="about-section-text">
+                    אריה הוא מפעל משפחתי ותיק, הפועל כבר למעלה משבעה עשורים ומוביל את תחום ייצור הטקסטיל לתינוקות בישראל.
+                    במהלך השנים יצרנו אינספור פריטי בד באיכות בלתי מתפשרת מתוך אהבה גדולה לחומר, לפרטים הקטנים ולתחושת הרכות שנוגעת בלב.
+                </p>
+            </div>
+            <div class="about-content-image">
+                {% if about_settings and about_settings.content_image_1 %}
+                    <img src="{{ about_settings.content_image_1.url }}" alt="אריה מפעל משפחתי">
+                {% else %}
+                    <img src="https://placehold.co/600x400/8fa3b0/ffffff?text=אריה+מפעל+משפחתי" alt="אריה מפעל משפחתי">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Content Section 2: Image Right, Text Left -->
+<section class="about-content-section about-content-section--reverse">
+    <div class="container">
+        <div class="about-content-row">
+            <div class="about-content-image">
+                {% if about_settings and about_settings.content_image_2 %}
+                    <img src="{{ about_settings.content_image_2.url }}" alt="Arye Boutique">
+                {% else %}
+                    <img src="https://placehold.co/600x400/d4bfa4/ffffff?text=Arye+Boutique" alt="Arye Boutique">
+                {% endif %}
+            </div>
+            <div class="about-content-text">
+                <h2 class="about-section-title">אריה בוטיק</h2>
+                <p class="about-section-text">
+                    נולד Arye Boutique – מותג בוטיק עדכני שמביא את הרוח הקלאסית של אריה אל עולמות העיצוב של היום.
+                </p>
+                <p class="about-section-text">
+                    המותג מציע קולקציות טקסטיל מעוצבות לתינוקות:<br>
+                    • שמיכות רכות ומפנקות<br>
+                    • חיתולי טטרה באיכות פרימיום<br>
+                    • סינרי פליטה מעוצבים<br>
+                    • מגבות קפוצ'ון עם גימור מושלם
+                </p>
+                <p class="about-section-text">
+                    כל פריט נוצר מתוך מחשבה על נוחות, אסתטיקה וסטייל ומיועד להורים שמעריכים איכות ישראלית מוקפדת.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Content Section 3: Text Right, Image Left -->
+<section class="about-content-section">
+    <div class="container">
+        <div class="about-content-row">
+            <div class="about-content-text">
+                <h2 class="about-section-title">הייחוד שלנו</h2>
+                <p class="about-section-text">
+                    הכוח שלנו טמון בשילוב שבין ייצור מקומי ותיק לבין עיצוב עכשווי ורענן.
+                    אנחנו לא רק מייבאים – אנחנו מפתחים, תופרים, מדפיסים ומעצבים בעצמנו כל פרט.
+                </p>
+                <p class="about-section-text">
+                    ההדפסים נולדים מתוך השראה עיצובית מקורית, עם קו רך, נקי ומודרני שמתאים גם לחנויות בוטיק וגם כמתנה מושלמת ללידה.
+                </p>
+                <p class="about-section-text">
+                    מאחורי כל מוצר עומדת עבודת יד קפדנית, יחס אישי ואהבה אמיתית לטקסטיל.
+                </p>
+            </div>
+            <div class="about-content-image">
+                {% if about_settings and about_settings.content_image_3 %}
+                    <img src="{{ about_settings.content_image_3.url }}" alt="הייחוד שלנו">
+                {% else %}
+                    <img src="https://placehold.co/600x400/8fa3b0/ffffff?text=הייחוד+שלנו" alt="הייחוד שלנו">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Content Section 4: Image Right, Text Left -->
+<section class="about-content-section about-content-section--reverse">
+    <div class="container">
+        <div class="about-content-row">
+            <div class="about-content-image">
+                {% if about_settings and about_settings.content_image_4 %}
+                    <img src="{{ about_settings.content_image_4.url }}" alt="האיכות שלנו">
+                {% else %}
+                    <img src="https://placehold.co/600x400/d4bfa4/ffffff?text=האיכות+שלנו" alt="האיכות שלנו">
+                {% endif %}
+            </div>
+            <div class="about-content-text">
+                <h2 class="about-section-title">האיכות שלנו</h2>
+                <p class="about-section-text">
+                    אצלנו האיכות מתחילה בבד. אנו עובדים עם בדים טבעיים, 100% כותנה רכה ונושמת, המיוצרים בהתאם לסטנדרטים
+                    הגבוהים ביותר של בטיחות לתינוקות.
+                </p>
+                <p class="about-section-text">
+                    ההדפסים מיוצרים בטכנולוגיות מתקדמות, בצבעים ידידותיים לעור ולסביבה, תוך שמירה על עמידות ורכות גם לאחר כביסות רבות.
+                </p>
+                <p class="about-section-text">
+                    התוצאה – טקסטיל שנראה נהדר, מרגיש מושלם ונשמר לאורך זמן.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+

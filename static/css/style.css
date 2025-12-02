@@ -385,6 +385,8 @@ ul {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+    text-align: center;
+    color: #7594B1;
 }
 
 /* ==========================================================================
@@ -3696,6 +3698,239 @@ ul {
     .size-option {
         padding: 10px 18px;
         font-size: 14px;
+    }
+}
+
+/* ==========================================================================
+   About Page Styles
+   ========================================================================== */
+
+/* About Page Title Section */
+.about-title-section {
+    /* padding: 30px 0 20px; */
+    background-color: var(--white);
+}
+
+.about-page-title {
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--primary-color);
+    text-align: center;
+    margin: 0;
+}
+
+/* About Banner Section */
+.about-banner {
+    width: 100%;
+    height: 400px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-bottom: 40px;
+}
+
+/* About Intro Section */
+.about-intro-section {
+    padding: 40px 0;
+    /* background-color: var(--bg-light); */
+}
+
+.about-intro-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.about-intro-text {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #7594b1;
+    text-align: center;
+    margin: 0;
+}
+
+/* About Content Sections */
+.about-content-section {
+    padding: 60px 0;
+    background-color: var(--white);
+}
+
+.about-content-section--reverse {
+    /* background-color: var(--bg-light); */
+}
+
+.about-content-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+}
+
+.about-content-section--reverse .about-content-row {
+    direction: ltr;
+}
+
+.about-content-text {
+    direction: rtl;
+}
+
+.about-section-title {
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--primary-color);
+    margin: 0 0 20px;
+}
+
+.about-section-text {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #7594b1;
+    margin: 0 0 15px;
+    text-align: right;
+}
+
+.about-section-text:last-child {
+    margin-bottom: 0;
+}
+
+.about-content-image img {
+    width: 100%;
+    max-height: 300px;
+    height: auto;
+    display: block;
+    /* border-radius: 8px; */
+}
+
+/* About CTA Section */
+.about-cta-section {
+    padding: 80px 0;
+    background-color: var(--white);
+}
+
+.about-cta-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.about-cta-text {
+    font-size: 22px;
+    font-weight: 400;
+    color: #7594b1;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.about-cta-button {
+    display: inline-block;
+    padding: 14px 80px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-size: 18px;
+    font-weight: 500;
+    /* border-radius: 4px; */
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.about-cta-button:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(143, 163, 176, 0.3);
+}
+
+/* Responsive Design for About Page */
+@media (max-width: 968px) {
+    .about-content-row {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .about-content-section--reverse .about-content-row {
+        direction: rtl;
+    }
+}
+
+@media (max-width: 768px) {
+    .about-page-title {
+        font-size: 28px;
+    }
+    
+    .about-banner {
+        height: 300px;
+    }
+    
+    .about-intro-text {
+        font-size: 16px;
+    }
+    
+    .about-section-title {
+        font-size: 26px;
+    }
+    
+    .about-section-text {
+        font-size: 15px;
+    }
+    
+    .about-content-section {
+        padding: 40px 0;
+    }
+    
+    .about-cta-section {
+        padding: 50px 0;
+    }
+    
+    .about-cta-text {
+        font-size: 20px;
+    }
+    
+    .about-cta-button {
+        font-size: 16px;
+        padding: 14px 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-page-title {
+        font-size: 24px;
+    }
+    
+    .about-banner {
+        height: 250px;
+        margin-bottom: 30px;
+    }
+    
+    .about-intro-section {
+        padding: 30px 0;
+    }
+    
+    .about-intro-text {
+        font-size: 15px;
+    }
+    
+    .about-section-title {
+        font-size: 22px;
+    }
+    
+    .about-section-text {
+        font-size: 14px;
+    }
+    
+    .about-content-section {
+        padding: 30px 0;
+    }
+    
+    .about-cta-section {
+        padding: 40px 0;
+    }
+    
+    .about-cta-text {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+    
+    .about-cta-button {
+        font-size: 16px;
+        padding: 12px 30px;
     }
 }
 

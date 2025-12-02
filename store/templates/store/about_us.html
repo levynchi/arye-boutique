@@ -66,13 +66,6 @@
 <section class="about-content-section about-content-section--reverse">
     <div class="container">
         <div class="about-content-row">
-            <div class="about-content-image">
-                {% if about_settings and about_settings.content_image_2 %}
-                    <img src="{{ about_settings.content_image_2.url }}" alt="Arye Boutique">
-                {% else %}
-                    <img src="https://placehold.co/600x400/d4bfa4/ffffff?text=Arye+Boutique" alt="Arye Boutique">
-                {% endif %}
-            </div>
             <div class="about-content-text">
                 <h2 class="about-section-title">אריה בוטיק</h2>
                 <p class="about-section-text">
@@ -88,6 +81,13 @@
                 <p class="about-section-text">
                     כל פריט נוצר מתוך מחשבה על נוחות, אסתטיקה וסטייל ומיועד להורים שמעריכים איכות ישראלית מוקפדת.
                 </p>
+            </div>
+            <div class="about-content-image">
+                {% if about_settings and about_settings.content_image_2 %}
+                    <img src="{{ about_settings.content_image_2.url }}" alt="Arye Boutique">
+                {% else %}
+                    <img src="https://placehold.co/600x400/d4bfa4/ffffff?text=Arye+Boutique" alt="Arye Boutique">
+                {% endif %}
             </div>
         </div>
     </div>
@@ -125,13 +125,6 @@
 <section class="about-content-section about-content-section--reverse">
     <div class="container">
         <div class="about-content-row">
-            <div class="about-content-image">
-                {% if about_settings and about_settings.content_image_4 %}
-                    <img src="{{ about_settings.content_image_4.url }}" alt="האיכות שלנו">
-                {% else %}
-                    <img src="https://placehold.co/600x400/d4bfa4/ffffff?text=האיכות+שלנו" alt="האיכות שלנו">
-                {% endif %}
-            </div>
             <div class="about-content-text">
                 <h2 class="about-section-title">האיכות שלנו</h2>
                 <p class="about-section-text">
@@ -145,6 +138,25 @@
                     התוצאה – טקסטיל שנראה נהדר, מרגיש מושלם ונשמר לאורך זמן.
                 </p>
             </div>
+            <div class="about-content-image">
+                {% if about_settings and about_settings.content_image_4 %}
+                    <img src="{{ about_settings.content_image_4.url }}" alt="האיכות שלנו">
+                {% else %}
+                    <img src="https://placehold.co/600x400/d4bfa4/ffffff?text=האיכות+שלנו" alt="האיכות שלנו">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="about-cta-section">
+    <div class="container">
+        <div class="about-cta-content">
+            <p class="about-cta-text">
+                גלו את הקולקציה החדשה שלנו והכניסו לביתכם את המגע הרך של Arye Boutique
+            </p>
+            <a href="#" class="about-cta-button">היכנסו עכשיו</a>
         </div>
     </div>
 </section>

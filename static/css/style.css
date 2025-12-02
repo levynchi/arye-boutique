@@ -587,6 +587,11 @@ ul {
     padding-right: 10px;
 }
 
+.search-input:focus,
+.search-input:focus-visible {
+    outline: none;
+}
+
 .search-input::placeholder {
     color: var(--text-light);
     opacity: 0.7;

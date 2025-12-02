@@ -9,7 +9,7 @@ from .models import (
     Product, Category, Subcategory, SiteSettings, ProductImage, 
     Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem, 
     BelowBestsellersGallery, Testimonial, InstagramGallery,
-    FabricType, ProductVariant, AboutPageSettings
+    FabricType, ProductVariant, AboutPageSettings, FAQ
 )
 from .forms import ContactForm, CheckoutForm
 
@@ -399,6 +399,33 @@ def accessibility_statement(request):
     }
 
     return render(request, 'store/accessibility.html', context)
+
+
+def laundry_instructions(request):
+    """
+    דף הוראות כביסה
+    """
+    categories = Category.objects.filter(is_active=True)
+    
+    context = {
+        'categories': categories,
+    }
+    
+    return render(request, 'store/laundry_instructions.html', context)
+
+
+def faq(request):
+    """
+    דף שאלות ותשובות
+    """
+    categories = Category.objects.filter(is_active=True)
+    faqs = FAQ.objects.filter(is_active=True).order_by('order', 'id')
+    
+    context = {
+        'categories': categories,
+        'faqs': faqs,
+    }
+    return render(request, 'store/faq.html', context)
 
 
 @login_required

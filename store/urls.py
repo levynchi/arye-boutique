@@ -18,6 +18,8 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('about-us/', views.about_us, name='about_us'),
     path('accessibility/', views.accessibility_statement, name='accessibility_statement'),
+    path('faq/', views.faq, name='faq'),
+    path('laundry-instructions/', views.laundry_instructions, name='laundry_instructions'),
     
     # Wishlist URLs
     path('wishlist/', views.wishlist_view, name='wishlist'),

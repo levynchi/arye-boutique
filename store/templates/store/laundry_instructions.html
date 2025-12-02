@@ -1,0 +1,106 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}הוראות כביסה - בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">הוראות כביסה</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Laundry Instructions Title -->
+<section class="about-title-section">
+    <div class="container">
+        <h1 class="about-page-title" style="color: #000;">הוראות כביסה</h1>
+    </div>
+</section>
+
+<!-- Main Content Section -->
+<section class="about-intro-section">
+    <div class="container">
+        <div class="about-intro-content">
+            <p class="about-intro-text">
+                בגדינו ומוצרי הטסקסטיל שלנו השקענו במיטב האיכות בכדי להביא את המוצר הטוב ביותר לתינוקכם.
+                על מנת לשמור על צבע והצורה של הבגד לאורך זמן, ממולץ לפעול לפי הוראות הכביסה המופיעים בתווית.
+            </p>
+            <p class="about-intro-text">
+                כביסה ראשונה מומלץ לכבס את הבגד ידני / תכנית שטיפה במכונת כביסה*
+            </p>
+            <p class="about-intro-text">
+                ולא לשים במיבש כביסה בפעם הראשונה מפני שזה עלול לכווץ את הבגד.
+                אחרי הכביסה הראשונה יש לכבס בטמפרטורה שלא עולה על 30 מעלות ואפשר לשים במיבש כביסה.
+            </p>
+            <p class="about-intro-text">
+                מומלץ להפוך את המוצר לצידו הפנימי לפני הכביסה*
+            </p>
+            <p class="about-intro-text">
+                מומלץ לכבס במכונה צבעים כהים בנפרד מבהירים*
+            </p>
+            <p class="about-intro-text">
+                נא לשים לב להוראות היצרן באבקת/נוזל הכביסה ולא לעבור על הכמות המומלצת*
+            </p>
+            <p class="about-intro-text">
+                בכביסה ביד יש להמיס ולערבב כמות קטנה של אבקה/נוזל במים).גבישים גורמים כתמים והרס*
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Laundry Care Symbols Section -->
+<section class="laundry-symbols-section" style="background-color: #000; color: #fff; padding: 60px 0;">
+    <div class="container">
+        <div class="laundry-symbols-grid" style="display: grid; grid-template-columns: 1fr; gap: 30px; max-width: 800px; margin: 0 auto;">
+            
+            <!-- Symbol 1: Machine Wash 30°C -->
+            <div class="laundry-symbol-item" style="display: flex; align-items: center; gap: 20px; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.2);">
+                <div class="symbol-icon" style="flex-shrink: 0; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+                    <i class="fas fa-tint" aria-hidden="true"></i>
+                </div>
+                <div class="symbol-text" style="flex: 1;">
+                    <h3 style="margin-bottom: 5px; font-size: 18px;">כביסה במכונה בטמפרטורה מרבית של 30°</h3>
+                </div>
+            </div>
+
+            <!-- Symbol 2: Dry Clean Normal -->
+            <div class="laundry-symbol-item" style="display: flex; align-items: center; gap: 20px; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.2);">
+                <div class="symbol-icon" style="flex-shrink: 0; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+                    <i class="fas fa-circle" aria-hidden="true"></i>
+                </div>
+                <div class="symbol-text" style="flex: 1;">
+                    <h3 style="margin-bottom: 5px; font-size: 18px;">נוהלי ניקוי יבש רגיל ללא הגבלות</h3>
+                </div>
+            </div>
+
+            <!-- Symbol 3: Iron Low Heat 110°C -->
+            <div class="laundry-symbol-item" style="display: flex; align-items: center; gap: 20px; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.2);">
+                <div class="symbol-icon" style="flex-shrink: 0; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+                    <i class="fas fa-burn" aria-hidden="true"></i>
+                </div>
+                <div class="symbol-text" style="flex: 1;">
+                    <h3 style="margin-bottom: 5px; font-size: 18px;">גיהוץ בחום נמוך 110°</h3>
+                </div>
+            </div>
+
+            <!-- Symbol 4: Do Not Bleach -->
+            <div class="laundry-symbol-item" style="display: flex; align-items: center; gap: 20px; padding: 20px;">
+                <div class="symbol-icon" style="flex-shrink: 0; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+                    <i class="fas fa-ban" aria-hidden="true"></i>
+                </div>
+                <div class="symbol-text" style="flex: 1;">
+                    <h3 style="margin-bottom: 5px; font-size: 18px;">אין להלבין</h3>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+

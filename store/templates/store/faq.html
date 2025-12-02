@@ -1,0 +1,52 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}שאלות ותשובות - בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">שאלות ותשובות</span>
+        </nav>
+    </div>
+</section>
+
+<!-- FAQ Title -->
+<section class="faq-title-section">
+    <div class="container">
+        <h1 class="faq-page-title">?! שאלות ותשובות</h1>
+    </div>
+</section>
+
+<!-- FAQ Content -->
+<section class="faq-section">
+    <div class="container">
+        <div class="faq-container">
+            {% for faq in faqs %}
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false">
+                    <span class="faq-icon">+</span>
+                    <span>{{ faq.question }}</span>
+                </button>
+                <div class="faq-answer" hidden>
+                    <div class="faq-answer-content">
+                        {{ faq.answer|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="no-faqs">אין שאלות זמינות כרגע.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/faq.js' %}"></script>
+{% endblock %}
+

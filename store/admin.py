@@ -7,7 +7,7 @@ from .models import (
     SiteSettings, Category, Subcategory, Product, ProductImage, 
     Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
     BelowBestsellersGallery, Testimonial, InstagramGallery, AboutPageSettings,
-    GalleriesHub, Size, SizeGroup, FabricType, ProductVariant
+    GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ
 )
 from .forms import BulkVariantCreationForm, ProductAdminForm
 
@@ -875,3 +875,28 @@ class ProductVariantAdmin(admin.ModelAdmin):
             # כאן נוכל להוסיף לוגיקה מתקדמת יותר אם נדרש
             pass
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    """
+    ניהול שאלות ותשובות
+    """
+    list_display = ['question', 'is_active', 'order', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['question', 'answer']
+    list_editable = ['is_active', 'order']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('תוכן', {
+            'fields': ('question', 'answer')
+        }),
+        ('הגדרות', {
+            'fields': ('is_active', 'order')
+        }),
+        ('תאריכים', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )

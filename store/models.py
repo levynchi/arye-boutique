@@ -580,3 +580,23 @@ class WishlistItem(models.Model):
     
     def __str__(self):
         return f'{self.user.username} - {self.product.name}'
+
+
+class FAQ(models.Model):
+    """
+    שאלות ותשובות
+    """
+    question = models.CharField(max_length=500, verbose_name='שאלה')
+    answer = models.TextField(verbose_name='תשובה')
+    is_active = models.BooleanField(default=True, verbose_name='פעיל')
+    order = models.IntegerField(default=0, verbose_name='סדר תצוגה')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='תאריך עדכון')
+    
+    class Meta:
+        verbose_name = 'שאלה ותשובה'
+        verbose_name_plural = 'שאלות ותשובות'
+        ordering = ['order', '-created_at']
+    
+    def __str__(self):
+        return self.question

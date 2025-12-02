@@ -8,8 +8,8 @@ import json
 from .models import (
     Product, Category, Subcategory, SiteSettings, ProductImage, 
     Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem, 
-    BelowBestsellersGallery, Testimonial, InstagramGallery, AboutPageSettings,
-    FabricType, ProductVariant, FAQ
+    BelowBestsellersGallery, Testimonial, InstagramGallery,
+    FabricType, ProductVariant, AboutPageSettings
 )
 from .forms import ContactForm, CheckoutForm
 
@@ -366,6 +366,25 @@ def contact(request):
     return render(request, 'store/contact.html', context)
 
 
+def about_us(request):
+    """
+    דף אודות
+    """
+    categories = Category.objects.filter(is_active=True)
+    
+    # קבלת הגדרות התמונות לדף אודות
+    try:
+        about_settings = AboutPageSettings.objects.filter(is_active=True).first()
+    except AboutPageSettings.DoesNotExist:
+        about_settings = None
+    
+    context = {
+        'categories': categories,
+        'about_settings': about_settings,
+    }
+    return render(request, 'store/about_us.html', context)
+
+
 def accessibility_statement(request):
     """
     הצהרת נגישות ומידע אודות התאמות לבעלי מוגבלויות
@@ -380,21 +399,6 @@ def accessibility_statement(request):
     }
 
     return render(request, 'store/accessibility.html', context)
-
-
-def about_us(request):
-    """
-    דף אודות - מידע על אריה בוטיק תינוקות וילדים
-    """
-    categories = Category.objects.filter(is_active=True)
-    about_settings = AboutPageSettings.get_settings()
-    
-    context = {
-        'categories': categories,
-        'about_settings': about_settings,
-    }
-    
-    return render(request, 'store/about_us.html', context)
 
 
 @login_required
@@ -743,27 +747,3 @@ def cart_data(request):
         'free_shipping_threshold': 75,
         'remaining_for_free_shipping': float(max(0, 75 - subtotal)),
     })
-
-
-def faq(request):
-    """
-    דף שאלות ותשובות
-    """
-    faqs = FAQ.objects.filter(is_active=True)
-    
-    context = {
-        'faqs': faqs,
-    }
-    return render(request, 'store/faq.html', context)
-
-
-def laundry_instructions(request):
-    """
-    דף הוראות כביסה
-    """
-    categories = Category.objects.filter(is_active=True)
-    
-    context = {
-        'categories': categories,
-    }
-    return render(request, 'store/laundry_instructions.html', context)

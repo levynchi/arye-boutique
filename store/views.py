@@ -9,7 +9,7 @@ from .models import (
     Product, Category, Subcategory, SiteSettings, ProductImage, 
     Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem, 
     BelowBestsellersGallery, Testimonial, InstagramGallery, AboutPageSettings,
-    FabricType, ProductVariant
+    FabricType, ProductVariant, FAQ
 )
 from .forms import ContactForm, CheckoutForm
 
@@ -743,3 +743,27 @@ def cart_data(request):
         'free_shipping_threshold': 75,
         'remaining_for_free_shipping': float(max(0, 75 - subtotal)),
     })
+
+
+def faq(request):
+    """
+    דף שאלות ותשובות
+    """
+    faqs = FAQ.objects.filter(is_active=True)
+    
+    context = {
+        'faqs': faqs,
+    }
+    return render(request, 'store/faq.html', context)
+
+
+def laundry_instructions(request):
+    """
+    דף הוראות כביסה
+    """
+    categories = Category.objects.filter(is_active=True)
+    
+    context = {
+        'categories': categories,
+    }
+    return render(request, 'store/laundry_instructions.html', context)

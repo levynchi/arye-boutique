@@ -3700,216 +3700,360 @@ ul {
 }
 
 /* ==========================================================================
-   About Us Page
+   FAQ Page
    ========================================================================== */
 
-/* About Page Title */
-.about-title-section {
-    padding: 10px;
+/* FAQ Page Styles */
+.faq-title-section {
+    padding: 40px 0 20px 0;
     background-color: var(--white);
 }
 
-.about-page-title {
-    font-size: 32px;
+.faq-page-title {
+    font-size: 42px;
     font-weight: 500;
     color: #7594B1;
     text-align: center;
     margin: 0;
 }
 
-/* About Banner */
-.about-banner {
-    position: relative;
-    height: 400px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-/* About Intro Section */
-.about-intro-section {
+.faq-section {
     padding: 60px 0;
     background-color: var(--white);
 }
 
-.about-intro-content {
+.faq-container {
     max-width: 900px;
     margin: 0 auto;
-    text-align: center;
 }
 
-.about-intro-text {
-    font-size: 20px;
-    line-height: 1.8;
-    color: #7594B1;
-    margin: 0;
-}
-
-/* About Content Sections */
-.about-content-section {
-    padding: 80px 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.about-content-section:last-of-type {
-    border-bottom: none;
-}
-
-.about-content-section:nth-child(even) {
+.faq-item {
+    margin-bottom: 16px;
     background-color: var(--white);
+    transition: all 0.3s ease;
 }
 
-.about-content-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 60px;
+.faq-item.active {
+    box-shadow: 0 2px 8px rgba(117, 148, 177, 0.15);
+}
+
+.faq-question {
+    width: 100%;
+    padding: 20px 24px;
+    background-color: transparent;
+    border: none;
+    text-align: right;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    font-size: 18px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
 }
 
-/* Default layout: Text Right, Image Left */
-.about-content-row .about-content-text {
-    order: 1;
+.faq-question:hover {
+    background-color: rgba(117, 148, 177, 0.05);
 }
 
-.about-content-row .about-content-image {
-    order: 2;
+.faq-question span:last-child {
+    flex: 1;
+    text-align: right;
 }
 
-/* Reverse layout: Image Right, Text Left */
-.about-content-section--reverse .about-content-row .about-content-text {
-    order: 2;
+.faq-icon {
+    font-size: 24px;
+    font-weight: 300;
+    margin-right: 5px;
+    transition: transform 0.3s ease;
+    margin-left: 10px;
 }
 
-.about-content-section--reverse .about-content-row .about-content-image {
-    order: 1;
+.faq-answer {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
 }
 
-.about-content-text {
-    padding: 20px;
-}
-
-.about-section-title {
-    font-size: 28px;
-    color: #7594B1;
-    margin-bottom: 20px;
-}
-
-.about-section-text {
+.faq-answer-content {
+    padding: 0 24px 24px 24px;
+    color: #666;
     font-size: 16px;
     line-height: 1.8;
-    color: #7594B1;
-    margin-bottom: 16px;
 }
 
-.about-section-text:last-child {
-    margin-bottom: 0;
+.no-faqs {
+    text-align: center;
+    color: #999;
+    font-size: 18px;
+    padding: 40px 0;
 }
 
-.about-content-image {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.about-content-image img {
-    width: 100%;
-    height: auto;
-    max-height: 300px;
-    object-fit: cover;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Responsive Design for About Page */
+/* Responsive */
 @media (max-width: 768px) {
-    .about-title-section {
-        padding: 10px;
+    .faq-page-title {
+        font-size: 32px;
     }
     
-    .about-page-title {
+    .faq-section {
+        padding: 40px 0;
+    }
+    
+    .faq-question {
+        font-size: 16px;
+        padding: 16px 20px;
+    }
+    
+    .faq-answer-content {
+        font-size: 15px;
+        padding: 0 20px 20px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .faq-page-title {
         font-size: 26px;
     }
     
-    .about-banner {
-        height: 250px;
+    .faq-section {
+        padding: 30px 0;
     }
     
-    .about-intro-section {
+    .faq-question {
+        font-size: 15px;
+        padding: 14px 16px;
+    }
+    
+    .faq-icon {
+        font-size: 20px;
+    }
+    
+    .faq-answer-content {
+        font-size: 14px;
+        padding: 0 16px 16px 16px;
+    }
+}
+
+/* Laundry Instructions Page Styles */
+.laundry-title-section {
+    padding: 40px 0 20px 0;
+    background-color: var(--white);
+}
+
+.laundry-page-title {
+    font-size: 42px;
+    font-weight: 500;
+    color: #7594B1;
+    text-align: center;
+    margin: 0;
+}
+
+.laundry-section {
+    padding: 60px 0;
+    background-color: var(--white);
+}
+
+.laundry-section .container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.laundry-intro {
+    margin-bottom: 60px;
+    text-align: right;
+}
+
+.laundry-intro p {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.laundry-guidelines {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.laundry-guidelines li {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 16px;
+    padding-right: 24px;
+    position: relative;
+}
+
+.laundry-guidelines li::before {
+    content: "•";
+    position: absolute;
+    right: 0;
+    color: #7594B1;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.laundry-guidelines li strong {
+    color: #333;
+    font-weight: 600;
+}
+
+.laundry-care-symbols {
+    margin-top: 50px;
+    padding-top: 50px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.care-symbols-title {
+    font-size: 32px;
+    font-weight: 500;
+    color: #7594B1;
+    text-align: center;
+    margin: 0 0 40px 0;
+}
+
+.care-symbols-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.laundry-care-item {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 25px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.laundry-care-item:hover {
+    background-color: #f0f5f9;
+    box-shadow: 0 4px 12px rgba(117, 148, 177, 0.15);
+}
+
+.care-icon {
+    flex-shrink: 0;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #7594B1;
+    color: white;
+    border-radius: 50%;
+    font-size: 32px;
+}
+
+.care-description {
+    flex: 1;
+    text-align: right;
+}
+
+.care-description h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 8px 0;
+}
+
+.care-description p {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .laundry-page-title {
+        font-size: 32px;
+    }
+    
+    .laundry-section {
         padding: 40px 0;
     }
     
-    .about-intro-text {
+    .laundry-intro p {
         font-size: 16px;
     }
     
-    .about-content-section {
-        padding: 40px 0;
+    .laundry-guidelines li {
+        font-size: 15px;
     }
     
-    .about-content-row {
-        grid-template-columns: 1fr;
-        gap: 30px;
+    .care-symbols-title {
+        font-size: 26px;
+        margin-bottom: 30px;
     }
     
-    /* Mobile: Always show text first, then image */
-    .about-content-row .about-content-text,
-    .about-content-section--reverse .about-content-row .about-content-text {
-        order: 1;
+    .laundry-care-item {
+        gap: 20px;
+        padding: 20px;
     }
     
-    .about-content-row .about-content-image,
-    .about-content-section--reverse .about-content-row .about-content-image {
-        order: 2;
+    .care-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
     }
     
-    .about-content-text {
-        padding: 10px;
+    .care-description h3 {
+        font-size: 18px;
     }
     
-    .about-section-title {
-        font-size: 24px;
-    }
-    
-    .about-section-text {
+    .care-description p {
         font-size: 15px;
     }
 }
 
 @media (max-width: 480px) {
-    .about-title-section {
-        padding: 10px;
+    .laundry-page-title {
+        font-size: 26px;
     }
     
-    .about-page-title {
-        font-size: 22px;
-    }
-    
-    .about-banner {
-        height: 200px;
-    }
-    
-    .about-intro-section {
+    .laundry-section {
         padding: 30px 0;
     }
     
-    .about-intro-text {
+    .laundry-intro {
+        margin-bottom: 40px;
+    }
+    
+    .laundry-intro p {
         font-size: 15px;
     }
     
-    .about-content-section {
-        padding: 30px 0;
+    .laundry-guidelines li {
+        font-size: 14px;
+        padding-right: 20px;
     }
     
-    .about-section-title {
-        font-size: 20px;
+    .care-symbols-title {
+        font-size: 22px;
+        margin-bottom: 25px;
     }
     
-    .about-section-text {
+    .laundry-care-item {
+        gap: 15px;
+        padding: 16px;
+    }
+    
+    .care-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+    
+    .care-description h3 {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    
+    .care-description p {
         font-size: 14px;
     }
 }

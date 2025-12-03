@@ -946,6 +946,11 @@ ul {
     margin-top: 20px;
 }
 
+/* Hide mobile social on desktop */
+.footer-social-mobile {
+    display: none;
+}
+
 .footer-social-link {
     display: flex;
     align-items: center;
@@ -1096,6 +1101,11 @@ ul {
         font-size: 20px;
     }
     
+    .main-footer {
+        margin-top: 0;
+        padding: 0;
+    }
+    
     .footer-content {
         grid-template-columns: 1fr;
         gap: 30px;
@@ -1110,6 +1120,7 @@ ul {
         max-width: 400px;
         margin: 0 auto;
         flex-direction: column;
+        padding-bottom: 20px;
     }
     
     .newsletter-button {
@@ -1122,8 +1133,17 @@ ul {
         text-align: center;
     }
     
-    .footer-social {
+    /* Hide original social in newsletter, show mobile version */
+    .newsletter-section .footer-social {
+        display: none;
+    }
+    
+    .footer-social-mobile {
+        display: flex;
+        gap: 50px;
         justify-content: center;
+        margin-top: 30px;
+        width: 100%;
     }
 
     /* Footer Accordion - Mobile */

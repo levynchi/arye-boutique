@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    Reset & Base Styles
    ========================================================================== */
 
@@ -385,6 +385,8 @@ ul {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+    text-align: center;
+    color: #7594B1;
 }
 
 /* ==========================================================================
@@ -439,11 +441,19 @@ ul {
     font-weight: 500;
     text-align: center;
     flex: 1;
+    color: var(--white);
 }
 
 /* ==========================================================================
    Main Header
    ========================================================================== */
+
+/* Sticky Header Wrapper */
+.sticky-header-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
 
 .main-header {
     background-color: #F8F8F8;
@@ -576,6 +586,11 @@ ul {
     color: var(--text-color);
     text-align: right;
     padding-right: 10px;
+}
+
+.search-input:focus,
+.search-input:focus-visible {
+    outline: none;
 }
 
 .search-input::placeholder {
@@ -946,11 +961,6 @@ ul {
     margin-top: 20px;
 }
 
-/* Hide mobile social on desktop */
-.footer-social-mobile {
-    display: none;
-}
-
 .footer-social-link {
     display: flex;
     align-items: center;
@@ -1101,15 +1111,9 @@ ul {
         font-size: 20px;
     }
     
-    .main-footer {
-        margin-top: 0;
-        padding: 0;
-    }
-    
     .footer-content {
         grid-template-columns: 1fr;
         gap: 30px;
-        display: block;
     }
     
     .footer-section {
@@ -1120,7 +1124,6 @@ ul {
         max-width: 400px;
         margin: 0 auto;
         flex-direction: column;
-        padding-bottom: 20px;
     }
     
     .newsletter-button {
@@ -1133,17 +1136,8 @@ ul {
         text-align: center;
     }
     
-    /* Hide original social in newsletter, show mobile version */
-    .newsletter-section .footer-social {
-        display: none;
-    }
-    
-    .footer-social-mobile {
-        display: flex;
-        gap: 50px;
+    .footer-social {
         justify-content: center;
-        margin-top: 30px;
-        width: 100%;
     }
 
     /* Footer Accordion - Mobile */
@@ -1151,12 +1145,12 @@ ul {
         width: 100%;
         padding: 0;
     }
-    
+
     .footer-accordion-section .footer-info-wrapper {
         width: 100%;
         padding: 0;
     }
-    
+
     .footer-accordion-toggle {
         display: flex;
         align-items: center;
@@ -1169,20 +1163,20 @@ ul {
         cursor: pointer;
         text-align: right;
     }
-    
+
     .footer-accordion-toggle h4 {
         margin: 0;
         font-size: 18px;
         color: var(--white);
     }
-    
+
     .footer-accordion-icon {
         width: 12px;
         height: 12px;
         position: relative;
         transition: transform 0.3s ease;
     }
-    
+
     .footer-accordion-icon::before,
     .footer-accordion-icon::after {
         content: '';
@@ -1190,7 +1184,7 @@ ul {
         background-color: var(--white);
         transition: transform 0.3s ease;
     }
-    
+
     .footer-accordion-icon::before {
         width: 12px;
         height: 2px;
@@ -1198,7 +1192,7 @@ ul {
         left: 0;
         transform: translateY(-50%);
     }
-    
+
     .footer-accordion-icon::after {
         width: 2px;
         height: 12px;
@@ -1206,23 +1200,23 @@ ul {
         left: 50%;
         transform: translateX(-50%);
     }
-    
+
     .footer-accordion-toggle[aria-expanded="true"] .footer-accordion-icon::after {
         transform: translateX(-50%) rotate(90deg);
         opacity: 0;
     }
-    
+
     .footer-accordion-content {
         display: none;
         padding: 15px 20px 25px;
         text-align: right;
     }
-    
+
     .footer-accordion-content.is-open {
         display: block;
         animation: accordionSlideDown 0.3s ease;
     }
-    
+
     @keyframes accordionSlideDown {
         from {
             opacity: 0;
@@ -1233,12 +1227,12 @@ ul {
             transform: translateY(0);
         }
     }
-    
+
     .footer-accordion-section .footer-links,
     .footer-accordion-section .footer-contact {
         text-align: right;
     }
-    
+
     .footer-accordion-section .footer-links li,
     .footer-accordion-section .footer-contact li {
         text-align: right;
@@ -3816,6 +3810,375 @@ ul {
     .fabric-option,
     .size-option {
         padding: 10px 18px;
+        font-size: 14px;
+    }
+}
+
+/* ==========================================================================
+   About Page Styles
+   ========================================================================== */
+
+/* About Page Title Section */
+.about-title-section {
+    /* padding: 30px 0 20px; */
+    background-color: var(--white);
+}
+
+.about-page-title {
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--primary-color);
+    text-align: center;
+    margin: 0;
+}
+
+/* About Banner Section */
+.about-banner {
+    width: 100%;
+    height: 400px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-bottom: 40px;
+}
+
+/* About Intro Section */
+.about-intro-section {
+    padding: 40px 0;
+    /* background-color: var(--bg-light); */
+}
+
+.about-intro-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.about-intro-text {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #000;
+    text-align: right;
+    margin: 0;
+}
+
+/* Laundry Symbols Section */
+.laundry-symbols-section {
+    color: #000;
+    padding: 60px 0;
+}
+
+.laundry-symbols-grid {
+    min-width: 800px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.laundry-symbol-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.laundry-symbol-item:last-child {
+    border-bottom: none;
+}
+
+.laundry-symbol-item h3 {
+    margin: 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.laundry-symbol-item h3 i {
+    font-size: 32px;
+}
+
+/* About Content Sections */
+.about-content-section {
+    padding: 60px 0;
+    background-color: var(--white);
+}
+
+.about-content-section--reverse {
+    /* background-color: var(--bg-light); */
+}
+
+.about-content-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+}
+
+.about-content-section--reverse .about-content-row {
+    direction: ltr;
+}
+
+.about-content-text {
+    direction: rtl;
+}
+
+.about-section-title {
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--primary-color);
+    margin: 0 0 20px;
+}
+
+.about-section-text {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #7594b1;
+    margin: 0 0 15px;
+    text-align: right;
+}
+
+.about-section-text:last-child {
+    margin-bottom: 0;
+}
+
+.about-content-image img {
+    width: 100%;
+    max-height: 300px;
+    height: auto;
+    display: block;
+    /* border-radius: 8px; */
+}
+
+/* About CTA Section */
+.about-cta-section {
+    padding: 80px 0;
+    background-color: var(--white);
+}
+
+.about-cta-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.about-cta-text {
+    font-size: 22px;
+    font-weight: 400;
+    color: #7594b1;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.about-cta-button {
+    display: inline-block;
+    padding: 14px 80px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-size: 18px;
+    font-weight: 500;
+    /* border-radius: 4px; */
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.about-cta-button:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(143, 163, 176, 0.3);
+}
+
+/* Responsive Design for About Page */
+@media (max-width: 968px) {
+    .about-content-row {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .about-content-section--reverse .about-content-row {
+        direction: rtl;
+    }
+}
+
+@media (max-width: 768px) {
+    .about-page-title {
+        font-size: 28px;
+    }
+    
+    .about-banner {
+        height: 300px;
+    }
+    
+    .about-intro-text {
+        font-size: 16px;
+    }
+    
+    .about-section-title {
+        font-size: 26px;
+    }
+    
+    .about-section-text {
+        font-size: 15px;
+    }
+    
+    .about-content-section {
+        padding: 40px 0;
+    }
+    
+    .about-cta-section {
+        padding: 50px 0;
+    }
+    
+    .about-cta-text {
+        font-size: 20px;
+    }
+    
+    .about-cta-button {
+        font-size: 16px;
+        padding: 14px 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-page-title {
+        font-size: 24px;
+    }
+    
+    .about-banner {
+        height: 250px;
+        margin-bottom: 30px;
+    }
+    
+    .about-intro-section {
+        padding: 30px 0;
+    }
+    
+    .about-intro-text {
+        font-size: 15px;
+    }
+    
+    .about-section-title {
+        font-size: 22px;
+    }
+    
+    .about-section-text {
+        font-size: 14px;
+    }
+    
+    .about-content-section {
+        padding: 30px 0;
+    }
+    
+    .about-cta-section {
+        padding: 40px 0;
+    }
+    
+    .about-cta-text {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+    
+    .about-cta-button {
+        font-size: 16px;
+        padding: 12px 30px;
+    }
+}
+
+/* ===== FAQ Styles ===== */
+.faq-title-section {
+    padding: 40px 0 20px;
+    text-align: center;
+}
+
+.faq-page-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #7594b1;
+}
+
+.faq-section {
+    padding: 40px 0 80px;
+}
+
+.faq-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    margin-bottom: 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.faq-question {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 20px 0;
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #000000;
+    text-align: right;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    font-family: inherit;
+}
+
+.faq-question:hover {
+    color: #666666;
+}
+
+.faq-icon {
+    font-size: 20px;
+    font-weight: bold;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.faq-question[aria-expanded="true"] .faq-icon {
+    transform: rotate(45deg);
+}
+
+.faq-answer {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.faq-answer-content {
+    padding: 0 32px 20px;
+    color: var(--text-color);
+    line-height: 1.6;
+    text-align: right;
+}
+
+.no-faqs {
+    text-align: center;
+    color: #666666;
+    padding: 40px 20px;
+    font-size: 18px;
+}
+
+@media (max-width: 768px) {
+    .faq-page-title {
+        font-size: 26px;
+    }
+    
+    .faq-section {
+        padding: 30px 0 60px;
+    }
+    
+    .faq-question {
+        font-size: 15px;
+        padding: 16px 0;
+    }
+    
+    .faq-answer-content {
+        padding: 0 28px 16px;
         font-size: 14px;
     }
 }

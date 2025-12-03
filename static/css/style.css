@@ -982,6 +982,11 @@ ul {
     display: block;
 }
 
+/* Hide mobile social on desktop */
+.footer-social-mobile {
+    display: none;
+}
+
 /* Footer Accordion - Desktop (hidden) */
 .footer-accordion-toggle {
     display: none;
@@ -1138,6 +1143,19 @@ ul {
     
     .footer-social {
         justify-content: center;
+    }
+
+    /* Hide original social in newsletter, show mobile version */
+    .newsletter-section .footer-social {
+        display: none;
+    }
+
+    .footer-social-mobile {
+        display: flex;
+        gap: 50px;
+        justify-content: center;
+        margin-top: 30px;
+        width: 100%;
     }
 
     /* Footer Accordion - Mobile */

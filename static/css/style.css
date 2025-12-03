@@ -3918,6 +3918,12 @@ ul {
     font-size: 32px;
 }
 
+.laundry-symbol-icon {
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
+}
+
 /* About Content Sections */
 .about-content-section {
     padding: 60px 0;

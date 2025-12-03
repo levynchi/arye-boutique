@@ -25,7 +25,7 @@
             <div class="product-images-column">
                 <!-- Main Product Image -->
                 <div class="main-product-image">
-                    {% if additional_images and additional_images|length > 1 %}
+                    {% if additional_images %}
                     <button type="button" class="gallery-arrow gallery-arrow-right" id="gallery-prev" aria-label="תמונה קודמת">‹</button>
                     {% endif %}
                     {% if primary_image %}
@@ -33,7 +33,7 @@
                     {% else %}
                         <img src="{{ product.image.url }}" alt="{{ product.name }}" id="main-product-img">
                     {% endif %}
-                    {% if additional_images and additional_images|length > 1 %}
+                    {% if additional_images %}
                     <button type="button" class="gallery-arrow gallery-arrow-left" id="gallery-next" aria-label="תמונה הבאה">›</button>
                     {% endif %}
                 </div>

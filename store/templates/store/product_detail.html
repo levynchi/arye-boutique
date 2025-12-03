@@ -25,10 +25,16 @@
             <div class="product-images-column">
                 <!-- Main Product Image -->
                 <div class="main-product-image">
+                    {% if additional_images and additional_images|length > 1 %}
+                    <button type="button" class="gallery-arrow gallery-arrow-right" id="gallery-prev" aria-label="תמונה קודמת">‹</button>
+                    {% endif %}
                     {% if primary_image %}
                         <img src="{{ primary_image.url }}" alt="{{ product.name }}" id="main-product-img">
                     {% else %}
                         <img src="{{ product.image.url }}" alt="{{ product.name }}" id="main-product-img">
+                    {% endif %}
+                    {% if additional_images and additional_images|length > 1 %}
+                    <button type="button" class="gallery-arrow gallery-arrow-left" id="gallery-next" aria-label="תמונה הבאה">›</button>
                     {% endif %}
                 </div>
                 
@@ -167,8 +173,16 @@
     document.addEventListener('DOMContentLoaded', function() {
         const thumbnails = document.querySelectorAll('.thumbnail-item');
         const mainImage = document.getElementById('main-product-img');
+        let currentImageIndex = 0;
         
-        thumbnails.forEach(thumbnail => {
+        // Find initially active thumbnail
+        thumbnails.forEach((thumb, index) => {
+            if (thumb.classList.contains('active')) {
+                currentImageIndex = index;
+            }
+        });
+        
+        thumbnails.forEach((thumbnail, index) => {
             thumbnail.addEventListener('click', function() {
                 // Remove active class from all thumbnails
                 thumbnails.forEach(t => t.classList.remove('active'));
@@ -179,8 +193,40 @@
                 if (mainImage && imageUrl) {
                     mainImage.src = imageUrl;
                 }
+                // Update current index
+                currentImageIndex = index;
             });
         });
+        
+        // Gallery arrow navigation
+        const prevBtn = document.getElementById('gallery-prev');
+        const nextBtn = document.getElementById('gallery-next');
+        
+        function navigateGallery(direction) {
+            if (thumbnails.length === 0) return;
+            
+            // Calculate new index
+            if (direction === 'next') {
+                currentImageIndex = (currentImageIndex + 1) % thumbnails.length;
+            } else {
+                currentImageIndex = (currentImageIndex - 1 + thumbnails.length) % thumbnails.length;
+            }
+            
+            // Trigger click on the target thumbnail
+            thumbnails[currentImageIndex].click();
+        }
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function() {
+                navigateGallery('prev');
+            });
+        }
+        
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function() {
+                navigateGallery('next');
+            });
+        }
         
         // Variant selection logic
         if (hasVariants) {

@@ -1662,6 +1662,7 @@ ul {
     border-radius: 0;
     overflow: hidden;
     background-color: var(--bg-light);
+    position: relative;
 }
 
 .main-product-image img {
@@ -1669,6 +1670,40 @@ ul {
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+/* Gallery Navigation Arrows */
+.gallery-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 45px;
+    height: 45px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    font-size: 28px;
+    color: var(--text-color);
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.gallery-arrow:hover {
+    background-color: var(--white);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.gallery-arrow-right {
+    right: 15px;
+}
+
+.gallery-arrow-left {
+    left: 15px;
 }
 
 .product-thumbnails {

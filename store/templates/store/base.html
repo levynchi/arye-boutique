@@ -306,32 +306,55 @@
                 </div>
                 
                 <!-- Help + Info Section -->
-                <div class="footer-section">
+                <div class="footer-section footer-accordion-section">
                     <div class="footer-info-wrapper">
-                        <h4>עזרה + מידע</h4>
-                        <ul class="footer-links">
-                            <li><a href="#">אודות</a></li>
-                            <li><a href="#">הוראות כביסה</a></li>
-                            <li><a href="#">שאלות ותשובות</a></li>
-                            <li><a href="#">משלוחים והחזרות</a></li>
-                            <li><a href="#">תנאי האתר</a></li>
-                            <li><a href="{% url 'accessibility_statement' %}">הצהרת נגישות</a></li>
-                        </ul>
+                        <button type="button" class="footer-accordion-toggle" aria-expanded="false" aria-controls="footer-help-content">
+                            <h4>עזרה + מידע</h4>
+                            <span class="footer-accordion-icon" aria-hidden="true"></span>
+                        </button>
+                        <div id="footer-help-content" class="footer-accordion-content">
+                            <ul class="footer-links">
+                                <li><a href="{% url 'about_us' %}">אודות</a></li>
+                                <li><a href="{% url 'laundry_instructions' %}">הוראות כביסה</a></li>
+                                <li><a href="{% url 'faq' %}">שאלות ותשובות</a></li>
+                                <li><a href="#">משלוחים והחזרות</a></li>
+                                <li><a href="#">תנאי האתר</a></li>
+                                <li><a href="{% url 'accessibility_statement' %}">הצהרת נגישות</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 
                 <!-- Contact Section -->
-                <div class="footer-section">
+                <div class="footer-section footer-accordion-section">
                     <div class="footer-info-wrapper">
-                        <h4>צרו קשר</h4>
-                        <ul class="footer-contact">
-                            <li><a href="{% url 'contact' %}">צור קשר</a></li>
-                            <li>אנחנו נמצאים ברחוב הקישון 6 תל אביב.</li>
-                            <li>שירות לקוחות וואטסאפ בלבד >> <img src="{% static 'images/WATSAPP WHITE.svg' %}" alt="WhatsApp" class="footer-whatsapp-icon"><br>בטלפון 053-3694264</li>
-                            <li>זמני פעילות שירות הלקוחות<br>ימים א' - ה' בין השעות 9:00 - 15:00</li>
-                            <li>מוזמנים לפנות אלינו למייל<br>Arye.Boutique@gmail.com</li>
-                        </ul>
+                        <button type="button" class="footer-accordion-toggle" aria-expanded="false" aria-controls="footer-contact-content">
+                            <h4>צרו קשר</h4>
+                            <span class="footer-accordion-icon" aria-hidden="true"></span>
+                        </button>
+                        <div id="footer-contact-content" class="footer-accordion-content">
+                            <ul class="footer-contact">
+                                <li><a href="{% url 'contact' %}">צור קשר</a></li>
+                                <li>אנחנו נמצאים ברחוב הקישון 6 תל אביב.</li>
+                                <li>שירות לקוחות וואטסאפ בלבד >> <img src="{% static 'images/WATSAPP WHITE.svg' %}" alt="WhatsApp" class="footer-whatsapp-icon"><br>בטלפון 053-3694264</li>
+                                <li>זמני פעילות שירות הלקוחות<br>ימים א' - ה' בין השעות 9:00 - 15:00</li>
+                                <li>מוזמנים לפנות אלינו למייל<br>Arye.Boutique@gmail.com</li>
+                            </ul>
+                        </div>
                     </div>
+                </div>
+                
+                <!-- Social Icons - Mobile Only -->
+                <div class="footer-social footer-social-mobile">
+                    <a href="#" class="footer-social-link">
+                        <img src="{% static 'images/FACEBOOK WHITE.svg' %}" alt="Facebook" class="footer-social-icon">
+                    </a>
+                    <a href="#" class="footer-social-link">
+                        <img src="{% static 'images/INSTEGRAM WHITE.svg' %}" alt="Instagram" class="footer-social-icon">
+                    </a>
+                    <a href="#" class="footer-social-link">
+                        <img src="{% static 'images/MAILL WHITE.svg' %}" alt="Email" class="footer-social-icon">
+                    </a>
                 </div>
             </div>
         </div>
@@ -353,6 +376,9 @@
 
     <!-- Mobile Navigation JavaScript -->
     <script src="{% static 'js/mobile-nav.js' %}"></script>
+
+    <!-- Footer Accordion JavaScript -->
+    <script src="{% static 'js/footer-accordion.js' %}"></script>
     
     {% block extra_js %}{% endblock %}
     

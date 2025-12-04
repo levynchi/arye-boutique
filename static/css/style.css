@@ -1859,6 +1859,16 @@ ul {
     font-weight: 500;
     background-color: var(--white);
     color: var(--text-color);
+    -moz-appearance: textfield;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* Hide number input spinner buttons */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 /* Add to Cart Button */

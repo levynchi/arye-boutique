@@ -846,6 +846,12 @@ ul {
     color: var(--text-light);
 }
 
+.newsletter-input:focus,
+.newsletter-input:focus-visible {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
 .newsletter-button {
     padding: 12px 20px;
     border: 1px solid #707070;

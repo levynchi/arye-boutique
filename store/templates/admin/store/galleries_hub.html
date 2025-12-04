@@ -137,7 +137,13 @@
             <h3>{{ gallery.name }}</h3>
             <p>{{ gallery.description }}</p>
             
-            {% if gallery.exists and gallery.has_content %}
+            {% if gallery.is_list %}
+                {% if gallery.count > 0 %}
+                    <span class="gallery-status status-active">✓ {{ gallery.count }} פריטים</span>
+                {% else %}
+                    <span class="gallery-status status-empty">⚠ אין פריטים</span>
+                {% endif %}
+            {% elif gallery.exists and gallery.has_content %}
                 <span class="gallery-status status-active">✓ פעיל ומלא</span>
             {% elif gallery.exists %}
                 <span class="gallery-status status-empty">⚠ קיים אבל ריק</span>
@@ -146,7 +152,16 @@
             {% endif %}
             
             <div class="gallery-actions">
-                {% if gallery.exists %}
+                {% if gallery.is_list %}
+                    <a href="/admin/store/{{ gallery.model_name }}/?_changelist_filters=from_galleries_hub" 
+                       class="btn-gallery btn-edit">
+                        נהל פריטים
+                    </a>
+                    <a href="/admin/store/{{ gallery.model_name }}/add/?_changelist_filters=from_galleries_hub" 
+                       class="btn-gallery btn-add">
+                        הוסף
+                    </a>
+                {% elif gallery.exists %}
                     <a href="/admin/store/{{ gallery.model_name }}/{{ gallery.obj_id }}/change/?_changelist_filters=from_galleries_hub" 
                        class="btn-gallery btn-edit">
                         ערוך גלריה

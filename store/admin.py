@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from .models import (
     SiteSettings, Category, Subcategory, Product, ProductImage, 
     Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
-    BelowBestsellersGallery, Testimonial, InstagramGallery, AboutPageSettings,
+    BelowBestsellersGallery, RetailerStore, InstagramGallery, AboutPageSettings,
     GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ
 )
 from .forms import BulkVariantCreationForm, ProductAdminForm
@@ -568,30 +568,55 @@ class WishlistItemAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Testimonial)
-class TestimonialAdmin(admin.ModelAdmin):
+@admin.register(RetailerStore)
+class RetailerStoreAdmin(admin.ModelAdmin):
     """
-    ניהול המלצות לקוחות
+    ניהול חנויות משווקות - לוגואים
     """
-    list_display = ['author', 'quote_preview', 'order', 'is_active', 'created_at']
+    list_display = ['name', 'logo_preview', 'order', 'is_active', 'created_at']
     list_filter = ['is_active', 'created_at']
-    search_fields = ['author', 'quote']
+    search_fields = ['name']
     list_editable = ['order', 'is_active']
-    readonly_fields = ['created_at']
+    readonly_fields = ['created_at', 'logo_preview_large']
     
     fieldsets = (
-        ('תוכן ההמלצה', {
-            'fields': ('quote', 'author')
+        ('פרטי החנות', {
+            'fields': ('name', 'logo', 'logo_preview_large', 'website_url')
         }),
         ('הגדרות', {
             'fields': ('order', 'is_active', 'created_at')
         }),
     )
     
-    def quote_preview(self, obj):
-        """תצוגה מקוצרת של הציטוט"""
-        return obj.quote[:50] + '...' if len(obj.quote) > 50 else obj.quote
-    quote_preview.short_description = 'ציטוט'
+    def has_module_permission(self, request):
+        """הסתר מרשימת Store - נגיש רק דרך GalleriesHub"""
+        return False
+    
+    def response_add(self, request, obj, post_url_continue=None):
+        """חזרה לגלריות אחרי הוספה"""
+        if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
+            return redirect('/admin/store/gallerieshub/')
+        return super().response_add(request, obj, post_url_continue)
+    
+    def response_change(self, request, obj):
+        """חזרה לגלריות אחרי עריכה"""
+        if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
+            return redirect('/admin/store/gallerieshub/')
+        return super().response_change(request, obj)
+    
+    def logo_preview(self, obj):
+        """תצוגה מקדימה של הלוגו ברשימה"""
+        if obj.logo:
+            return format_html('<img src="{}" style="max-height: 40px; max-width: 80px;" />', obj.logo.url)
+        return '-'
+    logo_preview.short_description = 'לוגו'
+    
+    def logo_preview_large(self, obj):
+        """תצוגה מקדימה גדולה של הלוגו"""
+        if obj.logo:
+            return format_html('<img src="{}" style="max-height: 100px; max-width: 200px;" />', obj.logo.url)
+        return 'אין לוגו'
+    logo_preview_large.short_description = 'תצוגה מקדימה'
 
 
 @admin.register(InstagramGallery)
@@ -733,6 +758,7 @@ class GalleriesHubAdmin(admin.ModelAdmin):
         below_bestsellers = BelowBestsellersGallery.objects.first()
         instagram_gallery = InstagramGallery.objects.first()
         about_settings = AboutPageSettings.objects.first()
+        retailer_stores_count = RetailerStore.objects.filter(is_active=True).count()
         
         # הכנת נתונים לטמפלייט
         galleries = [
@@ -767,6 +793,16 @@ class GalleriesHubAdmin(admin.ModelAdmin):
                 'obj_id': about_settings.id if about_settings else None,
                 'exists': bool(about_settings),
                 'has_content': bool(about_settings and about_settings.banner_image),
+            },
+            {
+                'name': 'חנויות משווקות',
+                'description': 'לוגואים של חנויות שמוכרות את המוצרים',
+                'model_name': 'retailerstore',
+                'obj_id': None,
+                'exists': retailer_stores_count > 0,
+                'has_content': retailer_stores_count > 0,
+                'is_list': True,
+                'count': retailer_stores_count,
             },
         ]
         

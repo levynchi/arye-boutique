@@ -157,33 +157,36 @@
 </section>
 {% endif %}
 
-<!-- Testimonials Carousel Section -->
-{% if testimonials %}
-<section class="testimonials-section">
+<!-- Retailer Stores Carousel Section -->
+{% if retailer_stores %}
+<section class="retailers-section">
     <div class="container">
-        <h2 class="testimonials-title">מילים טובות</h2>
+        <h2 class="retailers-title">את הבייסיקים שלנו אתם יכולים למצוא בחנויות ברחבי הארץ</h2>
         
-        <div class="testimonials-carousel">
-            <button class="carousel-arrow carousel-arrow-prev" aria-label="המלצה קודמת">
+        <div class="retailers-carousel">
+            <button class="retailers-arrow retailers-arrow-prev" aria-label="חנויות קודמות" {% if retailer_stores|length <= 6 %}style="display: none;"{% endif %}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
             
-            <div class="testimonials-wrapper">
-                <div class="testimonials-track">
-                    {% for testimonial in testimonials %}
-                    <div class="testimonial-slide {% if forloop.first %}active{% endif %}">
-                        <blockquote class="testimonial-quote">
-                            <p class="testimonial-text">"{{ testimonial.quote }}"</p>
-                            <footer class="testimonial-author">{{ testimonial.author }}</footer>
-                        </blockquote>
+            <div class="retailers-wrapper">
+                <div class="retailers-track" id="retailers-track">
+                    {% for store in retailer_stores %}
+                    <div class="retailer-item">
+                        {% if store.website_url %}
+                        <a href="{{ store.website_url }}" target="_blank" rel="noopener noreferrer" class="retailer-link">
+                            <img src="{{ store.logo.url }}" alt="{{ store.name }}" class="retailer-logo">
+                        </a>
+                        {% else %}
+                        <img src="{{ store.logo.url }}" alt="{{ store.name }}" class="retailer-logo">
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
             </div>
             
-            <button class="carousel-arrow carousel-arrow-next" aria-label="המלצה הבאה">
+            <button class="retailers-arrow retailers-arrow-next" aria-label="חנויות הבאות" {% if retailer_stores|length <= 6 %}style="display: none;"{% endif %}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -272,69 +275,56 @@
             });
         });
         
-        // Testimonials Carousel functionality
-        const carousel = document.querySelector('.testimonials-carousel');
-        if (carousel) {
-            const track = carousel.querySelector('.testimonials-track');
-            const slides = carousel.querySelectorAll('.testimonial-slide');
-            const prevButton = carousel.querySelector('.carousel-arrow-prev');
-            const nextButton = carousel.querySelector('.carousel-arrow-next');
+        // Retailers Carousel functionality (6 items visible, manual navigation)
+        const retailersCarousel = document.querySelector('.retailers-carousel');
+        if (retailersCarousel) {
+            const track = document.getElementById('retailers-track');
+            const items = retailersCarousel.querySelectorAll('.retailer-item');
+            const prevButton = retailersCarousel.querySelector('.retailers-arrow-prev');
+            const nextButton = retailersCarousel.querySelector('.retailers-arrow-next');
             
-            if (slides.length > 0) {
-                let currentIndex = 0;
-                let autoplayInterval;
-                
-                function showSlide(index) {
-                    slides.forEach((slide, i) => {
-                        slide.classList.remove('active');
-                        if (i === index) {
-                            slide.classList.add('active');
-                        }
-                    });
+            const itemsPerView = 6;
+            let currentPosition = 0;
+            const totalItems = items.length;
+            const maxPosition = Math.max(0, totalItems - itemsPerView);
+            
+            function updateCarousel() {
+                if (track && items.length > 0) {
+                    const itemWidth = items[0].offsetWidth + 20; // width + gap
+                    track.style.transform = `translateX(${currentPosition * itemWidth}px)`;
                 }
                 
-                function nextSlide() {
-                    currentIndex = (currentIndex + 1) % slides.length;
-                    showSlide(currentIndex);
-                }
-                
-                function prevSlide() {
-                    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-                    showSlide(currentIndex);
-                }
-                
-                function startAutoplay() {
-                    autoplayInterval = setInterval(nextSlide, 5000); // Change every 5 seconds
-                }
-                
-                function stopAutoplay() {
-                    clearInterval(autoplayInterval);
-                }
-                
-                // Event listeners for arrows
-                if (nextButton) {
-                    nextButton.addEventListener('click', () => {
-                        nextSlide();
-                        stopAutoplay();
-                        startAutoplay(); // Restart autoplay after manual navigation
-                    });
-                }
-                
+                // Update arrow visibility
                 if (prevButton) {
-                    prevButton.addEventListener('click', () => {
-                        prevSlide();
-                        stopAutoplay();
-                        startAutoplay(); // Restart autoplay after manual navigation
-                    });
+                    prevButton.style.opacity = currentPosition >= maxPosition ? '0.3' : '1';
+                    prevButton.style.pointerEvents = currentPosition >= maxPosition ? 'none' : 'auto';
                 }
-                
-                // Pause autoplay on hover
-                carousel.addEventListener('mouseenter', stopAutoplay);
-                carousel.addEventListener('mouseleave', startAutoplay);
-                
-                // Start autoplay
-                startAutoplay();
+                if (nextButton) {
+                    nextButton.style.opacity = currentPosition <= 0 ? '0.3' : '1';
+                    nextButton.style.pointerEvents = currentPosition <= 0 ? 'none' : 'auto';
+                }
             }
+            
+            if (prevButton) {
+                prevButton.addEventListener('click', () => {
+                    if (currentPosition < maxPosition) {
+                        currentPosition++;
+                        updateCarousel();
+                    }
+                });
+            }
+            
+            if (nextButton) {
+                nextButton.addEventListener('click', () => {
+                    if (currentPosition > 0) {
+                        currentPosition--;
+                        updateCarousel();
+                    }
+                });
+            }
+            
+            // Initial update
+            updateCarousel();
         }
     });
 </script>

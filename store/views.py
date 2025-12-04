@@ -8,7 +8,7 @@ import json
 from .models import (
     Product, Category, Subcategory, SiteSettings, ProductImage, 
     Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem, 
-    BelowBestsellersGallery, Testimonial, InstagramGallery,
+    BelowBestsellersGallery, RetailerStore, InstagramGallery,
     FabricType, ProductVariant, AboutPageSettings, FAQ
 )
 from .forms import ContactForm, CheckoutForm
@@ -31,8 +31,8 @@ def home(request):
     # Get gallery below bestsellers
     below_bestsellers_gallery = BelowBestsellersGallery.get_gallery()
     
-    # Get testimonials (limited to 4, active only)
-    testimonials = Testimonial.objects.filter(is_active=True)[:4]
+    # Get retailer stores (active only, ordered)
+    retailer_stores = RetailerStore.objects.filter(is_active=True).order_by('order', 'name')
     
     # Get Instagram gallery
     instagram_gallery = InstagramGallery.get_gallery()
@@ -50,7 +50,7 @@ def home(request):
         'categories': categories,
         'site_settings': site_settings,
         'below_bestsellers_gallery': below_bestsellers_gallery,
-        'testimonials': testimonials,
+        'retailer_stores': retailer_stores,
         'instagram_gallery': instagram_gallery,
         'wishlist_product_ids': wishlist_product_ids,
     }

@@ -47,23 +47,24 @@ class BelowBestsellersGallery(models.Model):
         return cls.objects.filter(is_active=True).first()
 
 
-class Testimonial(models.Model):
+class RetailerStore(models.Model):
     """
-    המלצת לקוח
+    חנות משווקת - לוגואים של חנויות שמוכרות את המוצרים
     """
-    quote = models.TextField(verbose_name='ציטוט/המלצה')
-    author = models.CharField(max_length=100, verbose_name='שם הממליץ')
+    name = models.CharField(max_length=100, verbose_name='שם החנות')
+    logo = models.ImageField(upload_to='retailers/', verbose_name='לוגו החנות')
+    website_url = models.URLField(max_length=500, blank=True, null=True, verbose_name='קישור לאתר', help_text='אופציונלי - קישור לאתר החנות')
     order = models.PositiveIntegerField(default=0, verbose_name='סדר תצוגה')
     is_active = models.BooleanField(default=True, verbose_name='פעיל')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
     
     class Meta:
-        verbose_name = 'המלצת לקוח'
-        verbose_name_plural = 'המלצות לקוחות'
-        ordering = ['order', '-created_at']
+        verbose_name = 'גלריות - חנות משווקת'
+        verbose_name_plural = 'גלריות - חנויות משווקות'
+        ordering = ['order', 'name']
     
     def __str__(self):
-        return f'{self.author} - {self.quote[:50]}...'
+        return self.name
 
 
 class InstagramGallery(models.Model):

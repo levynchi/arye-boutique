@@ -41,10 +41,23 @@
                 <!-- Thumbnail Images -->
                 {% if additional_images %}
                 <div class="product-thumbnails">
+                    <!-- Primary/Main Image Thumbnail -->
+                    {% if primary_image %}
+                    <div class="thumbnail-item active" data-image-url="{{ primary_image.url }}">
+                        <img src="{{ primary_image.url }}" alt="{{ product.name }}">
+                    </div>
+                    {% elif product.image %}
+                    <div class="thumbnail-item active" data-image-url="{{ product.image.url }}">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    </div>
+                    {% endif %}
+                    <!-- Additional Images Thumbnails -->
                     {% for img in additional_images %}
-                    <div class="thumbnail-item {% if img.is_primary %}active{% endif %}" data-image-url="{{ img.image.url }}">
+                    {% if not img.is_primary %}
+                    <div class="thumbnail-item" data-image-url="{{ img.image.url }}">
                         <img src="{{ img.image.url }}" alt="{{ product.name }}">
                     </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
                 {% endif %}

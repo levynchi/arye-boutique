@@ -1847,6 +1847,11 @@ ul {
     background-color: var(--bg-light);
 }
 
+.quantity-minus {
+    position: relative;
+    top: -1px;
+}
+
 .quantity-input {
     width: 60px;
     padding: 0 !important;

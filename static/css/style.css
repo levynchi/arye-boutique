@@ -1424,7 +1424,7 @@ ul {
 }
 
 .story-title {
-    font-size: 48px;
+    font-size: 38px;
     font-weight: 600;
     color: var(--white);
     margin-bottom: 20px;
@@ -3469,9 +3469,9 @@ ul {
 }
 
 .bestsellers-title {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: 300;
-    color: #7594B1;
+    color: #000;
     text-align: center;
     margin: 0 0 50px;
 }

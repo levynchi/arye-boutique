@@ -7,7 +7,7 @@ from .models import (
     SiteSettings, Category, Subcategory, Product, ProductImage, 
     Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
     BelowBestsellersGallery, RetailerStore, InstagramGallery, AboutPageSettings,
-    GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ
+    GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ, BlogPost
 )
 from .forms import BulkVariantCreationForm, ProductAdminForm
 
@@ -936,3 +936,43 @@ class FAQAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+@admin.register(BlogPost)
+class BlogPostAdmin(admin.ModelAdmin):
+    """
+    ניהול פוסטים בבלוג
+    """
+    list_display = ['title', 'image_preview', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['title', 'subtitle', 'content']
+    list_editable = ['is_active']
+    readonly_fields = ['created_at', 'updated_at', 'image_preview_large']
+    prepopulated_fields = {'slug': ('title',)}
+    
+    fieldsets = (
+        ('תוכן הפוסט', {
+            'fields': ('title', 'subtitle', 'slug', 'image', 'image_preview_large', 'content')
+        }),
+        ('הגדרות', {
+            'fields': ('is_active',)
+        }),
+        ('תאריכים', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def image_preview(self, obj):
+        """תצוגה מקדימה של התמונה ברשימה"""
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 50px; max-width: 80px; object-fit: cover;" />', obj.image.url)
+        return '-'
+    image_preview.short_description = 'תמונה'
+    
+    def image_preview_large(self, obj):
+        """תצוגה מקדימה גדולה של התמונה"""
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 200px; max-width: 400px; object-fit: cover;" />', obj.image.url)
+        return 'אין תמונה'
+    image_preview_large.short_description = 'תצוגה מקדימה'

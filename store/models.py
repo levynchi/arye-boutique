@@ -601,3 +601,29 @@ class FAQ(models.Model):
     
     def __str__(self):
         return self.question
+
+
+class BlogPost(models.Model):
+    """
+    פוסט בבלוג
+    """
+    title = models.CharField(max_length=200, verbose_name='כותרת')
+    subtitle = models.CharField(max_length=300, verbose_name='תת-כותרת', help_text='תיאור קצר שיופיע מתחת לכותרת')
+    image = models.ImageField(upload_to='blog/', verbose_name='תמונה ראשית')
+    content = models.TextField(verbose_name='תוכן הפוסט')
+    slug = models.SlugField(max_length=200, unique=True, verbose_name='כתובת URL', help_text='יופיע בכתובת הדף (באנגלית, ללא רווחים)')
+    is_active = models.BooleanField(default=True, verbose_name='פעיל')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='תאריך עדכון')
+    
+    class Meta:
+        verbose_name = 'פוסט בבלוג'
+        verbose_name_plural = 'פוסטים בבלוג'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return self.title
+    
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('blog_detail', kwargs={'slug': self.slug})

@@ -1,0 +1,52 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}בלוג - בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">בלוג</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Blog Title -->
+<section class="blog-title-section">
+    <div class="container">
+        <h1 class="blog-page-title">Arye Boutique - Blog</h1>
+    </div>
+</section>
+
+<!-- Blog Posts Grid -->
+<section class="blog-section">
+    <div class="container">
+        {% if posts %}
+        <div class="blog-grid">
+            {% for post in posts %}
+            <article class="blog-card">
+                <a href="{% url 'blog_detail' post.slug %}" class="blog-card-link">
+                    <div class="blog-card-image">
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                    </div>
+                    <div class="blog-card-content">
+                        <h2 class="blog-card-title">{{ post.title }}</h2>
+                        <p class="blog-card-subtitle">{{ post.subtitle }}</p>
+                    </div>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-posts">
+            <p>אין פוסטים כרגע. חזרו בקרוב!</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

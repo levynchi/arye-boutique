@@ -9,7 +9,7 @@ from .models import (
     Product, Category, Subcategory, SiteSettings, ProductImage, 
     Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem, 
     BelowBestsellersGallery, RetailerStore, InstagramGallery,
-    FabricType, ProductVariant, AboutPageSettings, FAQ
+    FabricType, ProductVariant, AboutPageSettings, FAQ, BlogPost
 )
 from .forms import ContactForm, CheckoutForm
 
@@ -774,3 +774,35 @@ def cart_data(request):
         'free_shipping_threshold': 75,
         'remaining_for_free_shipping': float(max(0, 75 - subtotal)),
     })
+
+
+def blog_list(request):
+    """
+    דף רשימת כל הפוסטים בבלוג
+    """
+    posts = BlogPost.objects.filter(is_active=True).order_by('-created_at')
+    
+    context = {
+        'posts': posts,
+        'categories': Category.objects.filter(is_active=True),
+    }
+    
+    return render(request, 'store/blog_list.html', context)
+
+
+def blog_detail(request, slug):
+    """
+    דף פוסט בודד בבלוג
+    """
+    post = get_object_or_404(BlogPost, slug=slug, is_active=True)
+    
+    # פוסטים קשורים (3 האחרונים, לא כולל הנוכחי)
+    related_posts = BlogPost.objects.filter(is_active=True).exclude(id=post.id)[:3]
+    
+    context = {
+        'post': post,
+        'related_posts': related_posts,
+        'categories': Category.objects.filter(is_active=True),
+    }
+    
+    return render(request, 'store/blog_detail.html', context)

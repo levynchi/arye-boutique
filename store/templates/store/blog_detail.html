@@ -1,0 +1,77 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} - בלוג בוטיק אריה{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <a href="{% url 'blog_list' %}">בלוג</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">{{ post.title }}</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Blog Post Detail -->
+<article class="blog-detail-section">
+    <div class="container">
+        <div class="blog-detail-container">
+            <!-- Post Header -->
+            <header class="blog-detail-header">
+                <h1 class="blog-detail-title">{{ post.title }}</h1>
+                <p class="blog-detail-subtitle">{{ post.subtitle }}</p>
+                <div class="blog-detail-meta">
+                    <time datetime="{{ post.created_at|date:'Y-m-d' }}">
+                        {{ post.created_at|date:"d בF Y" }}
+                    </time>
+                </div>
+            </header>
+            
+            <!-- Featured Image -->
+            <div class="blog-detail-image">
+                <img src="{{ post.image.url }}" alt="{{ post.title }}">
+            </div>
+            
+            <!-- Post Content -->
+            <div class="blog-detail-content">
+                {{ post.content|linebreaks }}
+            </div>
+            
+            <!-- Back to Blog -->
+            <div class="blog-detail-back">
+                <a href="{% url 'blog_list' %}" class="back-to-blog-btn">
+                    ← חזרה לבלוג
+                </a>
+            </div>
+        </div>
+        
+        <!-- Related Posts -->
+        {% if related_posts %}
+        <section class="related-posts-section">
+            <h2 class="related-posts-title">פוסטים נוספים</h2>
+            <div class="related-posts-grid">
+                {% for related in related_posts %}
+                <article class="blog-card blog-card-small">
+                    <a href="{% url 'blog_detail' related.slug %}" class="blog-card-link">
+                        <div class="blog-card-image">
+                            <img src="{{ related.image.url }}" alt="{{ related.title }}">
+                        </div>
+                        <div class="blog-card-content">
+                            <h3 class="blog-card-title">{{ related.title }}</h3>
+                            <p class="blog-card-subtitle">{{ related.subtitle }}</p>
+                        </div>
+                    </a>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</article>
+{% endblock %}
+

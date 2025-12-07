@@ -305,6 +305,24 @@
                     </div>
                 </div>
                 
+                <!-- Arye Boutique Section -->
+                <div class="footer-section footer-accordion-section">
+                    <div class="footer-info-wrapper">
+                        <button type="button" class="footer-accordion-toggle" aria-expanded="false" aria-controls="footer-arye-content">
+                            <h4>אריה בוטיק</h4>
+                            <span class="footer-accordion-icon" aria-hidden="true"></span>
+                        </button>
+                        <div id="footer-arye-content" class="footer-accordion-content">
+                            <ul class="footer-links">
+                                <li><a href="{% url 'blog_list' %}">בלוג</a></li>
+                                {% for category in categories %}
+                                <li><a href="{{ category.get_absolute_url }}">{{ category.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Help + Info Section -->
                 <div class="footer-section footer-accordion-section">
                     <div class="footer-info-wrapper">

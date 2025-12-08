@@ -303,17 +303,17 @@
                     nextButton.style.opacity = currentPosition <= 0 ? '0.3' : '1';
                     nextButton.style.pointerEvents = currentPosition <= 0 ? 'none' : 'auto';
                 }
-            }
-            
-            if (prevButton) {
-                prevButton.addEventListener('click', () => {
+                }
+                
+                if (prevButton) {
+                    prevButton.addEventListener('click', () => {
                     if (currentPosition < maxPosition) {
                         currentPosition++;
                         updateCarousel();
                     }
-                });
-            }
-            
+                    });
+                }
+                
             if (nextButton) {
                 nextButton.addEventListener('click', () => {
                     if (currentPosition > 0) {

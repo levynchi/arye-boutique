@@ -856,14 +856,16 @@ ul {
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.3s ease;
+    transition: all 0.3s ease;
     white-space: nowrap;
     min-width: 120px;
     max-width: 150px;
 }
 
 .newsletter-button:hover {
-    opacity: 0.8;
+    background-color: #424242;
+    color: var(--white);
+    border-color: #424242;
 }
 
 /* Footer Sections */
@@ -952,6 +954,16 @@ ul {
 
 .hadar-levy {
     font-weight: 700;
+}
+
+.hadar-levy-link {
+    color: inherit;
+    text-decoration: none;
+    transition: opacity 0.3s ease;
+}
+
+.hadar-levy-link:hover {
+    opacity: 0.8;
 }
 
 .footer-social {
@@ -1713,8 +1725,9 @@ ul {
 
 .product-thumbnails {
     display: flex;
-    gap: 15px;
+    gap: 10px;
     flex-wrap: wrap;
+    justify-content: space-between;
 }
 
 .thumbnail-item {
@@ -1748,6 +1761,8 @@ ul {
     display: flex;
     flex-direction: column;
     /* gap: 20px; */
+    justify-content: flex-start;
+    text-align: right;
 }
 
 .product-header-info {
@@ -1755,7 +1770,7 @@ ul {
     flex-direction: column;
     /* gap: 10px; */
     padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
+    /* border-bottom: 1px solid var(--border-color); */
 }
 
 .product-name {
@@ -1767,6 +1782,14 @@ ul {
     letter-spacing: -1px;
 }
 
+.product-subtitle {
+    font-size: 25px;
+    font-weight: 300;
+    color: #666;
+    margin: 5px 0 15px;
+    line-height: 1.5;
+}
+
 .product-category {
     font-size: 16px;
     color: var(--text-light);
@@ -1774,10 +1797,11 @@ ul {
 }
 
 .product-price {
-    font-size: 24px;
-    font-weight: 300;
+    font-size: 22px;
+    font-weight: 400;
     color: var(--text-color);
     margin: 0;
+    padding-top: 15px;
 }
 
 .product-brand {
@@ -1810,7 +1834,7 @@ ul {
 
 /* Quantity Selector */
 .product-quantity {
-    margin: 30px 0;
+    margin: 15px 0;
 }
 
 .quantity-label {
@@ -3993,6 +4017,7 @@ ul {
     /* margin: 20px 0; */
     margin-top: 10px;
     /* padding: 20px; */
+    padding-bottom: 15px;
     background-color: #00e5ff00;
     /* border-radius: 8px; */
     border-top: 1px solid var(--border-color);

@@ -191,6 +191,7 @@ class Product(models.Model):
     מוצר בחנות
     """
     name = models.CharField(max_length=200, verbose_name='שם מוצר')
+    subtitle = models.CharField(max_length=300, blank=True, verbose_name='תת כותרת')
     slug = models.SlugField(max_length=200, unique=True, verbose_name='סלאג')
     description = models.TextField(verbose_name='תיאור')
     size = models.CharField(max_length=200, blank=True, verbose_name='גודל')

@@ -291,7 +291,7 @@ class ProductAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('מידע בסיסי', {
-            'fields': ('name', 'slug', 'category', 'subcategory', 'description', 'gender'),
+            'fields': ('name', 'subtitle', 'slug', 'category', 'subcategory', 'description', 'gender'),
             'description': 'מידע כללי על המוצר'
         }),
         ('גודל ישן (Deprecated)', {

@@ -76,15 +76,11 @@
                 <div class="product-header-info">
                     <h1 class="product-name">{{ product.name }}</h1>
                     
-                    <p class="product-price">{{ product.price }} ש"ח</p>
-                    
-                    {% if product.category.name %}
-                    <p class="product-brand">אריה בוטיק</p>
+                    {% if product.subtitle %}
+                    <p class="product-subtitle">{{ product.subtitle }}</p>
                     {% endif %}
-                </div>
-                
-                <div class="product-description">
-                    <p>{{ product.description }}</p>
+                    
+                    <p class="product-price">{{ product.price }} ש"ח</p>
                 </div>
                 
                 {% if product.size and not has_variants %}
@@ -152,6 +148,17 @@
                 
                 <!-- Expandable Information Sections -->
                 <div class="product-info-sections">
+                    <div class="info-section">
+                        <div class="info-section-header">
+                            <span class="info-icon"><i class="fas fa-info-circle"></i></span>
+                            <h3 class="info-title">תיאור מוצר</h3>
+                            <span class="info-toggle">+</span>
+                        </div>
+                        <div class="info-section-content" style="display: none;">
+                            <p>{{ product.description }}</p>
+                        </div>
+                    </div>
+                    
                     <div class="info-section">
                         <div class="info-section-header">
                             <span class="info-icon"><i class="fas fa-tshirt"></i></span>

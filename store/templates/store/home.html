@@ -161,12 +161,12 @@
 {% if retailer_stores %}
 <section class="retailers-section">
     <div class="container">
-        <h2 class="retailers-title">את הבייסיקים שלנו אתם יכולים למצוא בחנויות ברחבי הארץ</h2>
+        <h2 class="retailers-title">את הבייסיקים הלבנים שלנו אתם יכולים למצוא בחנויות ברחבי הארץ</h2>
         
         <div class="retailers-carousel">
             <button class="retailers-arrow retailers-arrow-prev" aria-label="חנויות קודמות" {% if retailer_stores|length <= 6 %}style="display: none;"{% endif %}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
             </button>
             
@@ -187,8 +187,8 @@
             </div>
             
             <button class="retailers-arrow retailers-arrow-next" aria-label="חנויות הבאות" {% if retailer_stores|length <= 6 %}style="display: none;"{% endif %}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
             </button>
         </div>

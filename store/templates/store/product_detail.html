@@ -26,7 +26,11 @@
                 <!-- Main Product Image -->
                 <div class="main-product-image">
                     {% if additional_images %}
-                    <button type="button" class="gallery-arrow gallery-arrow-right" id="gallery-prev" aria-label="תמונה קודמת">‹</button>
+                    <button type="button" class="gallery-arrow gallery-arrow-right" id="gallery-prev" aria-label="תמונה קודמת">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
                     {% endif %}
                     {% if primary_image %}
                         <img src="{{ primary_image.url }}" alt="{{ product.name }}" id="main-product-img">
@@ -34,7 +38,11 @@
                         <img src="{{ product.image.url }}" alt="{{ product.name }}" id="main-product-img">
                     {% endif %}
                     {% if additional_images %}
-                    <button type="button" class="gallery-arrow gallery-arrow-left" id="gallery-next" aria-label="תמונה הבאה">›</button>
+                    <button type="button" class="gallery-arrow gallery-arrow-left" id="gallery-next" aria-label="תמונה הבאה">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
                     {% endif %}
                 </div>
                 

@@ -1864,6 +1864,13 @@ ul {
     cursor: pointer;
     border-radius: 4px;
     transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-minus {
+    padding-bottom: 3px;
 }
 
 .quantity-btn:hover {
@@ -1882,6 +1889,14 @@ ul {
     font-weight: 500;
     background-color: var(--white);
     color: var(--text-color);
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 /* Add to Cart Button */
@@ -3508,7 +3523,7 @@ ul {
    ========================================================================== */
 
 .bestsellers-section {
-    padding: 90px 0 80px;
+    padding: 60px 0 80px;
     background-color: var(--white);
 }
 
@@ -3551,8 +3566,7 @@ ul {
 .below-bestsellers-gallery {
     padding: 0;
     background-color: var(--white);
-    /* margin: 0 0 90px; */
-    padding-bottom: 150px;
+    margin: 0 0 60px;
 }
 
 .gallery-images {
@@ -4200,9 +4214,6 @@ ul {
     background-color: var(--white);
 }
 
-.about-content-section--reverse {
-    /* background-color: var(--bg-light); */
-}
 
 .about-content-row {
     display: grid;

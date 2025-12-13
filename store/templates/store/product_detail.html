@@ -359,18 +359,19 @@
         }
         
         // Expandable info sections
-        const infoToggles = document.querySelectorAll('.info-toggle');
-        infoToggles.forEach(toggle => {
-            toggle.addEventListener('click', function() {
+        const infoHeaders = document.querySelectorAll('.info-section-header');
+        infoHeaders.forEach(header => {
+            header.addEventListener('click', function() {
                 const content = this.closest('.info-section').querySelector('.info-section-content');
+                const toggle = this.querySelector('.info-toggle');
                 const isOpen = content.style.display !== 'none';
                 
                 if (isOpen) {
                     content.style.display = 'none';
-                    this.textContent = '+';
+                    toggle.textContent = '+';
                 } else {
                     content.style.display = 'block';
-                    this.textContent = '−';
+                    toggle.textContent = '−';
                 }
             });
         });

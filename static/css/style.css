@@ -882,7 +882,7 @@ ul {
 }
 
 .footer-section h4 {
-    font-size: 22px;
+    font-size: 18px;
     margin-bottom: 20px;
     font-weight: 600;
     color: var(--white);
@@ -918,7 +918,7 @@ ul {
 }
 
 .footer-whatsapp-icon {
-    width: 32px;
+    width: 26px;
     /* height: 20px; */
     display: inline-block;
     vertical-align: middle;
@@ -1010,7 +1010,7 @@ ul {
 
 /* Footer Section Titles - Desktop */
 .footer-section-title {
-    font-size: 22px;
+    font-size: 18px;
     margin-bottom: 20px;
     font-weight: 600;
     color: var(--white);
@@ -1963,11 +1963,10 @@ ul {
     align-items: center;
     gap: 15px;
     cursor: pointer;
-    padding: 10px 0;
 }
 
 .info-icon {
-    font-size: 20px;
+    font-size: 15px;
     color: var(--primary-color);
 }
 

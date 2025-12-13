@@ -275,7 +275,15 @@ class ProductAdmin(admin.ModelAdmin):
     """
     ניהול מוצרים
     """
-    list_display = ['name', 'category', 'subcategory', 'gender', 'price', 'stock_quantity', 'is_active', 'is_featured', 'is_bestseller', 'created_at']
+    list_display = ['image_preview', 'name', 'category', 'subcategory', 'gender', 'price', 'stock_quantity', 'is_active', 'is_featured', 'is_bestseller', 'created_at']
+    list_display_links = ['image_preview', 'name']
+    
+    def image_preview(self, obj):
+        """תצוגה מקדימה של תמונת המוצר ברשימה"""
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 50px; max-width: 50px; object-fit: cover; border-radius: 4px;" />', obj.image.url)
+        return '-'
+    image_preview.short_description = 'תמונה'
     list_filter = ['category', 'subcategory', 'is_active', 'is_featured', 'is_bestseller', 'created_at']
     search_fields = ['name', 'description']
     prepopulated_fields = {'slug': ('name',)}

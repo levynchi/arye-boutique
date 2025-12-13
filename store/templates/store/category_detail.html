@@ -100,6 +100,9 @@
                             <p class="product-card-subcategory">{{ product.subcategory.name }}</p>
                         {% endif %}
                         <p class="product-card-name">{{ product.name }}</p>
+                        {% if product.subtitle %}
+                            <p class="product-card-subtitle">{{ product.subtitle }}</p>
+                        {% endif %}
                         <p class="product-card-price">{{ product.price }} ש"ח</p>
                     </div>
                 </a>

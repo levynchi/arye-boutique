@@ -71,6 +71,18 @@
     
     <!-- Third div: Absolute positioned gallery -->
     <div class="story-gallery">
+        <!-- Mobile carousel navigation arrows -->
+        <button class="story-carousel-arrow story-carousel-prev" aria-label="הקודם">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        <button class="story-carousel-arrow story-carousel-next" aria-label="הבא">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </button>
+        
         <div class="story-gallery-container">
             <div class="story-image-card">
                 <div class="story-image-wrapper">
@@ -96,6 +108,14 @@
                 </div>
                 <p class="story-caption">הדפסים ייחודיים</p>
             </div>
+        </div>
+        
+        <!-- Mobile carousel pagination dots -->
+        <div class="story-carousel-dots">
+            <span class="story-dot active" data-index="0"></span>
+            <span class="story-dot" data-index="1"></span>
+            <span class="story-dot" data-index="2"></span>
+            <span class="story-dot" data-index="3"></span>
         </div>
     </div>
 </section>
@@ -133,6 +153,9 @@
                             <p class="product-card-subcategory">{{ product.subcategory.name }}</p>
                         {% endif %}
                         <p class="product-card-name">{{ product.name }}</p>
+                        {% if product.subtitle %}
+                            <p class="product-card-subtitle">{{ product.subtitle }}</p>
+                        {% endif %}
                         <p class="product-card-price">{{ product.price }} ש"ח</p>
                     </div>
                 </a>
@@ -325,6 +348,82 @@
             
             // Initial update
             updateCarousel();
+        }
+        
+        // Story Gallery Mobile Carousel
+        const storyGallery = document.querySelector('.story-gallery');
+        if (storyGallery) {
+            const container = storyGallery.querySelector('.story-gallery-container');
+            const cards = storyGallery.querySelectorAll('.story-image-card');
+            const prevBtn = storyGallery.querySelector('.story-carousel-prev');
+            const nextBtn = storyGallery.querySelector('.story-carousel-next');
+            const dots = storyGallery.querySelectorAll('.story-dot');
+            
+            let currentSlide = 0;
+            const totalSlides = cards.length;
+            
+            function isMobile() {
+                return window.innerWidth <= 768;
+            }
+            
+            function updateStoryCarousel() {
+                if (!isMobile()) return;
+                
+                // Move slides using transform
+                cards.forEach((card, index) => {
+                    card.style.transform = `translateX(${(index - currentSlide) * 100}%)`;
+                });
+                
+                // Update dots
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentSlide);
+                });
+            }
+            
+            // Previous button click (moves to next in RTL)
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if (currentSlide < totalSlides - 1) {
+                        currentSlide++;
+                        updateStoryCarousel();
+                    }
+                });
+            }
+            
+            // Next button click (moves to previous in RTL)
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    if (currentSlide > 0) {
+                        currentSlide--;
+                        updateStoryCarousel();
+                    }
+                });
+            }
+            
+            // Dot click handler
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    currentSlide = index;
+                    updateStoryCarousel();
+                });
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                if (isMobile()) {
+                    updateStoryCarousel();
+                } else {
+                    // Reset transforms on desktop
+                    cards.forEach(card => {
+                        card.style.transform = '';
+                    });
+                }
+            });
+            
+            // Initial setup
+            if (isMobile()) {
+                updateStoryCarousel();
+            }
         }
     });
 </script>

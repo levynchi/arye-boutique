@@ -4157,7 +4157,7 @@ ul {
 }
 
 .about-page-title {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: 300;
     color: var(--primary-color);
     text-align: center;
@@ -4177,6 +4177,7 @@ ul {
 /* About Intro Section */
 .about-intro-section {
     padding: 40px 0;
+    font-size: 15px;
     /* background-color: var(--bg-light); */
 }
 
@@ -4186,7 +4187,7 @@ ul {
 }
 
 .about-intro-text {
-    font-size: 18px;
+    font-size: 15px;
     line-height: 1.8;
     color: #000;
     text-align: right;
@@ -4197,6 +4198,10 @@ ul {
 .laundry-symbols-section {
     color: #000;
     padding: 60px 0;
+}
+
+.laundry-symbol-icon {
+    width: 35px;
 }
 
 .laundry-symbols-grid {

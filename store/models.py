@@ -69,11 +69,12 @@ class RetailerStore(models.Model):
 
 class InstagramGallery(models.Model):
     """
-    גלריית אינסטגרם - 3 תמונות שמובילות לפרופיל האינסטגרם
+    גלריית אינסטגרם - 4 תמונות שמובילות לפרופיל האינסטגרם
     """
     image_1 = models.ImageField(upload_to='instagram/', verbose_name='תמונה 1')
     image_2 = models.ImageField(upload_to='instagram/', verbose_name='תמונה 2')
     image_3 = models.ImageField(upload_to='instagram/', verbose_name='תמונה 3')
+    image_4 = models.ImageField(upload_to='instagram/', verbose_name='תמונה 4', blank=True, null=True)
     instagram_url = models.URLField(max_length=500, verbose_name='קישור לאינסטגרם', help_text='קישור לפרופיל האינסטגרם של החברה')
     is_active = models.BooleanField(default=True, verbose_name='גלריה פעילה')
     

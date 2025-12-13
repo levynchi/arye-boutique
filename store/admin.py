@@ -630,37 +630,37 @@ class RetailerStoreAdmin(admin.ModelAdmin):
 @admin.register(InstagramGallery)
 class InstagramGalleryAdmin(admin.ModelAdmin):
     """
-    ניהול גלריית אינסטגרם - 3 תמונות וקישור
+    ניהול גלריית אינסטגרם - 4 תמונות וקישור
     """
     list_display = ['__str__', 'instagram_url', 'is_active', 'has_images']
     list_editable = ['is_active']
-    
+
     def has_module_permission(self, request):
         """הסתר מרשימת Store - נגיש רק דרך GalleriesHub"""
         return False
-    
+
     def response_add(self, request, obj, post_url_continue=None):
         """חזרה לגלריות אחרי הוספה"""
         if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
             return redirect('/admin/store/gallerieshub/')
         return super().response_add(request, obj, post_url_continue)
-    
+
     def response_change(self, request, obj):
         """חזרה לגלריות אחרי עריכה"""
         if '_changelist_filters' in request.GET and request.GET['_changelist_filters'] == 'from_galleries_hub':
             if '_continue' not in request.POST and '_addanother' not in request.POST and '_saveasnew' not in request.POST:
                 return redirect('/admin/store/gallerieshub/')
         return super().response_change(request, obj)
-    
+
     def response_delete(self, request, obj_display, obj_id):
         """חזרה לגלריות אחרי מחיקה"""
         if 'from_galleries_hub' in request.META.get('HTTP_REFERER', ''):
             return redirect('/admin/store/gallerieshub/')
         return super().response_delete(request, obj_display, obj_id)
-    
+
     fieldsets = (
         ('תמונות', {
-            'fields': ('image_1', 'image_2', 'image_3')
+            'fields': ('image_1', 'image_2', 'image_3', 'image_4')
         }),
         ('קישור', {
             'fields': ('instagram_url',)

@@ -235,6 +235,11 @@
             <a href="{{ instagram_gallery.instagram_url }}" target="_blank" rel="noopener noreferrer" class="instagram-gallery-item">
                 <img src="{{ instagram_gallery.image_3.url }}" alt="Instagram 3" class="instagram-gallery-image">
             </a>
+            {% if instagram_gallery.image_4 %}
+            <a href="{{ instagram_gallery.instagram_url }}" target="_blank" rel="noopener noreferrer" class="instagram-gallery-item">
+                <img src="{{ instagram_gallery.image_4.url }}" alt="Instagram 4" class="instagram-gallery-image">
+            </a>
+            {% endif %}
         </div>
     </div>
 </section>

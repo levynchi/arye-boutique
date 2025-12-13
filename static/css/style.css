@@ -1585,6 +1585,7 @@ ul {
     
     .story-caption {
         font-size: 16px;
+        line-height: 1;
     }
     
     /* Carousel navigation arrows */
@@ -4093,7 +4094,8 @@ ul {
     }
     
     .instagram-gallery-grid {
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
         gap: 15px;
     }
     

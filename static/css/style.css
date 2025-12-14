@@ -2069,11 +2069,11 @@ ul {
     }
     
     .product-images-column {
-        order: 2;
+        order: 1;
     }
     
     .product-info-column {
-        order: 1;
+        order: 2;
     }
     
     .product-thumbnails {

@@ -1407,6 +1407,7 @@ ul {
     display: flex;
     flex-direction: column;
     gap: 18px;
+    align-items: flex-start;
 }
 
 .mobile-nav-menu .nav-link {
@@ -2528,8 +2529,10 @@ ul {
     }
     
     .filter-form {
-        flex-direction: column;
+        flex-direction: row;
         gap: 15px;
+        justify-content: space-between;
+
     }
     
     .filter-select {

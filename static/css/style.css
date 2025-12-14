@@ -1406,8 +1406,13 @@ ul {
 .mobile-nav-menu {
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    align-items: flex-start;
+    gap: 0;
+    align-items: stretch;
+}
+
+.mobile-nav-menu .nav-item {
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px 0;
 }
 
 .mobile-nav-menu .nav-link {

@@ -20,6 +20,7 @@ urlpatterns = [
     path('accessibility/', views.accessibility_statement, name='accessibility_statement'),
     path('faq/', views.faq, name='faq'),
     path('laundry-instructions/', views.laundry_instructions, name='laundry_instructions'),
+    path('terms/', views.terms_of_service, name='terms_of_service'),
     
     # Wishlist URLs
     path('wishlist/', views.wishlist_view, name='wishlist'),

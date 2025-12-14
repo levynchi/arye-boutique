@@ -414,6 +414,15 @@ def laundry_instructions(request):
     return render(request, 'store/laundry_instructions.html', context)
 
 
+def terms_of_service(request):
+    """
+    דף תקנון האתר
+    """
+    categories = Category.objects.filter(is_active=True)
+    context = {'categories': categories}
+    return render(request, 'store/terms.html', context)
+
+
 def faq(request):
     """
     דף שאלות ותשובות

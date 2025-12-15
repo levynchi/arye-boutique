@@ -130,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     <div class="cart-sidebar-item-details">
                         <h3 class="cart-sidebar-item-name">${item.product_name}</h3>
+                        ${item.product_subtitle ? `<p class="cart-sidebar-item-subtitle">${item.product_subtitle}</p>` : ''}
                         ${item.product_size ? `<p class="cart-sidebar-item-size">${item.product_size}</p>` : ''}
                         <p class="cart-sidebar-item-price">${item.product_price.toFixed(2)} ₪</p>
                     </div>
@@ -153,14 +154,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update cart summary
     function updateCartSummary(data) {
-        const subtotalElement = document.getElementById('sidebar-subtotal');
         const shippingElement = document.getElementById('sidebar-shipping');
         const totalElement = document.getElementById('sidebar-total');
         const shippingNotice = document.getElementById('sidebar-shipping-notice');
         const remainingElement = document.getElementById('sidebar-remaining');
         
-        subtotalElement.textContent = `${data.subtotal.toFixed(2)} ₪`;
-        totalElement.textContent = `${data.total.toFixed(2)} ₪`;
+        // הצג רק את סכום הפריטים (subtotal) בתור סה״כ
+        totalElement.textContent = `${data.subtotal.toFixed(2)} ₪`;
         
         if (data.subtotal >= data.free_shipping_threshold) {
             shippingElement.textContent = 'חינם';

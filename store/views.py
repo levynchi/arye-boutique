@@ -764,6 +764,7 @@ def cart_data(request):
             'id': item.id,
             'product_id': item.product.id,
             'product_name': item.product.name,
+            'product_subtitle': item.product.subtitle or '',
             'product_image': item.product.image.url if item.product.image else '',
             'product_price': float(item.product.price),
             'product_size': item.product.size or '',

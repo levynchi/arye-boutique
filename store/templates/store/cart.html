@@ -47,30 +47,12 @@
             
             <!-- Cart Summary Section -->
             <div class="cart-summary">
-                <h2>סיכום ביניים</h2>
+                <h2>סיכום הזמנה</h2>
                 
-                <div class="summary-row">
-                    <span>סכום ביניים</span>
+                <div class="summary-total">
+                    <span>סה״כ</span>
                     <span class="cart-subtotal">{{ subtotal }} ₪</span>
                 </div>
-                
-                <div class="summary-row">
-                    <span>משלוח</span>
-                    <span class="shipping-fee">
-                        {% if subtotal >= 75 %}
-                            חינם
-                        {% else %}
-                            {{ shipping_fee }} ₪
-                        {% endif %}
-                    </span>
-                </div>
-                
-                {% if subtotal < 75 and subtotal > 0 %}
-                <div class="shipping-notice">
-                    <p>משלוח חינם מעל 75 ₪</p>
-                    <p class="remaining-amount">עוד {{ 75|add:"-"|add:subtotal|floatformat:2 }} ₪ למשלוח חינם</p>
-                </div>
-                {% endif %}
                 
                 <div class="summary-total">
                     <span>סה״כ</span>

@@ -3415,6 +3415,12 @@ ul {
     margin: 0;
 }
 
+.cart-sidebar-item-subtitle {
+    font-size: 13px;
+    color: var(--text-light);
+    margin: 0;
+}
+
 .cart-sidebar-item-size {
     font-size: 13px;
     color: var(--text-light);
@@ -3459,14 +3465,14 @@ ul {
 .sidebar-quantity-controls {
     display: flex;
     align-items: center;
-    gap: 10px;
-    border: 1px solid #e0e0e0;
+    /* gap: 10px; */
+    border: 1px solid #000;
     border-radius: 4px;
     padding: 5px;
 }
 
 .sidebar-quantity-btn {
-    background-color: #f5f5f5;
+    background-color: unset;
     border: none;
     width: 28px;
     height: 28px;
@@ -3476,7 +3482,7 @@ ul {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.3s ease;
+    /* transition: background-color 0.3s ease; */
     color: var(--text-color);
 }
 
@@ -3484,12 +3490,28 @@ ul {
     background-color: #e0e0e0;
 }
 
+.sidebar-quantity-decrease {
+    position: relative;
+    top: -1px;
+}
+
 .sidebar-quantity-input {
     width: 40px;
     text-align: center;
     border: none;
+    border-left: 1px solid #000;
+    border-right: 1px solid #000;
     font-size: 14px;
     font-weight: 500;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.sidebar-quantity-input::-webkit-outer-spin-button,
+.sidebar-quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
 }
 
 /* Sidebar Footer */
@@ -3515,9 +3537,6 @@ ul {
     justify-content: space-between;
     font-size: 18px;
     font-weight: 600;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #e0e0e0;
 }
 
 .cart-sidebar-summary .shipping-notice {

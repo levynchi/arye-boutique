@@ -95,25 +95,9 @@
                 </div>
                 
                 <div class="order-summary-totals">
-                    <div class="summary-row">
-                        <span>סכום ביניים</span>
-                        <span>{{ subtotal }} ₪</span>
-                    </div>
-                    
-                    <div class="summary-row">
-                        <span>משלוח</span>
-                        <span>
-                            {% if subtotal >= 75 %}
-                                חינם
-                            {% else %}
-                                {{ shipping_fee }} ₪
-                            {% endif %}
-                        </span>
-                    </div>
-                    
                     <div class="summary-total">
                         <span>סה״כ</span>
-                        <span>{{ total }} ₪</span>
+                        <span>{{ subtotal }} ₪</span>
                     </div>
                 </div>
                 

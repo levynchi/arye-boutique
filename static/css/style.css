@@ -3464,26 +3464,25 @@ ul {
 /* Quantity Controls in Sidebar */
 .sidebar-quantity-controls {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     /* gap: 10px; */
     border: 1px solid #000;
-    border-radius: 4px;
-    padding: 5px;
+    /* border-radius: 4px; */
+    /* padding: 5px; */
 }
 
 .sidebar-quantity-btn {
     background-color: unset;
     border: none;
     width: 28px;
-    height: 28px;
     font-size: 16px;
     cursor: pointer;
-    border-radius: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
     /* transition: background-color 0.3s ease; */
     color: var(--text-color);
+    padding: 6px 0;
 }
 
 .sidebar-quantity-btn:hover {

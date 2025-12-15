@@ -3725,11 +3725,18 @@ ul {
 
 @media (max-width: 480px) {
     .below-bestsellers-gallery {
-        margin: 0 0 30px;
+        margin: 0 0 70px;
     }
     
     .gallery-images {
         gap: 0;
+    }
+    
+    .gallery-image {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        display: block;
     }
 }
 
@@ -4099,7 +4106,7 @@ ul {
     flex: 1;
     max-width: 350px;
     overflow: hidden;
-    border-radius: 8px;
+    /* border-radius: 8px; */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     display: block;
 }
@@ -4140,7 +4147,7 @@ ul {
 
 @media (max-width: 480px) {
     .instagram-gallery-section {
-        padding: 30px 0 50px;
+        padding: 30px 0 0px;
     }
     
     .instagram-gallery-title {

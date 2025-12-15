@@ -474,18 +474,22 @@ def wishlist_toggle(request, product_id):
     if wishlist_item:
         # המוצר כבר קיים - נסיר אותו
         wishlist_item.delete()
+        wishlist_count = WishlistItem.objects.filter(user=request.user).count()
         return JsonResponse({
             'success': True,
             'action': 'removed',
-            'message': f'המוצר "{product.name}" הוסר מרשימת המשאלות'
+            'message': f'המוצר "{product.name}" הוסר מרשימת המשאלות',
+            'wishlist_count': wishlist_count
         })
     else:
         # המוצר לא קיים - נוסיף אותו
         WishlistItem.objects.create(user=request.user, product=product)
+        wishlist_count = WishlistItem.objects.filter(user=request.user).count()
         return JsonResponse({
             'success': True,
             'action': 'added',
-            'message': f'המוצר "{product.name}" נוסף לרשימת המשאלות'
+            'message': f'המוצר "{product.name}" נוסף לרשימת המשאלות',
+            'wishlist_count': wishlist_count
         })
 
 
@@ -503,9 +507,11 @@ def wishlist_remove(request, product_id):
     deleted_count, _ = WishlistItem.objects.filter(user=request.user, product=product).delete()
     
     if deleted_count > 0:
+        wishlist_count = WishlistItem.objects.filter(user=request.user).count()
         return JsonResponse({
             'success': True,
-            'message': f'המוצר "{product.name}" הוסר מרשימת המשאלות'
+            'message': f'המוצר "{product.name}" הוסר מרשימת המשאלות',
+            'wishlist_count': wishlist_count
         })
     else:
         return JsonResponse({

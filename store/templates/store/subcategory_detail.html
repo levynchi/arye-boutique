@@ -145,6 +145,16 @@
                             this.classList.remove('active');
                             heartIcon.src = '/static/images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg';
                         }
+                        
+                        // Update header wishlist icon based on wishlist count
+                        const headerWishlistIcon = document.getElementById('header-wishlist-icon');
+                        if (headerWishlistIcon) {
+                            if (data.wishlist_count > 0) {
+                                headerWishlistIcon.src = '/static/images/hert icon fill.svg';
+                            } else {
+                                headerWishlistIcon.src = '/static/images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg';
+                            }
+                        }
                     }
                 })
                 .catch(error => {

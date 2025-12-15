@@ -121,12 +121,16 @@
                 <!-- Header Icons -->
                 <div class="header-icons">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'wishlist' %}" class="icon-link" title="רשימת המשאלות" aria-label="פתח רשימת משאלות">
-                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg">
+                        <a href="{% url 'wishlist' %}" class="icon-link" title="רשימת המשאלות" aria-label="פתח רשימת משאלות" id="header-wishlist-link">
+                            {% if wishlist_count > 0 %}
+                                <img src="{% static 'images/hert icon fill.svg' %}" alt="Wishlist" class="header-icon-svg" id="header-wishlist-icon">
+                            {% else %}
+                                <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg" id="header-wishlist-icon">
+                            {% endif %}
                         </a>
                     {% else %}
-                        <a href="{% url 'users:login' %}?next=/wishlist/" class="icon-link" title="רשימת המשאלות" aria-label="פתח רשימת משאלות">
-                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg">
+                        <a href="{% url 'users:login' %}?next=/wishlist/" class="icon-link" title="רשימת המשאלות" aria-label="פתח רשימת משאלות" id="header-wishlist-link">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg" id="header-wishlist-icon">
                         </a>
                     {% endif %}
                     {% if user.is_authenticated %}

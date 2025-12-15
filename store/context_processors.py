@@ -1,4 +1,4 @@
-from .models import Cart
+from .models import Cart, WishlistItem
 
 
 def cart_items_count(request):
@@ -30,3 +30,18 @@ def cart_items_count(request):
     }
 
 
+def wishlist_count(request):
+    """
+    Context processor להוספת מספר הפריטים ברשימת המשאלות לכל template
+    """
+    count = 0
+    
+    try:
+        if request.user.is_authenticated:
+            count = WishlistItem.objects.filter(user=request.user).count()
+    except:
+        pass
+    
+    return {
+        'wishlist_count': count
+    }

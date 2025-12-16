@@ -1106,6 +1106,10 @@ ul {
         font-size: 14px;
     }
     
+    .hero-banner {
+        margin-bottom: 0;
+    }
+    
     .hero-image {
         height: 300px;
     }
@@ -2546,6 +2550,8 @@ ul {
     
     .filter-select {
         width: 100%;
+        padding: 5px 7px;
+        font-size: 12px;
     }
     
     .products-gallery {

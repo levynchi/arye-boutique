@@ -30,7 +30,7 @@
                 <div class="filter-group">
                     <label for="price-filter" class="filter-label">מחיר</label>
                     <select name="price" id="price-filter" class="filter-select">
-                        <option value="">כל המחירים</option>
+                        <option value="" {% if not current_price_sort %}selected{% endif %}>כל המחירים</option>
                         <option value="low_to_high" {% if current_price_sort == 'low_to_high' %}selected{% endif %}>נמוך לגבוה</option>
                         <option value="high_to_low" {% if current_price_sort == 'high_to_low' %}selected{% endif %}>גבוה לנמוך</option>
                     </select>

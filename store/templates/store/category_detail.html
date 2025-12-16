@@ -52,21 +52,18 @@
             <form method="GET" action="{% url 'category_detail' category.slug %}" class="filter-form" id="filter-form">
                 {% csrf_token %}
                 <div class="filter-group">
-                    <label for="price-filter" class="filter-label">מחיר</label>
                     <select name="price" id="price-filter" class="filter-select">
-                        <option value="">כל המחירים</option>
+                        <option value="" {% if not current_price_sort %}selected{% endif %}>כל המחירים</option>
                         <option value="low_to_high" {% if current_price_sort == 'low_to_high' %}selected{% endif %}>נמוך לגבוה</option>
                         <option value="high_to_low" {% if current_price_sort == 'high_to_low' %}selected{% endif %}>גבוה לנמוך</option>
                     </select>
                 </div>
                 
                 <div class="filter-group">
-                    <label for="gender-filter" class="filter-label">מין</label>
                     <select name="gender" id="gender-filter" class="filter-select">
-                        <option value="">כל המינים</option>
-                        <option value="boy" {% if current_gender == 'boy' %}selected{% endif %}>בן</option>
-                        <option value="girl" {% if current_gender == 'girl' %}selected{% endif %}>בת</option>
-                        <option value="both" {% if current_gender == 'both' %}selected{% endif %}>שניהם</option>
+                        <option value="" {% if not current_gender %}selected{% endif %}>יוניסקס</option>
+                        <option value="boy" {% if current_gender == 'boy' %}selected{% endif %}>בנים</option>
+                        <option value="girl" {% if current_gender == 'girl' %}selected{% endif %}>בנות</option>
                     </select>
                 </div>
             </form>

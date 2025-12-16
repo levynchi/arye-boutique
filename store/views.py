@@ -437,6 +437,15 @@ def faq(request):
     return render(request, 'store/faq.html', context)
 
 
+def shipping_and_returns(request):
+    """
+    דף משלוחים והחזרות
+    """
+    categories = Category.objects.filter(is_active=True)
+    context = {'categories': categories}
+    return render(request, 'store/shipping.html', context)
+
+
 @login_required
 def wishlist_view(request):
     """

@@ -21,6 +21,7 @@ urlpatterns = [
     path('faq/', views.faq, name='faq'),
     path('laundry-instructions/', views.laundry_instructions, name='laundry_instructions'),
     path('terms/', views.terms_of_service, name='terms_of_service'),
+    path('shipping/', views.shipping_and_returns, name='shipping_and_returns'),
     
     # Wishlist URLs
     path('wishlist/', views.wishlist_view, name='wishlist'),

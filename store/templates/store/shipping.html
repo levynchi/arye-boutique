@@ -1,0 +1,234 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}משלוחים והחזרות - בוטיק אריה{% endblock %}
+
+{% block extra_css %}
+<style>
+.shipping-page {
+    padding: 40px 0 80px;
+    background-color: #fff;
+}
+
+.shipping-title {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #5a7d8c;
+    margin-bottom: 50px;
+    font-weight: 600;
+}
+
+.shipping-content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+    line-height: 1.9;
+    color: #333;
+}
+
+.shipping-section {
+    margin-bottom: 30px;
+}
+
+.shipping-section-title {
+    color: #5a7d8c;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: right;
+}
+
+.shipping-content p {
+    margin-bottom: 15px;
+    text-align: right;
+}
+
+.shipping-content ul {
+    margin: 15px 0;
+    padding-right: 25px;
+    list-style-type: disc;
+}
+
+.shipping-content li {
+    margin-bottom: 8px;
+    text-align: right;
+}
+
+.returns-title {
+    text-align: center;
+    font-size: 2rem;
+    color: #5a7d8c;
+    margin: 60px 0 40px;
+    font-weight: 600;
+    padding-top: 40px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.contact-info {
+    background-color: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.contact-info p {
+    margin-bottom: 8px;
+}
+
+.highlight-box {
+    background-color: #f0f7fa;
+    border-right: 4px solid #5a7d8c;
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 0 8px 8px 0;
+}
+
+@media (max-width: 768px) {
+    .shipping-title {
+        font-size: 1.8rem;
+    }
+    
+    .returns-title {
+        font-size: 1.5rem;
+    }
+    
+    .shipping-content {
+        font-size: 0.95rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">משלוחים והחזרות</span>
+        </nav>
+    </div>
+</section>
+
+<section class="shipping-page">
+    <div class="container">
+        <h1 class="shipping-title">משלוחים</h1>
+        
+        <div class="shipping-content">
+            <!-- איסוף עצמי -->
+            <div class="shipping-section">
+                <h2 class="shipping-section-title">איסוף עצמי (ללא עלות משלוח | עד 3 ימי עסקים)</h2>
+                <p>לאחר ביצוע ההזמנה תישלח ללקוח הודעת אימייל שהחבילה מוכנה לאיסוף.</p>
+                <p>האיסוף מתבצע מרחוב הקישון 6, תל אביב, בין השעות 09:00–15:00.</p>
+                <p>יש להציג מספר הזמנה בעת האיסוף.</p>
+                <p>אין אפשרות לרכוש מוצרים במקום, והאיסוף מתבצע על ידי אחד מעובדי אריה – אין לעלות למחסן.</p>
+            </div>
+
+            <!-- משלוח עד הבית -->
+            <div class="shipping-section">
+                <h2 class="shipping-section-title">משלוח עד הבית (2–5 ימי עסקים)</h2>
+                <ul>
+                    <li>בקניה עד 99 ש"ח – עלות משלוח 30 ש"ח.</li>
+                    <li>בקניה 100–199 ש"ח – עלות משלוח 25 ש"ח.</li>
+                    <li>בקניה 200–299 ש"ח – עלות משלוח 20 ש"ח.</li>
+                    <li>בקניה מעל 299 ש"ח – המשלוח ללא עלות.</li>
+                </ul>
+                <p>המשלוחים נשלחים באמצעות חברת שליחויות.</p>
+                <p>הלקוח יקבל הודעת SMS עם היום והשעה המשוערת למסירת החבילה.</p>
+                <p>ניתן ליצור קשר עם הנהג טלפונית או בהודעה.</p>
+                <p>לא ניתן לשנות כתובת משלוח לאחר שהחבילה יצאה ממחסני אריה.</p>
+            </div>
+
+            <!-- מידע נוסף על משלוחים -->
+            <div class="shipping-section">
+                <h2 class="shipping-section-title">מידע חשוב</h2>
+                <p>אם ההזמנה בוצעה לאחר השעה 10:00 – ספירת ימי העסקים תחל ביום העסקים הבא.</p>
+                <p>ימי עסקים הם א'-ה' ואינם כוללים שישי, שבת, ערבי חג וחגים.</p>
+                <p>אנו מתחייבים לארוז ולהוציא את ההזמנה למשלוח עד 3 ימי עסקים ממועד הרכישה.</p>
+                <p>במידה שמוצר חסר במלאי – ניצור קשר טלפוני או במייל.</p>
+                <p>משלוחים לכל הארץ בהתאם להנחיות פיקוד העורף.</p>
+            </div>
+
+            <!-- יישובים מרוחקים -->
+            <div class="shipping-section">
+                <h2 class="shipping-section-title">יישובים מרוחקים</h2>
+                <p>יישובים מרוחקים (אילת, הערבה, רמת הגולן, מעבר לקו הירוק, קיבוצים וכפרים):</p>
+                <p>ייתכנו עיכובים מעבר ל–5 ימי העסקים, בהתאם לתנאי חברת השילוח.</p>
+                <p>בימי מבצעים וחגים ייתכנו עיכובים בזמני השילוח.</p>
+                <p>אחרי שהחבילה נשלחה – לא ניתן לבצע שינויים בתכולת ההזמנה.</p>
+            </div>
+
+            <!-- כותרת החזרות והחלפות -->
+            <h2 class="returns-title">תקנון מדיניות החזרות והחלפות</h2>
+
+            <!-- מדיניות כללית -->
+            <div class="shipping-section">
+                <p>באפשרותך להחזיר או להחליף כל פריט שלא נעשה בו שימוש, שלא כובס, ושנמצא במצב חדש — תוך 14 ימים ממועד קבלת המוצר.</p>
+                <p>הוצאות שילוח החזרה ישולמו על-ידי הלקוח, ואריה לא תספק החזר כספי בגינן.</p>
+                <p>הזיכוי הכספי יינתן על המוצרים בלבד, ללא עלויות משלוח הלוך וחזור.</p>
+            </div>
+
+            <!-- דרכי החזרה -->
+            <div class="shipping-section">
+                <h2 class="shipping-section-title">דרכי החזרה:</h2>
+                
+                <h3 style="color: #5a7d8c; font-size: 1rem; margin: 20px 0 10px;">1. החזרה/החלפה באיסוף עצמי</h3>
+                <p>ניתן להגיע לרחוב הקישון 6 תל-אביב עם מספר ההזמנה ולהחזיר או להחליף במקום.</p>
+                <p>אין אפשרות לעלות למחסנים של אריה — אחד מעובדי אריה יורד אל הלקוח לביצוע ההחזרה/ההחלפה.</p>
+                <p>יש לתאם מראש הגעה דרך המייל או הווטסאפ:</p>
+                <div class="contact-info">
+                    <p><strong>053-3694264</strong> - בהודעת וואטסאפ בלבד</p>
+                    <p><strong>arye.boutique@gmail.com</strong></p>
+                </div>
+
+                <h3 style="color: #5a7d8c; font-size: 1rem; margin: 20px 0 10px;">2. החזרה באמצעות דואר רשום</h3>
+                <p>יש לשלוח את המוצר לכתובת:</p>
+                <div class="contact-info">
+                    <p><strong>אריה בגדי תינוקות</strong></p>
+                    <p>רחוב הקישון 6, תל-אביב</p>
+                    <p>מיקוד: 6609306</p>
+                </div>
+                <p>יש לצרף פתק עם מספר ההזמנה בתוך החבילה.</p>
+            </div>
+
+            <!-- החלפות עד הבית -->
+            <div class="shipping-section">
+                <h2 class="shipping-section-title">החלפות עד הבית – שירות מיוחד</h2>
+                <p>מעוניינים בהחלפה? אפשר לקבל החלפה עד הבית!</p>
+                <p>שליח יגיע לבית הלקוח עם המוצר החלופי* או מידה אחרת, ויאסוף את הפריט המוחזר.</p>
+                <div class="highlight-box">
+                    <p><strong>עלות השירות: 30 ש"ח בלבד (החלפות בלבד).</strong></p>
+                </div>
+                <p>*אם שווי המוצר שקיבלתם נמוך משווי הפריט שהוחלף — יונפק שובר זיכוי על ההפרש לרכישה באתר.</p>
+                <p>לתיאום החלפה עד הבית: יש ליצור קשר עם שירות הלקוחות.</p>
+            </div>
+
+            <!-- מדיניות זיכויים -->
+            <div class="shipping-section">
+                <h2 class="shipping-section-title">מדיניות זיכויים</h2>
+                <p>לאחר קליטת ההחזרה במחסני אריה, יתבצע זיכוי לכרטיס האשראי או לחשבון ה-PayPal שאיתו בוצעה ההזמנה.</p>
+                <p>הזיכוי יבוצע בהתאם ללוחות הזמנים של חברת האשראי (בדרך כלל 7–14 ימי עסקים).</p>
+                <p>במקרה שבו הלקוח קיבל הטבת "משלוח חינם" (קוד קופון או קנייה מעל סכום מסוים) והחזיר את כל המוצרים בהזמנה — הלקוח יחויב בעלות משלוח של 30 ש"ח.</p>
+            </div>
+
+            <!-- מוצר פגום -->
+            <div class="shipping-section">
+                <h2 class="shipping-section-title">מוצר פגום</h2>
+                <p>אם התקבל מוצר פגום — יש לשלוח מייל עם תמונה ומספר הזמנה לכתובת:</p>
+                <p><strong>Arye.Boutique@gmail.com</strong></p>
+                <p>במקרה של מוצר פגום: עלות איסוף/החלפה/משלוח תחזור על חשבון אריה, כמחויב בחוק.</p>
+            </div>
+
+            <!-- הבהרות נוספות -->
+            <div class="shipping-section">
+                <h2 class="shipping-section-title">הבהרות נוספות</h2>
+                <p>החזרות והחלפות יתבצעו תוך 14 ימים בלבד ובמצב חדש, לא מכובס ולא משומש.</p>
+                <p>מוצרים שיוחזרו בניגוד למדיניות לא יזוכו.</p>
+                <p>בימי מכירות מיוחדים ובתקופות חגים ייתכנו עיכובים בזמני הוצאת משלוחים.</p>
+                <p>בחגים ושבתות לא מתבצע איסוף עצמי ולא נשלחות הזמנות — פעולות יתחדשו ביום שלאחר צאת השבת/החג.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

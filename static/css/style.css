@@ -1148,6 +1148,10 @@ ul {
         text-align: center;
     }
     
+    .newsletter-section {
+        padding-top: 2px;
+    }
+    
     .newsletter-form {
         max-width: 400px;
         margin: 0 auto;
@@ -1165,7 +1169,7 @@ ul {
     }
     
     .footer-social {
-        justify-content: center;
+        display: none;
     }
 
     .footer-social-mobile {
@@ -1656,7 +1660,7 @@ ul {
     }
     
     .story-title {
-        font-size: 28px;
+        font-size: 24px;
     }
     
     .story-description {
@@ -2075,7 +2079,7 @@ ul {
 @media (max-width: 968px) {
     .product-detail-container {
         grid-template-columns: 1fr;
-        gap: 40px;
+        gap: 20px;
     }
     
     .product-images-column {
@@ -2164,7 +2168,7 @@ ul {
     }
     
     .product-price {
-        font-size: 28px;
+        font-size: 24px;
     }
     
     .quantity-btn {
@@ -2544,8 +2548,7 @@ ul {
     .filter-form {
         flex-direction: row;
         gap: 15px;
-        justify-content: space-between;
-
+        justify-content: flex-end;
     }
     
     .filter-select {

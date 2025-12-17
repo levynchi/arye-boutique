@@ -338,7 +338,8 @@
         const hiddenQuantity = document.getElementById('hidden-quantity');
         
         if (quantityMinus) {
-            quantityMinus.addEventListener('click', function() {
+            quantityMinus.addEventListener('click', function(e) {
+                e.preventDefault();
                 let currentValue = parseInt(quantityInput.value);
                 if (currentValue > 1) {
                     quantityInput.value = currentValue - 1;
@@ -348,7 +349,8 @@
         }
         
         if (quantityPlus) {
-            quantityPlus.addEventListener('click', function() {
+            quantityPlus.addEventListener('click', function(e) {
+                e.preventDefault();
                 let currentValue = parseInt(quantityInput.value);
                 const maxValue = parseInt(quantityInput.getAttribute('max'));
                 if (currentValue < maxValue) {

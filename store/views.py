@@ -451,8 +451,8 @@ def wishlist_view(request):
     """
     דף רשימת המשאלות - הצגת כל המוצרים המועדפים
     """
-    # קבלת פריטי Wishlist של המשתמש
-    wishlist_items = WishlistItem.objects.filter(user=request.user).select_related('product')
+    # קבלת פריטי Wishlist של המשתמש עם התמונות הנוספות
+    wishlist_items = WishlistItem.objects.filter(user=request.user).select_related('product').prefetch_related('product__images')
     products = [item.product for item in wishlist_items]
     
     # קבלת קטגוריות לניווט

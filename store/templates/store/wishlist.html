@@ -43,13 +43,41 @@
                     </button>
                     
                     <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
-                        <div class="product-image-wrapper">
+                        <div class="product-image-wrapper"
+                             data-images='[{% if product.image %}"{{ product.image.url }}"{% endif %}{% for img in product.images.all %}{% if product.image or not forloop.first %},{% endif %}"{{ img.image.url }}"{% endfor %}]'
+                             data-current-index="0">
                             <!-- Product Image -->
                             {% if product.image %}
                                 <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-image">
                             {% else %}
                                 <div class="product-card-placeholder">אין תמונה</div>
                             {% endif %}
+                            
+                            <!-- Gallery Arrows (shown only if multiple images) -->
+                            {% if product.images.all|length > 0 or product.image and product.images.all|length > 0 %}
+                            <button type="button" class="product-card-arrow product-card-arrow-right" aria-label="תמונה הבאה">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </button>
+                            <button type="button" class="product-card-arrow product-card-arrow-left" aria-label="תמונה קודמת">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                            </button>
+                            <!-- Gallery Dots (for mobile) -->
+                            <div class="product-card-dots">
+                                <span class="product-card-dot active"></span>
+                                {% for img in product.images.all %}
+                                <span class="product-card-dot"></span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Quick Add to Cart Button -->
+                            <button type="button" class="product-card-quick-add" data-product-id="{{ product.id }}" aria-label="הוספה לעגלה">
+                                הוספה לעגלה
+                            </button>
                         </div>
                         
                         <div class="product-card-info">
@@ -76,6 +104,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/product-options-panel.js' %}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Remove from wishlist
@@ -135,6 +164,103 @@
                     console.error('Error:', error);
                     alert('אירעה שגיאה בהסרת המוצר');
                 });
+            });
+        });
+        
+        // Product card gallery navigation
+        function updateProductCardImage(wrapper, newIndex) {
+            const img = wrapper.querySelector('.product-card-image');
+            if (!img) return;
+            
+            let images;
+            try {
+                images = JSON.parse(wrapper.dataset.images);
+            } catch (err) {
+                return;
+            }
+            
+            if (!images || images.length <= 1) return;
+            
+            // Ensure index is within bounds
+            newIndex = ((newIndex % images.length) + images.length) % images.length;
+            
+            wrapper.dataset.currentIndex = newIndex;
+            img.src = images[newIndex];
+            
+            // Update dots
+            const dots = wrapper.querySelectorAll('.product-card-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === newIndex);
+            });
+        }
+        
+        // Arrow click handlers
+        const productCardArrows = document.querySelectorAll('.product-card-arrow');
+        productCardArrows.forEach(arrow => {
+            arrow.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const wrapper = this.closest('.product-image-wrapper');
+                let currentIndex = parseInt(wrapper.dataset.currentIndex) || 0;
+                
+                if (this.classList.contains('product-card-arrow-right')) {
+                    updateProductCardImage(wrapper, currentIndex + 1);
+                } else {
+                    updateProductCardImage(wrapper, currentIndex - 1);
+                }
+            });
+        });
+        
+        // Touch swipe support for mobile
+        const productImageWrappers = document.querySelectorAll('.product-image-wrapper[data-images]');
+        productImageWrappers.forEach(wrapper => {
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            wrapper.addEventListener('touchstart', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            
+            wrapper.addEventListener('touchend', function(e) {
+                touchEndX = e.changedTouches[0].screenX;
+                const diff = touchStartX - touchEndX;
+                
+                if (Math.abs(diff) > 50) { // Minimum swipe distance
+                    e.preventDefault();
+                    let currentIndex = parseInt(wrapper.dataset.currentIndex) || 0;
+                    
+                    if (diff > 0) {
+                        // Swipe left - next image
+                        updateProductCardImage(wrapper, currentIndex + 1);
+                    } else {
+                        // Swipe right - previous image
+                        updateProductCardImage(wrapper, currentIndex - 1);
+                    }
+                }
+            });
+        });
+        
+        // Quick add button handler
+        const quickAddButtons = document.querySelectorAll('.product-card-quick-add');
+        quickAddButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const productId = this.getAttribute('data-product-id');
+                
+                // Open product options panel
+                if (typeof openProductOptionsPanel === 'function') {
+                    openProductOptionsPanel(productId);
+                } else {
+                    // Fallback: redirect to product page
+                    const productCard = this.closest('.product-card');
+                    const productLink = productCard.querySelector('.product-card-link');
+                    if (productLink) {
+                        window.location.href = productLink.href;
+                    }
+                }
             });
         });
     });

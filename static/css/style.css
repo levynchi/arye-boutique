@@ -4824,7 +4824,6 @@ ul {
     width: 100px;
     height: 100px;
     flex-shrink: 0;
-    border-radius: 8px;
     overflow: hidden;
     background-color: var(--bg-light);
 }

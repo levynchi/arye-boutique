@@ -2364,6 +2364,89 @@ ul {
     background-color: var(--bg-light);
 }
 
+/* Product Card Gallery Arrows */
+.product-card-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #333;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    z-index: 10;
+}
+
+.product-card:hover .product-card-arrow {
+    opacity: 1;
+}
+
+.product-card-arrow:hover {
+    background-color: #fff;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.product-card-arrow:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.product-card-arrow svg {
+    width: 16px;
+    height: 16px;
+}
+
+.product-card-arrow-right {
+    right: 8px;
+}
+
+.product-card-arrow-left {
+    left: 8px;
+}
+
+/* Product Card Dots (for mobile) */
+.product-card-dots {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    display: none;
+    gap: 4px;
+    z-index: 10;
+}
+
+.product-card-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.product-card-dot.active {
+    background-color: #fff;
+    border-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Mobile: Show dots instead of arrows */
+@media (max-width: 768px) {
+    .product-card-arrow {
+        display: none;
+    }
+    
+    .product-card-dots {
+        display: flex;
+    }
+}
+
 .product-heart-btn:hover {
     transform: scale(1.1);
     background-color: rgba(255, 255, 255, 1);

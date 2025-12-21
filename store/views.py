@@ -237,7 +237,7 @@ def category_detail(request, slug):
         return render(request, 'store/category_detail.html', context)
     
     # אין תת-קטגוריות - להציג מוצרים
-    products = Product.objects.filter(category=category, is_active=True)
+    products = Product.objects.filter(category=category, is_active=True).prefetch_related('images')
     
     # סינון לפי מין
     gender_filter = request.GET.get('gender', '')
@@ -295,7 +295,7 @@ def subcategory_detail(request, category_slug, subcategory_slug):
     )
     
     # קבלת מוצרים של התת-קטגוריה
-    products = Product.objects.filter(subcategory=subcategory, is_active=True)
+    products = Product.objects.filter(subcategory=subcategory, is_active=True).prefetch_related('images')
     
     # סינון לפי מין
     gender_filter = request.GET.get('gender', '')

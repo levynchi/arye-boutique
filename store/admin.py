@@ -956,7 +956,7 @@ class BlogPostAdmin(admin.ModelAdmin):
     search_fields = ['title', 'subtitle', 'content']
     list_editable = ['is_active']
     readonly_fields = ['created_at', 'updated_at', 'image_preview_large']
-    prepopulated_fields = {'slug': ('title',)}
+    # הוסר prepopulated_fields כי הכותרת בעברית ו-slug חייב להיות באנגלית
     
     fieldsets = (
         ('תוכן הפוסט', {

@@ -801,6 +801,74 @@ def cart_data(request):
     })
 
 
+def product_variants_api(request, product_id):
+    """
+    API endpoint לקבלת נתוני וריאנטים של מוצר
+    """
+    product = get_object_or_404(Product, id=product_id, is_active=True)
+    
+    # קבלת סוגי בד זמינים דרך הוריאנטים של המוצר
+    fabric_types = FabricType.objects.filter(
+        variants__product=product,
+        variants__is_available=True,
+        is_active=True
+    ).distinct().order_by('order', 'name')
+    
+    # בניית מבנה נתונים לוריאנטים
+    variants_data = {}
+    for fabric in fabric_types:
+        variants_data[fabric.id] = {
+            'name': fabric.name,
+            'order': fabric.order,
+            'sizes': []
+        }
+    
+    # קבלת כל הוריאנטים
+    all_variants = product.variants.select_related('fabric_type', 'size').filter(is_available=True)
+    for variant in all_variants:
+        if variant.fabric_type_id in variants_data:
+            variants_data[variant.fabric_type_id]['sizes'].append({
+                'id': variant.id,
+                'size': str(variant.size),
+                'size_display': variant.size.display_name or variant.size.name,
+            })
+    
+    # בניית רשימת סוגי בד עם המידות
+    fabrics_list = []
+    for fabric_id, fabric_data in variants_data.items():
+        fabrics_list.append({
+            'id': fabric_id,
+            'name': fabric_data['name'],
+            'sizes': fabric_data['sizes']
+        })
+    
+    # האם למוצר יש וריאנטים
+    has_variants = fabric_types.exists()
+    
+    # קבלת כל המידות הזמינות (ללא תלות בבד)
+    all_sizes = []
+    if has_variants:
+        # אם יש בד אחד בלבד, נציג את המידות שלו
+        if len(fabrics_list) == 1:
+            all_sizes = fabrics_list[0]['sizes']
+    
+    return JsonResponse({
+        'success': True,
+        'product': {
+            'id': product.id,
+            'name': product.name,
+            'subtitle': product.subtitle or '',
+            'price': float(product.price),
+            'image': product.image.url if product.image else '',
+            'stock_quantity': product.stock_quantity,
+            'is_in_stock': product.is_in_stock,
+        },
+        'has_variants': has_variants,
+        'fabrics': fabrics_list,
+        'variants': variants_data,
+    })
+
+
 def blog_list(request):
     """
     דף רשימת כל הפוסטים בבלוג

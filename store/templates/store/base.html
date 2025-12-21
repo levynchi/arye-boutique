@@ -249,6 +249,67 @@
         </div>
     </div>
 
+    <!-- Product Options Panel (Quick Add to Cart) -->
+    <div id="product-options-overlay" class="product-options-overlay" aria-hidden="true"></div>
+    <div id="product-options-panel" class="product-options-panel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="product-options-title" tabindex="-1">
+        <div class="product-options-header">
+            <h2 id="product-options-title">בחר אפשרויות</h2>
+            <button id="product-options-close" class="product-options-close" aria-label="סגור">&times;</button>
+        </div>
+        
+        <div class="product-options-content">
+            <!-- Product Preview -->
+            <div class="product-options-preview">
+                <div class="product-options-image">
+                    <img id="product-options-img" src="" alt="">
+                </div>
+                <div class="product-options-info">
+                    <p class="product-options-brand">Arye Boutique</p>
+                    <h3 id="product-options-name" class="product-options-product-name"></h3>
+                    <p id="product-options-subtitle" class="product-options-subtitle"></p>
+                    <p id="product-options-price" class="product-options-price"></p>
+                </div>
+            </div>
+            
+            <!-- Fabric Selection (if multiple fabrics) -->
+            <div id="product-options-fabric-section" class="product-options-section" style="display: none;">
+                <label class="product-options-label">סוג בד</label>
+                <div id="product-options-fabrics" class="product-options-buttons">
+                    <!-- Fabric buttons will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Size Selection -->
+            <div id="product-options-size-section" class="product-options-section">
+                <label class="product-options-label">מידה</label>
+                <div id="product-options-sizes" class="product-options-buttons">
+                    <!-- Size buttons will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Size note -->
+            <div id="product-options-note" class="product-options-note" style="display: none;">
+                <p>האוברולים יחסית גדולים! לרוב, אין צורך לקחת את המידה מעל. לעזרה נוספת, ניתן להיעזר במדריך מידות.</p>
+            </div>
+            
+            <!-- Quantity Section -->
+            <div class="product-options-section">
+                <label class="product-options-label">כמות</label>
+                <div class="product-options-quantity">
+                    <button type="button" id="product-options-qty-minus" class="product-options-qty-btn">-</button>
+                    <input type="number" id="product-options-qty-input" class="product-options-qty-input" value="1" min="1" readonly>
+                    <button type="button" id="product-options-qty-plus" class="product-options-qty-btn">+</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="product-options-footer">
+            <button type="button" id="product-options-add-btn" class="product-options-add-btn" disabled>
+                הוספה להזמנה
+            </button>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <main class="main-content" id="main-content" tabindex="-1">
         <!-- Messages -->
@@ -389,6 +450,9 @@
     <!-- Footer Accordion JavaScript -->
     <script src="{% static 'js/footer-accordion.js' %}"></script>
     
+    <!-- Product Options Panel JavaScript -->
+    <script src="{% static 'js/product-options-panel.js' %}"></script>
+    
     {% block extra_js %}{% endblock %}
     
     <!-- Messages Close Functionality -->
@@ -422,4 +486,5 @@
     </script>
 </body>
 </html>
+
 

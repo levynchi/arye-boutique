@@ -2432,7 +2432,7 @@ ul {
 }
 
 .product-card-dot.active {
-    background-color: #fff;
+    background-color: rgba(117, 148, 177, 1);
     border-color: rgba(0, 0, 0, 0.4);
 }
 
@@ -2444,6 +2444,8 @@ ul {
     
     .product-card-dots {
         display: flex;
+        bottom: auto;
+        top: 8px;
     }
 }
 
@@ -4938,36 +4940,39 @@ ul {
 .product-options-quantity {
     display: flex;
     align-items: stretch;
-    border: 1px solid var(--border-color);
+    border: 1px solid #000;
     width: fit-content;
-    border-radius: 4px;
-    overflow: hidden;
 }
 
 .product-options-qty-btn {
-    background-color: var(--white);
+    background-color: unset;
     border: none;
-    width: 40px;
-    font-size: 18px;
+    width: 28px;
+    font-size: 16px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-color);
-    transition: background-color 0.2s ease;
+    padding: 6px 0;
 }
 
 .product-options-qty-btn:hover {
-    background-color: #f5f5f5;
+    background-color: #e0e0e0;
+}
+
+.product-options-qty-decrease {
+    position: relative;
+    top: -1px;
 }
 
 .product-options-qty-input {
-    width: 50px;
+    width: 40px;
     text-align: center;
     border: none;
-    border-left: 1px solid var(--border-color);
-    border-right: 1px solid var(--border-color);
-    font-size: 16px;
+    border-left: 1px solid #000;
+    border-right: 1px solid #000;
+    font-size: 14px;
     font-weight: 500;
     -moz-appearance: textfield;
     appearance: textfield;
@@ -4976,6 +4981,7 @@ ul {
 .product-options-qty-input::-webkit-outer-spin-button,
 .product-options-qty-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
+    appearance: none;
     margin: 0;
 }
 

@@ -607,12 +607,10 @@ class FAQ(models.Model):
 
 class BlogPost(models.Model):
     """
-    פוסט בבלוג
+    פוסט בבלוג - כולל באנר ראשי וסקשנים גמישים
     """
-    title = models.CharField(max_length=200, verbose_name='כותרת')
-    subtitle = models.CharField(max_length=300, verbose_name='תת-כותרת', help_text='תיאור קצר שיופיע מתחת לכותרת')
-    image = models.ImageField(upload_to='blog/', verbose_name='תמונה ראשית')
-    content = models.TextField(verbose_name='תוכן הפוסט')
+    title = models.CharField(max_length=200, verbose_name='כותרת ראשית')
+    image = models.ImageField(upload_to='blog/', verbose_name='תמונת באנר ראשי')
     slug = models.SlugField(max_length=200, unique=True, verbose_name='כתובת URL', help_text='יופיע בכתובת הדף (באנגלית, ללא רווחים)')
     is_active = models.BooleanField(default=True, verbose_name='פעיל')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
@@ -629,3 +627,33 @@ class BlogPost(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('blog_detail', kwargs={'slug': self.slug})
+
+
+class BlogSection(models.Model):
+    """
+    סקשן בפוסט בלוג - כולל כותרת, תוכן ותמונה אופציונלית
+    """
+    post = models.ForeignKey(
+        BlogPost,
+        on_delete=models.CASCADE,
+        related_name='sections',
+        verbose_name='פוסט'
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name='סדר תצוגה')
+    title = models.CharField(max_length=200, verbose_name='כותרת הסקשן')
+    content = models.TextField(verbose_name='תוכן/פיסקה')
+    image = models.ImageField(
+        upload_to='blog/sections/',
+        blank=True,
+        null=True,
+        verbose_name='תמונה',
+        help_text='תמונה אופציונלית לסקשן'
+    )
+    
+    class Meta:
+        verbose_name = 'סקשן בפוסט'
+        verbose_name_plural = 'סקשנים בפוסט'
+        ordering = ['order']
+    
+    def __str__(self):
+        return f'{self.post.title} - {self.title}'

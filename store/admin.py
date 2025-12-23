@@ -7,7 +7,7 @@ from .models import (
     SiteSettings, Category, Subcategory, Product, ProductImage, 
     Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
     BelowBestsellersGallery, RetailerStore, InstagramGallery, AboutPageSettings,
-    GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ, BlogPost
+    GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ, BlogPost, BlogSection
 )
 from .forms import BulkVariantCreationForm, ProductAdminForm
 
@@ -946,21 +946,32 @@ class FAQAdmin(admin.ModelAdmin):
     )
 
 
+class BlogSectionInline(admin.TabularInline):
+    """
+    הצגת סקשנים בתוך פוסט בלוג
+    """
+    model = BlogSection
+    extra = 1
+    fields = ('order', 'title', 'content', 'image')
+    ordering = ['order']
+
+
 @admin.register(BlogPost)
 class BlogPostAdmin(admin.ModelAdmin):
     """
     ניהול פוסטים בבלוג
     """
-    list_display = ['title', 'image_preview', 'is_active', 'created_at']
+    list_display = ['title', 'image_preview', 'sections_count', 'is_active', 'created_at']
     list_filter = ['is_active', 'created_at']
-    search_fields = ['title', 'subtitle', 'content']
+    search_fields = ['title', 'sections__title', 'sections__content']
     list_editable = ['is_active']
     readonly_fields = ['created_at', 'updated_at', 'image_preview_large']
-    # הוסר prepopulated_fields כי הכותרת בעברית ו-slug חייב להיות באנגלית
+    inlines = [BlogSectionInline]
     
     fieldsets = (
-        ('תוכן הפוסט', {
-            'fields': ('title', 'subtitle', 'slug', 'image', 'image_preview_large', 'content')
+        ('באנר ראשי', {
+            'fields': ('title', 'slug', 'image', 'image_preview_large'),
+            'description': 'כותרת ותמונה ראשית של הפוסט'
         }),
         ('הגדרות', {
             'fields': ('is_active',)
@@ -984,3 +995,8 @@ class BlogPostAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="max-height: 200px; max-width: 400px; object-fit: cover;" />', obj.image.url)
         return 'אין תמונה'
     image_preview_large.short_description = 'תצוגה מקדימה'
+    
+    def sections_count(self, obj):
+        """מספר הסקשנים בפוסט"""
+        return obj.sections.count()
+    sections_count.short_description = 'סקשנים'

@@ -35,7 +35,9 @@
                     </div>
                     <div class="blog-card-content">
                         <h2 class="blog-card-title">{{ post.title }}</h2>
-                        <p class="blog-card-subtitle">{{ post.subtitle }}</p>
+                        {% if post.sections.first %}
+                        <p class="blog-card-subtitle">{{ post.sections.first.title }}</p>
+                        {% endif %}
                     </div>
                 </a>
             </article>

@@ -21,10 +21,11 @@
 <article class="blog-detail-section">
     <div class="container">
         <div class="blog-detail-container">
-            <!-- Post Header -->
+            <!-- Post Header with Banner -->
             <header class="blog-detail-header">
-                <h1 class="blog-detail-title">{{ post.title }}</h1>
-                <p class="blog-detail-subtitle">{{ post.subtitle }}</p>
+                <div class="blog-detail-image">
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                </div>
                 <div class="blog-detail-meta">
                     <time datetime="{{ post.created_at|date:'Y-m-d' }}">
                         {{ post.created_at|date:"d בF Y" }}
@@ -32,15 +33,24 @@
                 </div>
             </header>
             
-            <!-- Featured Image -->
-            <div class="blog-detail-image">
-                <img src="{{ post.image.url }}" alt="{{ post.title }}">
+            <!-- Post Sections -->
+            {% for section in post.sections.all %}
+            <div class="blog-section-item">
+                <h2 class="blog-section-title">{{ section.title }}</h2>
+                <div class="blog-section-content">
+                    {{ section.content|linebreaks }}
+                </div>
+                {% if section.image %}
+                <div class="blog-section-image">
+                    <img src="{{ section.image.url }}" alt="{{ section.title }}">
+                </div>
+                {% endif %}
             </div>
-            
-            <!-- Post Content -->
+            {% empty %}
             <div class="blog-detail-content">
-                {{ post.content|linebreaks }}
+                <p>אין תוכן עדיין.</p>
             </div>
+            {% endfor %}
             
             <!-- Back to Blog -->
             <div class="blog-detail-back">
@@ -63,7 +73,9 @@
                         </div>
                         <div class="blog-card-content">
                             <h3 class="blog-card-title">{{ related.title }}</h3>
-                            <p class="blog-card-subtitle">{{ related.subtitle }}</p>
+                            {% if related.sections.first %}
+                            <p class="blog-card-subtitle">{{ related.sections.first.title }}</p>
+                            {% endif %}
                         </div>
                     </a>
                 </article>

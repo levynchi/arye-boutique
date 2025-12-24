@@ -164,7 +164,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Media files (User uploaded files)
 # Use Cloudinary in production, local storage in development
 
-if os.environ.get('CLOUDINARY_URL'):
+if os.environ.get('CLOUDINARY_CLOUD_NAME'):
     # Production: Use Cloudinary
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {

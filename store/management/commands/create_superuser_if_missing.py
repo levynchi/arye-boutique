@@ -39,3 +39,5 @@ class Command(BaseCommand):
             self.style.SUCCESS(f'Superuser "{username}" created successfully!')
         )
 
+
+

@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q
+from django.core.mail import send_mail
+from django.conf import settings
 from decimal import Decimal
 import json
 from .models import (
@@ -351,6 +353,35 @@ def contact(request):
         form = ContactForm(request.POST)
         if form.is_valid():
             contact_message = form.save()
+            
+            # שליחת מייל לבעל האתר
+            subject = f'פנייה חדשה מ-{contact_message.full_name}'
+            message = f'''התקבלה פנייה חדשה מטופס צור קשר באתר:
+
+שם: {contact_message.full_name}
+טלפון: {contact_message.phone}
+אימייל: {contact_message.email}
+מספר הזמנה: {contact_message.order_number or 'לא צוין'}
+
+תוכן הפנייה:
+{contact_message.inquiry}
+
+---
+הודעה זו נשלחה אוטומטית מאתר Arye Boutique
+'''
+            
+            try:
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[settings.CONTACT_EMAIL],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                # אם יש בעיה במייל, ההודעה עדיין נשמרת בDB
+                print(f'Error sending contact email: {e}')
+            
             messages.success(request, 'הודעתך נשלחה בהצלחה! נחזור אליך תוך 2 ימי עסקים.')
             return redirect('contact')
         else:

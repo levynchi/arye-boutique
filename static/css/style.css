@@ -41,12 +41,21 @@ a {
     transition: all 0.3s ease;
 }
 
+/* Remove default focus outline on all inputs */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: none;
+}
+
+/* Keep focus-visible for accessibility (keyboard navigation) */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-    outline: 3px solid var(--focus-color);
+    outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
 
@@ -839,6 +848,11 @@ ul {
     background-color: var(--white);
     color: var(--text-color);
     text-align: right;
+}
+
+.newsletter-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
 }
 
 .newsletter-input::placeholder {
@@ -2773,6 +2787,7 @@ ul {
 
 .form-input:focus,
 .form-textarea:focus {
+    outline: none;
     border-color: var(--primary-color);
 }
 

@@ -11,8 +11,12 @@
             <a href="{% url 'home' %}">דף הבית</a>
             <span class="breadcrumb-separator">></span>
             <a href="{% url 'category_detail' product.category.slug %}">{{ product.category.name }}</a>
-            <span class="breadcrumb-separator"><</span>
-            <span class="breadcrumb-current">דף מוצר</span>
+            {% if product.subcategory %}
+            <span class="breadcrumb-separator">></span>
+            <a href="{% url 'subcategory_detail' product.subcategory.category.slug product.subcategory.slug %}">{{ product.subcategory.name }}</a>
+            {% endif %}
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">{{ product.name }}</span>
         </nav>
     </div>
 </section>

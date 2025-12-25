@@ -3,10 +3,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q
-from django.core.mail import send_mail
 from django.conf import settings
 from decimal import Decimal
 import json
+import resend
 from .models import (
     Product, Category, Subcategory, SiteSettings, ProductImage, 
     Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem, 
@@ -354,30 +354,32 @@ def contact(request):
         if form.is_valid():
             contact_message = form.save()
             
-            # שליחת מייל לבעל האתר
-            subject = f'פנייה חדשה מ-{contact_message.full_name}'
-            message = f'''התקבלה פנייה חדשה מטופס צור קשר באתר:
-
-שם: {contact_message.full_name}
-טלפון: {contact_message.phone}
-אימייל: {contact_message.email}
-מספר הזמנה: {contact_message.order_number or 'לא צוין'}
-
-תוכן הפנייה:
-{contact_message.inquiry}
-
----
-הודעה זו נשלחה אוטומטית מאתר Arye Boutique
-'''
-            
+            # שליחת מייל לבעל האתר דרך Resend API
             try:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[settings.CONTACT_EMAIL],
-                    fail_silently=False,
-                )
+                resend.api_key = settings.RESEND_API_KEY
+                
+                html_content = f'''
+                <div dir="rtl" style="font-family: Arial, sans-serif;">
+                    <h2>פנייה חדשה מטופס צור קשר</h2>
+                    <p><strong>שם:</strong> {contact_message.full_name}</p>
+                    <p><strong>טלפון:</strong> <a href="tel:{contact_message.phone}">{contact_message.phone}</a></p>
+                    <p><strong>אימייל:</strong> <a href="mailto:{contact_message.email}">{contact_message.email}</a></p>
+                    <p><strong>מספר הזמנה:</strong> {contact_message.order_number or 'לא צוין'}</p>
+                    <hr>
+                    <p><strong>תוכן הפנייה:</strong></p>
+                    <p>{contact_message.inquiry}</p>
+                    <hr>
+                    <p style="color: gray; font-size: 12px;">הודעה זו נשלחה אוטומטית מאתר Arye Boutique</p>
+                </div>
+                '''
+                
+                resend.Emails.send({
+                    "from": settings.DEFAULT_FROM_EMAIL,
+                    "to": [settings.CONTACT_EMAIL],
+                    "subject": f"פנייה חדשה מ-{contact_message.full_name}",
+                    "html": html_content,
+                    "reply_to": contact_message.email,
+                })
             except Exception as e:
                 # אם יש בעיה במייל, ההודעה עדיין נשמרת בDB
                 print(f'Error sending contact email: {e}')

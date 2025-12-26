@@ -16,6 +16,13 @@ from .models import (
 from .forms import ContactForm, CheckoutForm
 
 
+def coming_soon(request):
+    """
+    עמוד "בקרוב" - מוצג למשתמשים שאינם סופר-אדמין
+    """
+    return render(request, 'store/coming_soon.html')
+
+
 def home(request):
     """
     עמוד הבית

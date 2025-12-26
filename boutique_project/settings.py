@@ -70,6 +70,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'store.middleware.ComingSoonMiddleware',  # Coming Soon page for non-superusers
 ]
 
 ROOT_URLCONF = 'boutique_project.urls'

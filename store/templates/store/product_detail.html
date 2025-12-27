@@ -216,36 +216,94 @@
         
         thumbnails.forEach((thumbnail, index) => {
             thumbnail.addEventListener('click', function() {
-                // Remove active class from all thumbnails
-                thumbnails.forEach(t => t.classList.remove('active'));
-                // Add active class to clicked thumbnail
-                this.classList.add('active');
-                // Update main image
-                const imageUrl = this.getAttribute('data-image-url');
-                if (mainImage && imageUrl) {
-                    mainImage.src = imageUrl;
-                }
-                // Update current index
-                currentImageIndex = index;
+                if (isAnimating || index === currentImageIndex) return;
+                
+                isAnimating = true;
+                
+                // Determine direction based on index
+                const direction = index > currentImageIndex ? 'next' : 'prev';
+                const slideOutClass = direction === 'next' ? 'slide-out-left' : 'slide-out-right';
+                const slideInClass = direction === 'next' ? 'slide-in-right' : 'slide-in-left';
+                
+                // Add slide-out animation
+                mainImage.classList.add(slideOutClass);
+                
+                setTimeout(() => {
+                    // Remove active class from all thumbnails
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked thumbnail
+                    this.classList.add('active');
+                    // Update main image
+                    const imageUrl = this.getAttribute('data-image-url');
+                    if (mainImage && imageUrl) {
+                        mainImage.src = imageUrl;
+                    }
+                    // Update current index
+                    currentImageIndex = index;
+                    
+                    // Remove slide-out, add slide-in
+                    mainImage.classList.remove(slideOutClass);
+                    mainImage.classList.add(slideInClass);
+                    
+                    // Clean up slide-in class after animation
+                    setTimeout(() => {
+                        mainImage.classList.remove(slideInClass);
+                        isAnimating = false;
+                    }, 200);
+                }, 200);
             });
         });
         
-        // Gallery arrow navigation
+        // Gallery arrow navigation with slide animation
         const prevBtn = document.getElementById('gallery-prev');
         const nextBtn = document.getElementById('gallery-next');
+        let isAnimating = false;
         
         function navigateGallery(direction) {
-            if (thumbnails.length === 0) return;
+            if (thumbnails.length === 0 || isAnimating) return;
+            
+            isAnimating = true;
             
             // Calculate new index
+            let newIndex;
             if (direction === 'next') {
-                currentImageIndex = (currentImageIndex + 1) % thumbnails.length;
+                newIndex = (currentImageIndex + 1) % thumbnails.length;
             } else {
-                currentImageIndex = (currentImageIndex - 1 + thumbnails.length) % thumbnails.length;
+                newIndex = (currentImageIndex - 1 + thumbnails.length) % thumbnails.length;
             }
             
-            // Trigger click on the target thumbnail
-            thumbnails[currentImageIndex].click();
+            // Determine slide direction classes
+            const slideOutClass = direction === 'next' ? 'slide-out-left' : 'slide-out-right';
+            const slideInClass = direction === 'next' ? 'slide-in-right' : 'slide-in-left';
+            
+            // Add slide-out animation
+            mainImage.classList.add(slideOutClass);
+            
+            // After slide-out completes, change image and slide-in
+            setTimeout(() => {
+                // Update active thumbnail
+                thumbnails.forEach(t => t.classList.remove('active'));
+                thumbnails[newIndex].classList.add('active');
+                
+                // Update main image
+                const imageUrl = thumbnails[newIndex].getAttribute('data-image-url');
+                if (imageUrl) {
+                    mainImage.src = imageUrl;
+                }
+                
+                // Update current index
+                currentImageIndex = newIndex;
+                
+                // Remove slide-out, add slide-in
+                mainImage.classList.remove(slideOutClass);
+                mainImage.classList.add(slideInClass);
+                
+                // Clean up slide-in class after animation
+                setTimeout(() => {
+                    mainImage.classList.remove(slideInClass);
+                    isAnimating = false;
+                }, 120);
+            }, 120);
         }
         
         if (prevBtn) {

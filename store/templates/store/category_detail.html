@@ -216,8 +216,8 @@
             });
         });
         
-        // Product card gallery navigation
-        function updateProductCardImage(wrapper, newIndex) {
+        // Product card gallery navigation with slide animation
+        function updateProductCardImage(wrapper, newIndex, direction) {
             const img = wrapper.querySelector('.product-card-image');
             if (!img) return;
             
@@ -233,14 +233,33 @@
             // Ensure index is within bounds
             newIndex = ((newIndex % images.length) + images.length) % images.length;
             
-            wrapper.dataset.currentIndex = newIndex;
-            img.src = images[newIndex];
+            // Determine slide direction classes
+            const slideOutClass = direction === 'next' ? 'slide-out-left' : 'slide-out-right';
+            const slideInClass = direction === 'next' ? 'slide-in-right' : 'slide-in-left';
             
-            // Update dots
-            const dots = wrapper.querySelectorAll('.product-card-dot');
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('active', index === newIndex);
-            });
+            // Add slide-out animation
+            img.classList.add(slideOutClass);
+            
+            // After slide-out completes, change image and slide-in
+            setTimeout(() => {
+                wrapper.dataset.currentIndex = newIndex;
+                img.src = images[newIndex];
+                
+                // Remove slide-out, add slide-in
+                img.classList.remove(slideOutClass);
+                img.classList.add(slideInClass);
+                
+                // Update dots
+                const dots = wrapper.querySelectorAll('.product-card-dot');
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === newIndex);
+                });
+                
+                // Clean up slide-in class after animation
+                setTimeout(() => {
+                    img.classList.remove(slideInClass);
+                }, 120);
+            }, 120);
         }
         
         // Arrow click handlers
@@ -251,12 +270,21 @@
                 e.stopPropagation();
                 
                 const wrapper = this.closest('.product-image-wrapper');
+                const img = wrapper.querySelector('.product-card-image');
+                
+                // Prevent clicking during animation
+                if (img.classList.contains('slide-out-left') || img.classList.contains('slide-out-right')) {
+                    return;
+                }
+                
                 let currentIndex = parseInt(wrapper.dataset.currentIndex) || 0;
                 
-                if (this.classList.contains('product-card-arrow-right')) {
-                    updateProductCardImage(wrapper, currentIndex + 1);
+                if (this.classList.contains('product-card-arrow-left')) {
+                    // Left arrow = next image (slides from right to left)
+                    updateProductCardImage(wrapper, currentIndex + 1, 'next');
                 } else {
-                    updateProductCardImage(wrapper, currentIndex - 1);
+                    // Right arrow = previous image (slides from left to right)
+                    updateProductCardImage(wrapper, currentIndex - 1, 'prev');
                 }
             });
         });
@@ -274,6 +302,12 @@
             wrapper.addEventListener('touchend', function(e) {
                 touchEndX = e.changedTouches[0].screenX;
                 const diff = touchStartX - touchEndX;
+                const img = wrapper.querySelector('.product-card-image');
+                
+                // Prevent swiping during animation
+                if (img && (img.classList.contains('slide-out-left') || img.classList.contains('slide-out-right'))) {
+                    return;
+                }
                 
                 if (Math.abs(diff) > 50) { // Minimum swipe distance
                     e.preventDefault();
@@ -281,10 +315,10 @@
                     
                     if (diff > 0) {
                         // Swipe left - next image
-                        updateProductCardImage(wrapper, currentIndex + 1);
+                        updateProductCardImage(wrapper, currentIndex + 1, 'next');
                     } else {
                         // Swipe right - previous image
-                        updateProductCardImage(wrapper, currentIndex - 1);
+                        updateProductCardImage(wrapper, currentIndex - 1, 'prev');
                     }
                 }
             });

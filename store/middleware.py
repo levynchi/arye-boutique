@@ -38,3 +38,4 @@ class ComingSoonMiddleware:
         # כל השאר - הפניה לעמוד "בקרוב"
         return redirect('coming_soon')
 
+

@@ -13,10 +13,10 @@ class ComingSoonMiddleware:
     
     def __call__(self, request):
         # נתיבים שתמיד מותרים (גם למשתמשים לא מחוברים)
-        allowed_paths = [
-            '/admin/',
-            '/users/login/',
-            '/coming-soon/',
+        allowed_prefixes = [
+            '/admin',  # פאנל הניהול (כולל /admin ו-/admin/)
+            '/users/login',
+            '/coming-soon',
         ]
         
         # בדיקה אם הנתיב מותר
@@ -27,8 +27,8 @@ class ComingSoonMiddleware:
             return self.get_response(request)
         
         # אפשר גישה לנתיבים המותרים
-        for allowed_path in allowed_paths:
-            if path.startswith(allowed_path):
+        for allowed_prefix in allowed_prefixes:
+            if path.startswith(allowed_prefix):
                 return self.get_response(request)
         
         # אם המשתמש הוא סופר-אדמין - אפשר גישה מלאה

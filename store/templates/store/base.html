@@ -156,12 +156,15 @@
                 </div>
 
                 <!-- Search Box -->
-                <div class="search-box desktop-only">
-                    <label for="header-search" class="visually-hidden">חיפוש מוצרים</label>
-                    <input type="text" id="header-search" class="search-input" placeholder="חיפוש..." name="q">
-                    <button type="submit" class="search-button" aria-label="בצע חיפוש">
-                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_SEARCH.svg' %}" alt="Search" class="search-icon-svg">
-                    </button>
+                <div class="search-container desktop-only">
+                    <form action="{% url 'search' %}" method="get" class="search-box">
+                        <label for="header-search" class="visually-hidden">חיפוש מוצרים</label>
+                        <input type="text" id="header-search" class="search-input" placeholder="חיפוש..." name="q" autocomplete="off">
+                        <button type="submit" class="search-button" aria-label="בצע חיפוש">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_SEARCH.svg' %}" alt="Search" class="search-icon-svg">
+                        </button>
+                    </form>
+                    <div id="search-results-dropdown" class="search-dropdown"></div>
                 </div>
             </div>
         </div>
@@ -451,6 +454,9 @@
     
     <!-- Product Options Panel JavaScript -->
     <script src="{% static 'js/product-options-panel.js' %}"></script>
+    
+    <!-- Live Search JavaScript -->
+    <script src="{% static 'js/live-search.js' %}"></script>
     
     {% block extra_js %}{% endblock %}
     

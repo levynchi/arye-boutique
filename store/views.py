@@ -913,6 +913,74 @@ def product_variants_api(request, product_id):
     })
 
 
+def search(request):
+    """
+    חיפוש מוצרים
+    """
+    query = request.GET.get('q', '').strip()
+    products = []
+    
+    if query:
+        # חיפוש לפי שם, תת-כותרת, תיאור
+        products = Product.objects.filter(
+            Q(name__icontains=query) |
+            Q(subtitle__icontains=query) |
+            Q(description__icontains=query),
+            is_active=True
+        ).prefetch_related('images').distinct()
+    
+    # קבלת מוצרים ב-wishlist של המשתמש (אם מחובר)
+    wishlist_product_ids = []
+    if request.user.is_authenticated:
+        wishlist_product_ids = list(
+            WishlistItem.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    
+    # קבלת קטגוריות לניווט
+    categories = Category.objects.filter(is_active=True)
+    
+    context = {
+        'query': query,
+        'products': products,
+        'results_count': products.count() if query else 0,
+        'categories': categories,
+        'wishlist_product_ids': wishlist_product_ids,
+    }
+    
+    return render(request, 'store/search_results.html', context)
+
+
+def search_api(request):
+    """
+    API לחיפוש חי - מחזיר JSON עם תוצאות
+    """
+    query = request.GET.get('q', '').strip()
+    
+    # דרוש לפחות 2 תווים לחיפוש
+    if len(query) < 2:
+        return JsonResponse({'results': []})
+    
+    # חיפוש מוצרים לפי שם ותת-כותרת
+    products = Product.objects.filter(
+        Q(name__icontains=query) | Q(subtitle__icontains=query),
+        is_active=True
+    )[:5]
+    
+    # בניית רשימת תוצאות
+    results = []
+    for product in products:
+        results.append({
+            'id': product.id,
+            'name': product.name,
+            'subtitle': product.subtitle or '',
+            'price': float(product.price),
+            'slug': product.slug,
+            'image': product.image.url if product.image else '',
+        })
+    
+    return JsonResponse({'results': results})
+
+
 def blog_list(request):
     """
     דף רשימת כל הפוסטים בבלוג

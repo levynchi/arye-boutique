@@ -71,7 +71,11 @@ def product_detail(request, slug):
     """
     עמוד מוצר בודד
     """
-    product = get_object_or_404(Product, slug=slug, is_active=True)
+    product = get_object_or_404(
+        Product.objects.select_related('material_care_info'),
+        slug=slug,
+        is_active=True
+    )
     
     # קבלת כל התמונות הנלוות של המוצר
     additional_images = product.images.all()

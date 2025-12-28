@@ -7,7 +7,8 @@ from .models import (
     SiteSettings, Category, Subcategory, Product, ProductImage, 
     Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
     BelowBestsellersGallery, RetailerStore, InstagramGallery, AboutPageSettings,
-    GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ, BlogPost, BlogSection
+    GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ, BlogPost, BlogSection,
+    MaterialCareInfo
 )
 from .forms import BulkVariantCreationForm, ProductAdminForm
 
@@ -316,6 +317,10 @@ class ProductAdmin(admin.ModelAdmin):
         }),
         ('הגדרות', {
             'fields': ('is_active', 'is_featured', 'is_bestseller')
+        }),
+        ('הרכב חומרים וטיפול', {
+            'fields': ('material_care_info',),
+            'description': 'בחר הרכב חומרים וטיפול להצגה בדף המוצר'
         }),
         ('יצירת וריאנטים', {
             'fields': ('variant_creation_button',),
@@ -919,6 +924,31 @@ class ProductVariantAdmin(admin.ModelAdmin):
             # כאן נוכל להוסיף לוגיקה מתקדמת יותר אם נדרש
             pass
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(MaterialCareInfo)
+class MaterialCareInfoAdmin(admin.ModelAdmin):
+    """
+    ניהול הרכב חומרים וטיפול
+    """
+    list_display = ['name', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name', 'description']
+    list_editable = ['is_active']
+    readonly_fields = ['created_at']
+    
+    fieldsets = (
+        ('מידע', {
+            'fields': ('name', 'description')
+        }),
+        ('הגדרות', {
+            'fields': ('is_active',)
+        }),
+        ('תאריכים', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 @admin.register(FAQ)

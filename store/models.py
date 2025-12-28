@@ -187,6 +187,24 @@ class Subcategory(models.Model):
         super().save(*args, **kwargs)
 
 
+class MaterialCareInfo(models.Model):
+    """
+    הרכב חומרים וטיפול - מידע שניתן לשייך למוצרים
+    """
+    name = models.CharField(max_length=200, unique=True, verbose_name='שם מזהה')
+    description = models.TextField(verbose_name='תיאור הרכב חומרים וטיפול')
+    is_active = models.BooleanField(default=True, verbose_name='פעיל')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
+    
+    class Meta:
+        verbose_name = 'הרכב חומרים וטיפול'
+        verbose_name_plural = 'הרכב חומרים וטיפול'
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
+
+
 class Product(models.Model):
     """
     מוצר בחנות
@@ -225,6 +243,14 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True, verbose_name='פעיל')
     is_featured = models.BooleanField(default=False, verbose_name='מוצר מומלץ')
     is_bestseller = models.BooleanField(default=False, verbose_name='הכי נמכר')
+    material_care_info = models.ForeignKey(
+        'MaterialCareInfo',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='products',
+        verbose_name='הרכב חומרים וטיפול'
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='תאריך עדכון')
     

@@ -170,7 +170,11 @@
                             <span class="info-toggle">+</span>
                         </div>
                         <div class="info-section-content" style="display: none;">
-                            <p>מידע על הרכב חומרים וטיפול יוצג כאן</p>
+                            {% if product.material_care_info %}
+                                <p>{{ product.material_care_info.description }}</p>
+                            {% else %}
+                                <p>מידע על הרכב חומרים וטיפול יוצג כאן</p>
+                            {% endif %}
                         </div>
                     </div>
                     

@@ -243,6 +243,7 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True, verbose_name='פעיל')
     is_featured = models.BooleanField(default=False, verbose_name='מוצר מומלץ')
     is_bestseller = models.BooleanField(default=False, verbose_name='הכי נמכר')
+    order = models.PositiveIntegerField(default=0, verbose_name='סדר תצוגה')
     material_care_info = models.ForeignKey(
         'MaterialCareInfo',
         on_delete=models.SET_NULL,
@@ -257,7 +258,7 @@ class Product(models.Model):
     class Meta:
         verbose_name = 'מוצר'
         verbose_name_plural = 'מוצרים'
-        ordering = ['-created_at']
+        ordering = ['order', '-created_at']
     
     def __str__(self):
         return self.name

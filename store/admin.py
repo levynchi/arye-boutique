@@ -276,7 +276,7 @@ class ProductAdmin(admin.ModelAdmin):
     """
     ניהול מוצרים
     """
-    list_display = ['image_preview', 'name', 'category', 'subcategory', 'gender', 'price', 'stock_quantity', 'is_active', 'is_featured', 'is_bestseller', 'created_at']
+    list_display = ['image_preview', 'name', 'category', 'subcategory', 'gender', 'price', 'stock_quantity', 'order', 'is_active', 'is_featured', 'is_bestseller', 'created_at']
     list_display_links = ['image_preview', 'name']
     
     def image_preview(self, obj):
@@ -288,7 +288,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ['category', 'subcategory', 'is_active', 'is_featured', 'is_bestseller', 'created_at']
     search_fields = ['name', 'description']
     prepopulated_fields = {'slug': ('name',)}
-    list_editable = ['price', 'stock_quantity', 'is_active', 'is_featured', 'is_bestseller']
+    list_editable = ['price', 'stock_quantity', 'order', 'is_active', 'is_featured', 'is_bestseller']
     readonly_fields = ['created_at', 'updated_at', 'variant_creation_button']
     inlines = [ProductImageInline, ProductVariantInline]
     
@@ -303,11 +303,6 @@ class ProductAdmin(admin.ModelAdmin):
             'fields': ('name', 'subtitle', 'slug', 'category', 'subcategory', 'description', 'gender'),
             'description': 'מידע כללי על המוצר'
         }),
-        ('גודל ישן (Deprecated)', {
-            'fields': ('size',),
-            'classes': ('collapse',),
-            'description': 'שדה זה נשמר לתאימות אחורית. השתמש בוריאנטים למטה'
-        }),
         ('מחיר ומלאי', {
             'fields': ('price', 'stock_quantity'),
             'description': 'מחיר ומלאי כללי של המוצר (לא תלוי בוריאנט)'
@@ -316,7 +311,8 @@ class ProductAdmin(admin.ModelAdmin):
             'fields': ('image',)
         }),
         ('הגדרות', {
-            'fields': ('is_active', 'is_featured', 'is_bestseller')
+            'fields': ('is_active', 'is_featured', 'is_bestseller', 'order'),
+            'description': 'מספר נמוך יותר = יופיע קודם בתצוגה'
         }),
         ('הרכב חומרים וטיפול', {
             'fields': ('material_care_info',),

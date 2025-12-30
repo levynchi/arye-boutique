@@ -269,8 +269,8 @@ def category_detail(request, slug):
     elif price_sort == 'high_to_low':
         products = products.order_by('-price')
     else:
-        # ברירת מחדל - לפי תאריך יצירה
-        products = products.order_by('-created_at')
+        # ברירת מחדל - לפי סדר תצוגה ואז תאריך יצירה
+        products = products.order_by('order', '-created_at')
     
     # קבלת מוצרים ב-wishlist של המשתמש (אם מחובר)
     wishlist_product_ids = []
@@ -327,8 +327,8 @@ def subcategory_detail(request, category_slug, subcategory_slug):
     elif price_sort == 'high_to_low':
         products = products.order_by('-price')
     else:
-        # ברירת מחדל - לפי תאריך יצירה
-        products = products.order_by('-created_at')
+        # ברירת מחדל - לפי סדר תצוגה ואז תאריך יצירה
+        products = products.order_by('order', '-created_at')
     
     # קבלת מוצרים ב-wishlist של המשתמש (אם מחובר)
     wishlist_product_ids = []

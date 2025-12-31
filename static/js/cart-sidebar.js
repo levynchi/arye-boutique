@@ -131,7 +131,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="cart-sidebar-item-details">
                         <h3 class="cart-sidebar-item-name">${item.product_name}</h3>
                         ${item.product_subtitle ? `<p class="cart-sidebar-item-subtitle">${item.product_subtitle}</p>` : ''}
-                        ${item.product_size ? `<p class="cart-sidebar-item-size">${item.product_size}</p>` : ''}
+                        ${item.variant_display ? `<p class="cart-sidebar-item-variant">${item.variant_display}</p>` : ''}
+                        ${item.product_size && !item.variant_display ? `<p class="cart-sidebar-item-size">${item.product_size}</p>` : ''}
                         <p class="cart-sidebar-item-price">${item.product_price.toFixed(2)} ₪</p>
                     </div>
                     

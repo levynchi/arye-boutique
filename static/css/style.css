@@ -3811,6 +3811,13 @@ ul {
     color: var(--text-light);
 }
 
+.cart-sidebar-item-variant {
+    font-size: 13px;
+    color: var(--primary-color);
+    font-weight: 500;
+    margin: 4px 0;
+}
+
 .cart-sidebar-item-price {
     font-size: 16px;
     font-weight: 600;

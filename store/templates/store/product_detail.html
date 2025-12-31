@@ -137,7 +137,7 @@
                     {% if has_variants %}
                     <input type="hidden" name="variant_id" id="hidden-variant-id" value="">
                     {% endif %}
-                    <button type="submit" class="add-to-cart-btn" {% if not product.is_in_stock %}disabled{% endif %} id="add-to-cart-btn">
+                    <button type="submit" class="add-to-cart-btn" {% if not product.is_in_stock or has_variants %}disabled{% endif %} id="add-to-cart-btn">
                         {% if product.is_in_stock %}
                             {% if has_variants %}
                                 בחר אפשרויות להוספה
@@ -384,6 +384,15 @@
                     
                     sizeOptions.appendChild(sizeBtn);
                 });
+                
+                // אם יש רק מידה אחת - בחר אותה אוטומטית
+                if (fabric.sizes.length === 1) {
+                    const singleSizeBtn = sizeOptions.querySelector('.size-option');
+                    singleSizeBtn.classList.add('active');
+                    selectedVariantId = fabric.sizes[0].id;
+                    hiddenVariantId.value = selectedVariantId;
+                    updateAddToCartButton();
+                }
             }
             
             function updateAddToCartButton() {

@@ -15,6 +15,9 @@
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     
@@ -24,7 +27,7 @@
     <a class="skip-link" href="#main-content">דלג לתוכן הראשי</a>
     <div class="accessibility-toolbar" id="accessibility-toolbar">
         <button type="button" class="accessibility-toggle" id="accessibility-toggle" aria-expanded="false" aria-controls="accessibility-panel">
-            <span aria-hidden="true">♿</span>
+            <img src="{% static 'images/ACCECEBILITY PNG-01.png' %}" alt="" aria-hidden="true" class="accessibility-icon">
             <span class="visually-hidden">פתח תפריט נגישות</span>
         </button>
         <div class="accessibility-panel" id="accessibility-panel" hidden role="region" aria-labelledby="accessibility-panel-title">

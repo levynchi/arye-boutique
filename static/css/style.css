@@ -2062,10 +2062,10 @@ ul {
 }
 
 .product-thumbnails {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(5, 100px);
     gap: 10px;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: end;
 }
 
 .thumbnail-item {

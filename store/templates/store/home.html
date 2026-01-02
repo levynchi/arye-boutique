@@ -149,9 +149,6 @@
                     </div>
                     
                     <div class="product-card-info">
-                        {% if product.subcategory %}
-                            <p class="product-card-subcategory">{{ product.subcategory.name }}</p>
-                        {% endif %}
                         <p class="product-card-name">{{ product.name }}</p>
                         {% if product.subtitle %}
                             <p class="product-card-subtitle">{{ product.subtitle }}</p>
@@ -313,55 +310,87 @@
             });
         });
         
-        // Retailers Carousel functionality (6 items visible, manual navigation)
+        // Retailers Carousel functionality (transform-based, aligned)
         const retailersCarousel = document.querySelector('.retailers-carousel');
         if (retailersCarousel) {
             const track = document.getElementById('retailers-track');
-            const items = retailersCarousel.querySelectorAll('.retailer-item');
+            const items = track ? track.querySelectorAll('.retailer-item') : [];
+            const wrapper = document.querySelector('.retailers-wrapper');
             const prevButton = retailersCarousel.querySelector('.retailers-arrow-prev');
             const nextButton = retailersCarousel.querySelector('.retailers-arrow-next');
             
-            const itemsPerView = 6;
-            let currentPosition = 0;
+            let currentIndex = 0;
             const totalItems = items.length;
-            const maxPosition = Math.max(0, totalItems - itemsPerView);
+            const gap = 20;
+            
+            function getVisibleCount() {
+                if (!items.length || !wrapper) return 1;
+                const itemWidth = items[0].offsetWidth;
+                // Calculate arrow widths based on screen size
+                const isMobile = window.innerWidth <= 480;
+                const isTablet = window.innerWidth <= 768;
+                let arrowsWidth = 90 + 40; // 2 arrows + 2 gaps
+                if (isMobile) arrowsWidth = 64 + 20; // smaller arrows on mobile
+                else if (isTablet) arrowsWidth = 76 + 30;
+                
+                // Use parent width to calculate how many items fit
+                const parentWidth = wrapper.parentElement ? wrapper.parentElement.offsetWidth - arrowsWidth : wrapper.offsetWidth;
+                return Math.max(2, Math.floor((parentWidth + gap) / (itemWidth + gap)));
+            }
+            
+            function getMaxIndex() {
+                return Math.max(0, totalItems - getVisibleCount());
+            }
+            
+            function adjustWrapperWidth() {
+                if (!items.length || !wrapper) return;
+                const itemWidth = items[0].offsetWidth;
+                const visibleCount = getVisibleCount();
+                // Set exact width to fit N complete items
+                const exactWidth = visibleCount * itemWidth + (visibleCount - 1) * gap;
+                wrapper.style.width = exactWidth + 'px';
+                wrapper.style.flex = 'none';
+            }
             
             function updateCarousel() {
-                if (track && items.length > 0) {
-                    const itemWidth = items[0].offsetWidth + 20; // width + gap
-                    track.style.transform = `translateX(${currentPosition * itemWidth}px)`;
-                }
+                if (!track || !items.length) return;
                 
-                // Update arrow visibility
+                adjustWrapperWidth();
+                
+                const maxIndex = getMaxIndex();
+                if (currentIndex > maxIndex) currentIndex = maxIndex;
+                if (currentIndex < 0) currentIndex = 0;
+                
+                const itemWidth = items[0].offsetWidth;
+                const offset = currentIndex * (itemWidth + gap);
+                track.style.transform = 'translateX(' + offset + 'px)';
+                
+                // Update arrows
                 if (prevButton) {
-                    prevButton.style.opacity = currentPosition >= maxPosition ? '0.3' : '1';
-                    prevButton.style.pointerEvents = currentPosition >= maxPosition ? 'none' : 'auto';
+                    prevButton.style.opacity = currentIndex >= maxIndex ? '0.3' : '1';
+                    prevButton.style.pointerEvents = currentIndex >= maxIndex ? 'none' : 'auto';
                 }
                 if (nextButton) {
-                    nextButton.style.opacity = currentPosition <= 0 ? '0.3' : '1';
-                    nextButton.style.pointerEvents = currentPosition <= 0 ? 'none' : 'auto';
+                    nextButton.style.opacity = currentIndex <= 0 ? '0.3' : '1';
+                    nextButton.style.pointerEvents = currentIndex <= 0 ? 'none' : 'auto';
                 }
-                }
-                
-                if (prevButton) {
-                    prevButton.addEventListener('click', () => {
-                    if (currentPosition < maxPosition) {
-                        currentPosition++;
-                        updateCarousel();
-                    }
-                    });
-                }
-                
-            if (nextButton) {
-                nextButton.addEventListener('click', () => {
-                    if (currentPosition > 0) {
-                        currentPosition--;
-                        updateCarousel();
-                    }
+            }
+            
+            if (prevButton) {
+                prevButton.addEventListener('click', function() {
+                    currentIndex++;
+                    updateCarousel();
                 });
             }
             
-            // Initial update
+            if (nextButton) {
+                nextButton.addEventListener('click', function() {
+                    currentIndex--;
+                    updateCarousel();
+                });
+            }
+            
+            window.addEventListener('resize', updateCarousel);
             updateCarousel();
         }
         

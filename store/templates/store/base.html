@@ -342,10 +342,11 @@
                     <img src="{% static 'images/ARTBOARD_LOGO WHITE FOOTER.svg' %}" alt="ARYE Logo" class="footer-logo">
                     <h3>הצטרפו לניוזלטר שלנו</h3>
                     <p class="newsletter-subtitle">! קבלו לפני 10% הנחה לרכישה הראשונה שלכם</p>
-                    <form class="newsletter-form">
-                        <input type="email" class="newsletter-input" placeholder="אימייל">
-                        <button type="submit" class="newsletter-button">הצטרפו עכשיו</button>
+                    <form class="newsletter-form" id="newsletter-form">
+                        <input type="email" class="newsletter-input" id="newsletter-email" placeholder="אימייל" required>
+                        <button type="submit" class="newsletter-button" id="newsletter-submit">הצטרפו עכשיו</button>
                     </form>
+                    <div id="newsletter-message" class="newsletter-message" style="display: none;"></div>
                     <div class="footer-social">
                         <a href="https://www.facebook.com/people/Arye-boutique/61584148260575/" class="footer-social-link" target="_blank" rel="noopener">
                             <img src="{% static 'images/FACEBOOK WHITE.svg' %}" alt="Facebook" class="footer-social-icon">
@@ -490,6 +491,65 @@
                     }, 300);
                 }, 5000);
             });
+            
+            // Newsletter Form Submission
+            const newsletterForm = document.getElementById('newsletter-form');
+            if (newsletterForm) {
+                newsletterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const emailInput = document.getElementById('newsletter-email');
+                    const submitBtn = document.getElementById('newsletter-submit');
+                    const messageDiv = document.getElementById('newsletter-message');
+                    const email = emailInput.value.trim();
+                    
+                    if (!email) {
+                        showNewsletterMessage('נא להזין כתובת אימייל', false);
+                        return;
+                    }
+                    
+                    // Disable button during request
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'שולח...';
+                    
+                    fetch('{% url "newsletter_subscribe" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ email: email })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        showNewsletterMessage(data.message, data.success);
+                        if (data.success) {
+                            emailInput.value = '';
+                        }
+                    })
+                    .catch(error => {
+                        showNewsletterMessage('אירעה שגיאה, נסה שוב מאוחר יותר', false);
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'הצטרפו עכשיו';
+                    });
+                });
+            }
+            
+            function showNewsletterMessage(message, isSuccess) {
+                const messageDiv = document.getElementById('newsletter-message');
+                if (messageDiv) {
+                    messageDiv.textContent = message;
+                    messageDiv.style.display = 'block';
+                    messageDiv.className = 'newsletter-message ' + (isSuccess ? 'success' : 'error');
+                    
+                    // Auto hide after 5 seconds
+                    setTimeout(() => {
+                        messageDiv.style.display = 'none';
+                    }, 5000);
+                }
+            }
         });
     </script>
 </body>

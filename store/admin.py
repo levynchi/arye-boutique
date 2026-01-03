@@ -8,7 +8,7 @@ from .models import (
     Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
     BelowBestsellersGallery, RetailerStore, InstagramGallery, AboutPageSettings,
     GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ, BlogPost, BlogSection,
-    MaterialCareInfo
+    MaterialCareInfo, NewsletterSubscriber
 )
 from .forms import BulkVariantCreationForm, ProductAdminForm
 
@@ -1026,3 +1026,21 @@ class BlogPostAdmin(admin.ModelAdmin):
         """מספר הסקשנים בפוסט"""
         return obj.sections.count()
     sections_count.short_description = 'סקשנים'
+
+
+@admin.register(NewsletterSubscriber)
+class NewsletterSubscriberAdmin(admin.ModelAdmin):
+    """
+    ניהול מנויי ניוזלטר
+    """
+    list_display = ['email', 'coupon_code', 'discount_percent', 'is_used', 'is_active', 'created_at']
+    list_filter = ['is_used', 'is_active', 'created_at']
+    search_fields = ['email', 'coupon_code']
+    readonly_fields = ['email', 'coupon_code', 'unsubscribe_token', 'created_at']
+    list_editable = ['is_active']
+    list_per_page = 50
+    ordering = ['-created_at']
+    
+    def has_add_permission(self, request):
+        """לא לאפשר הוספה ידנית - רק דרך הטופס"""
+        return False

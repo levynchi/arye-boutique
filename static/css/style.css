@@ -1089,6 +1089,31 @@ ul {
     border-color: #424242;
 }
 
+.newsletter-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.newsletter-message {
+    margin-top: 12px;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.newsletter-message.success {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
+
+.newsletter-message.error {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+    border: 1px solid #f44336;
+}
+
 /* Footer Sections */
 .footer-section:has(.footer-info-wrapper) {
     display: flex;

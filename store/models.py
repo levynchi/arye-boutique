@@ -684,3 +684,24 @@ class BlogSection(models.Model):
     
     def __str__(self):
         return f'{self.post.title} - {self.title}'
+
+
+class NewsletterSubscriber(models.Model):
+    """
+    מנויי ניוזלטר - שומר את המייל, קוד הקופון הייחודי ומעקב אחרי שימוש
+    """
+    email = models.EmailField(unique=True, verbose_name='כתובת אימייל')
+    coupon_code = models.CharField(max_length=20, unique=True, verbose_name='קוד קופון')
+    discount_percent = models.IntegerField(default=10, verbose_name='אחוז הנחה')
+    is_used = models.BooleanField(default=False, verbose_name='קופון נוצל')
+    is_active = models.BooleanField(default=True, verbose_name='מנוי פעיל')
+    unsubscribe_token = models.CharField(max_length=32, unique=True, blank=True, null=True, verbose_name='טוקן ביטול הרשמה')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך הרשמה')
+    
+    class Meta:
+        verbose_name = 'מנוי ניוזלטר'
+        verbose_name_plural = 'מנויי ניוזלטר'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f'{self.email} - {self.coupon_code}'

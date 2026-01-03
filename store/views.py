@@ -11,8 +11,11 @@ from .models import (
     Product, Category, Subcategory, SiteSettings, ProductImage, 
     Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem, 
     BelowBestsellersGallery, RetailerStore, InstagramGallery,
-    FabricType, ProductVariant, AboutPageSettings, FAQ, BlogPost
+    FabricType, ProductVariant, AboutPageSettings, FAQ, BlogPost,
+    NewsletterSubscriber
 )
+import string
+import random
 from .forms import ContactForm, CheckoutForm
 
 
@@ -1011,3 +1014,182 @@ def blog_detail(request, slug):
     }
     
     return render(request, 'store/blog_detail.html', context)
+
+
+def generate_coupon_code():
+    """
+    יצירת קוד קופון ייחודי בפורמט ARYE-XXXXX
+    """
+    while True:
+        code = 'ARYE-' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+        if not NewsletterSubscriber.objects.filter(coupon_code=code).exists():
+            return code
+
+
+def newsletter_subscribe(request):
+    """
+    הרשמה לניוזלטר - יוצר קוד קופון ייחודי ושולח למייל
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'שיטת בקשה לא חוקית'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        email = data.get('email', '').strip().lower()
+    except json.JSONDecodeError:
+        email = request.POST.get('email', '').strip().lower()
+    
+    if not email:
+        return JsonResponse({'success': False, 'message': 'נא להזין כתובת אימייל'})
+    
+    # בדיקה אם המייל כבר רשום
+    existing = NewsletterSubscriber.objects.filter(email=email).first()
+    if existing:
+        return JsonResponse({
+            'success': False, 
+            'already_exists': True,
+            'message': 'כתובת האימייל הזו כבר רשומה במערכת'
+        })
+    
+    # יצירת קוד קופון ייחודי וטוקן לביטול הרשמה
+    coupon_code = generate_coupon_code()
+    unsubscribe_token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+    
+    # שמירה במסד הנתונים
+    subscriber = NewsletterSubscriber.objects.create(
+        email=email,
+        coupon_code=coupon_code,
+        discount_percent=10,
+        unsubscribe_token=unsubscribe_token
+    )
+    
+    # שליחת מייל עם קוד הקופון
+    try:
+        resend.api_key = settings.RESEND_API_KEY
+        
+        html_content = f'''
+        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #333; margin-bottom: 10px;">ברוכים הבאים למשפחת Arye Boutique! 🎉</h1>
+            </div>
+            
+            <p style="font-size: 16px; color: #555; line-height: 1.8;">
+                תודה שהצטרפת לניוזלטר שלנו!<br>
+                אנחנו שמחים שבחרת להיות חלק מהמשפחה.
+            </p>
+            
+            <div style="background: linear-gradient(135deg, #7594b1, #5a7a99); color: white; padding: 30px; border-radius: 12px; text-align: center; margin: 30px 0;">
+                <p style="font-size: 14px; margin-bottom: 10px;">קוד ההנחה האישי שלך:</p>
+                <h2 style="font-size: 32px; letter-spacing: 3px; margin: 10px 0;">{coupon_code}</h2>
+                <p style="font-size: 18px; margin-top: 10px;">10% הנחה על הרכישה הראשונה!</p>
+            </div>
+            
+            <p style="font-size: 14px; color: #777; text-align: center;">
+                הזינו את הקוד בעגלת הקניות כדי לקבל את ההנחה.<br>
+                הקופון תקף לשימוש חד פעמי.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                הודעה זו נשלחה אוטומטית מאתר Arye Boutique<br>
+                <a href="https://arye-boutique.co.il" style="color: #7594b1;">www.arye-boutique.co.il</a>
+            </p>
+            
+            <p style="font-size: 11px; color: #aaa; text-align: center; margin-top: 20px;">
+                קיבלת מייל זה כי נרשמת לניוזלטר של Arye Boutique.<br>
+                אם קיבלת מייל זה בטעות או שברצונך לבטל את ההרשמה, 
+                <a href="https://arye-boutique.co.il/newsletter/unsubscribe/{unsubscribe_token}" style="color: #7594b1;">לחץ כאן לביטול</a>
+            </p>
+        </div>
+        '''
+        
+        resend.Emails.send({
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "subject": "ברוכים הבאים! קוד הנחה 10% מחכה לך 🎁",
+            "html": html_content,
+        })
+    except Exception as e:
+        # אם יש בעיה במייל, ההרשמה עדיין נשמרת בDB
+        print(f'Error sending newsletter email: {e}')
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'תודה שהצטרפת למשפחה! מייל עם קוד קופון נשלח אליך'
+    })
+
+
+def newsletter_unsubscribe(request, token):
+    """
+    ביטול הרשמה לניוזלטר
+    """
+    subscriber = NewsletterSubscriber.objects.filter(unsubscribe_token=token).first()
+    
+    if subscriber:
+        subscriber.is_active = False
+        subscriber.save()
+        message = 'ההרשמה לניוזלטר בוטלה בהצלחה. לא תקבל יותר מיילים מאיתנו.'
+        success = True
+    else:
+        message = 'קישור לא תקין או שההרשמה כבר בוטלה.'
+        success = False
+    
+    # דף אישור פשוט
+    html_content = f'''
+    <!DOCTYPE html>
+    <html lang="he" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ביטול הרשמה - Arye Boutique</title>
+        <style>
+            body {{
+                font-family: 'Heebo', Arial, sans-serif;
+                background-color: #f5f5f5;
+                margin: 0;
+                padding: 40px 20px;
+                text-align: center;
+            }}
+            .container {{
+                max-width: 500px;
+                margin: 0 auto;
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }}
+            h1 {{
+                color: {'#4CAF50' if success else '#f44336'};
+                margin-bottom: 20px;
+            }}
+            p {{
+                color: #555;
+                font-size: 16px;
+                line-height: 1.6;
+            }}
+            a {{
+                display: inline-block;
+                margin-top: 20px;
+                padding: 12px 30px;
+                background-color: #7594b1;
+                color: white;
+                text-decoration: none;
+                border-radius: 6px;
+            }}
+            a:hover {{
+                background-color: #5a7a99;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>{'✓' if success else '✗'} {message}</h1>
+            <a href="/">חזרה לאתר</a>
+        </div>
+    </body>
+    </html>
+    '''
+    
+    from django.http import HttpResponse
+    return HttpResponse(html_content)

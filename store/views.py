@@ -1074,8 +1074,7 @@ def newsletter_subscribe(request):
             </div>
             
             <p style="font-size: 16px; color: #555; line-height: 1.8;">
-                תודה שהצטרפת לניוזלטר שלנו!<br>
-                אנחנו שמחים שבחרת להיות חלק מהמשפחה.
+                תודה שהצטרפת לניוזלטר שלנו! אנחנו שמחים שבחרת להיות חלק מהמשפחה.
             </p>
             
             <div style="background: linear-gradient(135deg, #7594b1, #5a7a99); color: white; padding: 30px; border-radius: 12px; text-align: center; margin: 30px 0;">
@@ -1084,23 +1083,21 @@ def newsletter_subscribe(request):
                 <p style="font-size: 18px; margin-top: 10px;">10% הנחה על הרכישה הראשונה!</p>
             </div>
             
-            <p style="font-size: 14px; color: #777; text-align: center;">
-                הזינו את הקוד בעגלת הקניות כדי לקבל את ההנחה.<br>
-                הקופון תקף לשימוש חד פעמי.
+            <p style="font-size: 14px; color: #555; text-align: center;">
+                הזינו את הקוד בעגלת הקניות כדי לקבל את ההנחה. הקופון תקף לשימוש חד פעמי.
             </p>
             
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            
-            <p style="font-size: 12px; color: #999; text-align: center;">
-                הודעה זו נשלחה אוטומטית מאתר Arye Boutique<br>
-                <a href="https://arye-boutique.co.il" style="color: #7594b1;">www.arye-boutique.co.il</a>
+            <p style="font-size: 14px; color: #555; text-align: center; margin-top: 25px;">
+                נשמח לראות אותך באתר שלנו: <a href="https://arye-boutique.co.il" style="color: #7594b1;">www.arye-boutique.co.il</a>
             </p>
             
-            <p style="font-size: 11px; color: #aaa; text-align: center; margin-top: 20px;">
-                קיבלת מייל זה כי נרשמת לניוזלטר של Arye Boutique.<br>
-                אם קיבלת מייל זה בטעות או שברצונך לבטל את ההרשמה, 
-                <a href="https://arye-boutique.co.il/newsletter/unsubscribe/{unsubscribe_token}" style="color: #7594b1;">לחץ כאן לביטול</a>
-            </p>
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+                <p style="font-size: 12px; color: #888; text-align: center;">
+                    קיבלת מייל זה כי נרשמת לניוזלטר של Arye Boutique. 
+                    אם קיבלת מייל זה בטעות או שברצונך לבטל את ההרשמה - 
+                    <a href="https://arye-boutique.co.il/newsletter/unsubscribe/{unsubscribe_token}" style="color: #7594b1;">לחץ כאן לביטול</a>
+                </p>
+            </div>
         </div>
         '''
         

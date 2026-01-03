@@ -374,19 +374,19 @@
                     nextButton.style.opacity = currentIndex <= 0 ? '0.3' : '1';
                     nextButton.style.pointerEvents = currentIndex <= 0 ? 'none' : 'auto';
                 }
-            }
-            
-            if (prevButton) {
+                }
+                
+                if (prevButton) {
                 prevButton.addEventListener('click', function() {
                     currentIndex++;
-                    updateCarousel();
-                });
-            }
-            
+                        updateCarousel();
+                    });
+                }
+                
             if (nextButton) {
                 nextButton.addEventListener('click', function() {
                     currentIndex--;
-                    updateCarousel();
+                        updateCarousel();
                 });
             }
             

@@ -17,6 +17,7 @@ class ComingSoonMiddleware:
             '/admin',  # פאנל הניהול (כולל /admin ו-/admin/)
             '/users/login',
             '/coming-soon',
+            '/newsletter/unsubscribe',  # ביטול הרשמה לניוזלטר
         ]
         
         # בדיקה אם הנתיב מותר

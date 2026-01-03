@@ -1121,15 +1121,20 @@ def newsletter_unsubscribe(request, token):
     """
     ביטול הרשמה לניוזלטר
     """
-    subscriber = NewsletterSubscriber.objects.filter(unsubscribe_token=token).first()
-    
-    if subscriber:
-        subscriber.is_active = False
-        subscriber.save()
-        message = 'ההרשמה לניוזלטר בוטלה בהצלחה. לא תקבל יותר מיילים מאיתנו.'
-        success = True
-    else:
-        message = 'קישור לא תקין או שההרשמה כבר בוטלה.'
+    try:
+        subscriber = NewsletterSubscriber.objects.filter(unsubscribe_token=token).first()
+        
+        if subscriber:
+            subscriber.is_active = False
+            subscriber.save()
+            message = 'ההרשמה לניוזלטר בוטלה בהצלחה. לא תקבל יותר מיילים מאיתנו.'
+            success = True
+        else:
+            message = 'קישור לא תקין או שההרשמה כבר בוטלה.'
+            success = False
+    except Exception as e:
+        print(f'Error in newsletter_unsubscribe: {e}')
+        message = 'אירעה שגיאה. נסה שוב מאוחר יותר.'
         success = False
     
     # דף אישור פשוט

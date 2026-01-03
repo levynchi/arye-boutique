@@ -1091,13 +1091,9 @@ def newsletter_subscribe(request):
                 נשמח לראות אותך באתר שלנו: <a href="https://arye-boutique.co.il" style="color: #7594b1;">www.arye-boutique.co.il</a>
             </p>
             
-            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
-                <p style="font-size: 12px; color: #888; text-align: center;">
-                    קיבלת מייל זה כי נרשמת לניוזלטר של Arye Boutique. 
-                    אם קיבלת מייל זה בטעות או שברצונך לבטל את ההרשמה - 
-                    <a href="https://arye-boutique.co.il/newsletter/unsubscribe/{unsubscribe_token}" style="color: #7594b1;">לחץ כאן לביטול</a>
-                </p>
-            </div>
+            <p style="font-size: 13px; color: #555; text-align: center; margin-top: 30px;">
+                קיבלת מייל זה כי נרשמת לניוזלטר. לביטול ההרשמה <a href="https://arye-boutique.co.il/newsletter/unsubscribe/{unsubscribe_token}" style="color: #7594b1;">לחצו כאן</a>.
+            </p>
         </div>
         '''
         
@@ -1121,77 +1117,46 @@ def newsletter_unsubscribe(request, token):
     """
     ביטול הרשמה לניוזלטר
     """
+    from django.http import HttpResponse
+    
+    print(f'Newsletter unsubscribe called with token: {token}')
+    
     try:
         subscriber = NewsletterSubscriber.objects.filter(unsubscribe_token=token).first()
+        print(f'Found subscriber: {subscriber}')
         
         if subscriber:
             subscriber.is_active = False
             subscriber.save()
-            message = 'ההרשמה לניוזלטר בוטלה בהצלחה. לא תקבל יותר מיילים מאיתנו.'
-            success = True
+            print(f'Subscriber {subscriber.email} deactivated successfully')
+            title = '✓ ההרשמה בוטלה בהצלחה'
+            message = 'לא תקבל יותר מיילים מאיתנו. תודה!'
+            color = '#4CAF50'
         else:
-            message = 'קישור לא תקין או שההרשמה כבר בוטלה.'
-            success = False
+            print(f'No subscriber found with token: {token}')
+            title = '✗ קישור לא תקין'
+            message = 'הקישור לא תקין או שההרשמה כבר בוטלה.'
+            color = '#f44336'
     except Exception as e:
         print(f'Error in newsletter_unsubscribe: {e}')
+        title = '✗ שגיאה'
         message = 'אירעה שגיאה. נסה שוב מאוחר יותר.'
-        success = False
+        color = '#f44336'
     
-    # דף אישור פשוט
-    html_content = f'''
-    <!DOCTYPE html>
-    <html lang="he" dir="rtl">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ביטול הרשמה - Arye Boutique</title>
-        <style>
-            body {{
-                font-family: 'Heebo', Arial, sans-serif;
-                background-color: #f5f5f5;
-                margin: 0;
-                padding: 40px 20px;
-                text-align: center;
-            }}
-            .container {{
-                max-width: 500px;
-                margin: 0 auto;
-                background: white;
-                padding: 40px;
-                border-radius: 12px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }}
-            h1 {{
-                color: {'#4CAF50' if success else '#f44336'};
-                margin-bottom: 20px;
-            }}
-            p {{
-                color: #555;
-                font-size: 16px;
-                line-height: 1.6;
-            }}
-            a {{
-                display: inline-block;
-                margin-top: 20px;
-                padding: 12px 30px;
-                background-color: #7594b1;
-                color: white;
-                text-decoration: none;
-                border-radius: 6px;
-            }}
-            a:hover {{
-                background-color: #5a7a99;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>{'✓' if success else '✗'} {message}</h1>
-            <a href="/">חזרה לאתר</a>
-        </div>
-    </body>
-    </html>
-    '''
+    html = f'''<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ביטול הרשמה - Arye Boutique</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 40px 20px; text-align: center;">
+    <div style="max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h1 style="color: {color}; margin-bottom: 20px;">{title}</h1>
+        <p style="color: #555; font-size: 16px;">{message}</p>
+        <a href="https://arye-boutique.co.il" style="display: inline-block; margin-top: 20px; padding: 12px 30px; background-color: #7594b1; color: white; text-decoration: none; border-radius: 6px;">חזרה לאתר</a>
+    </div>
+</body>
+</html>'''
     
-    from django.http import HttpResponse
-    return HttpResponse(html_content)
+    return HttpResponse(html, content_type='text/html; charset=utf-8')

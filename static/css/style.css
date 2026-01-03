@@ -4691,8 +4691,11 @@ ul {
     
     .fabric-option,
     .size-option {
+        width: auto;
+        min-width: 90px;
         padding: 10px 18px;
         font-size: 14px;
+        white-space: nowrap;
     }
 }
 

@@ -15,15 +15,15 @@
     </div>
 </section>
 
+<!-- About Banner -->
+<section class="about-banner" {% if about_settings and about_settings.banner_image %}style="background-image: url('{{ about_settings.banner_image.url }}');"{% endif %}>
+</section>
+
 <!-- About Title -->
 <section class="about-title-section">
     <div class="container">
         <h1 class="about-page-title">על אריה בוטיק תינוקות וילדים</h1>
     </div>
-</section>
-
-<!-- About Banner -->
-<section class="about-banner" {% if about_settings and about_settings.banner_image %}style="background-image: url('{{ about_settings.banner_image.url }}');"{% endif %}>
 </section>
 
 <!-- Main Intro Section -->
@@ -47,7 +47,7 @@
             <div class="about-content-text">
                 <h2 class="about-section-title">אריה</h2>
                 <p class="about-section-text">
-                    אריה הוא מפעל משפחתי ותיק, הפועל כבר למעלה משבעה עשורים ומוביל את תחום ייצור הטקסטיל לתינוקות בישראל.
+                    אריה הוא מפעל משפחתי ותיק, הפועל כבר למעלה משבעה עשורים בתחום ייצור הטקסטיל לתינוקות בישראל.
                     במהלך השנים יצרנו אינספור פריטי בד באיכות בלתי מתפשרת מתוך אהבה גדולה לחומר, לפרטים הקטנים ולתחושת הרכות שנוגעת בלב.
                 </p>
             </div>
@@ -101,12 +101,8 @@
                 <h2 class="about-section-title">הייחוד שלנו</h2>
                 <p class="about-section-text">
                     הכוח שלנו טמון בשילוב שבין ייצור מקומי ותיק לבין עיצוב עכשווי ורענן.
-                    אנחנו לא רק מייבאים – אנחנו מפתחים, תופרים, מדפיסים ומעצבים בעצמנו כל פרט.
-                </p>
-                <p class="about-section-text">
+                    אנחנו מפתחים, תופרים, מדפיסים ומעצבים בעצמנו כל פרט.
                     ההדפסים נולדים מתוך השראה עיצובית מקורית, עם קו רך, נקי ומודרני שמתאים גם לחנויות בוטיק וגם כמתנה מושלמת ללידה.
-                </p>
-                <p class="about-section-text">
                     מאחורי כל מוצר עומדת עבודת יד קפדנית, יחס אישי ואהבה אמיתית לטקסטיל.
                 </p>
             </div>

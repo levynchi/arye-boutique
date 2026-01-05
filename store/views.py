@@ -774,9 +774,10 @@ def checkout(request):
         form = CheckoutForm(request.POST)
         if form.is_valid():
             # יצירת הזמנה
+            full_name = f"{form.cleaned_data['first_name']} {form.cleaned_data['last_name']}"
             order = Order.objects.create(
                 user=request.user if request.user.is_authenticated else None,
-                guest_name=form.cleaned_data['guest_name'],
+                guest_name=full_name,
                 guest_phone=form.cleaned_data['guest_phone'],
                 guest_email=form.cleaned_data['guest_email'],
                 guest_address=form.cleaned_data['guest_address'],
@@ -840,7 +841,8 @@ def checkout(request):
         initial_data = {}
         if request.user.is_authenticated:
             initial_data = {
-                'guest_name': request.user.get_full_name() or request.user.username,
+                'first_name': request.user.first_name or request.user.username,
+                'last_name': request.user.last_name or '',
                 'guest_email': request.user.email,
             }
         form = CheckoutForm(initial=initial_data)

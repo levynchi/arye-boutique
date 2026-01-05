@@ -57,13 +57,22 @@ class CheckoutForm(forms.Form):
     """
     טופס פרטים להזמנה
     """
-    guest_name = forms.CharField(
-        max_length=100,
+    first_name = forms.CharField(
+        max_length=50,
         required=True,
-        label='שם מלא*',
+        label='שם פרטי*',
         widget=forms.TextInput(attrs={
             'class': 'form-input',
-            'placeholder': 'שם מלא',
+            'placeholder': 'שם פרטי',
+        })
+    )
+    last_name = forms.CharField(
+        max_length=50,
+        required=True,
+        label='שם משפחה*',
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'שם משפחה',
         })
     )
     guest_phone = forms.CharField(

@@ -13,20 +13,27 @@
             <div class="checkout-form-section">
                 <h2>פרטי משלוח</h2>
                 
-                <form method="post" class="checkout-form">
+                <form method="post" class="checkout-form" id="checkout-form">
                     {% csrf_token %}
                     
-                    <div class="form-group">
-                        {{ form.guest_name.label_tag }}
-                        {{ form.guest_name }}
-                        {% if form.guest_name.errors %}
-                            <div class="form-error">{{ form.guest_name.errors }}</div>
-                        {% endif %}
+                    <div class="form-row form-row--inline">
+                        <div class="form-group">
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="form-error">{{ form.first_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="form-error">{{ form.last_name.errors }}</div>
+                            {% endif %}
+                        </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            {{ form.guest_phone.label_tag }}
                             {{ form.guest_phone }}
                             {% if form.guest_phone.errors %}
                                 <div class="form-error">{{ form.guest_phone.errors }}</div>
@@ -34,7 +41,6 @@
                         </div>
                         
                         <div class="form-group">
-                            {{ form.guest_email.label_tag }}
                             {{ form.guest_email }}
                             {% if form.guest_email.errors %}
                                 <div class="form-error">{{ form.guest_email.errors }}</div>
@@ -43,7 +49,6 @@
                     </div>
                     
                     <div class="form-group">
-                        {{ form.guest_address.label_tag }}
                         {{ form.guest_address }}
                         {% if form.guest_address.errors %}
                             <div class="form-error">{{ form.guest_address.errors }}</div>
@@ -51,7 +56,6 @@
                     </div>
                     
                     <div class="form-group">
-                        {{ form.guest_city.label_tag }}
                         {{ form.guest_city }}
                         {% if form.guest_city.errors %}
                             <div class="form-error">{{ form.guest_city.errors }}</div>
@@ -59,14 +63,13 @@
                     </div>
                     
                     <div class="form-group">
-                        {{ form.notes.label_tag }}
                         {{ form.notes }}
                         {% if form.notes.errors %}
                             <div class="form-error">{{ form.notes.errors }}</div>
                         {% endif %}
                     </div>
                     
-                    <button type="submit" class="submit-order-btn">שלח הזמנה</button>
+                    <button type="submit" class="submit-order-btn submit-order-btn--desktop">שלח הזמנה</button>
                 </form>
             </div>
             
@@ -130,6 +133,9 @@
                     <p><strong>שימו לב:</strong> לאחר שליחת ההזמנה, נחזור אליכם עם פרטי תשלום.</p>
                 </div>
             </div>
+            
+            <!-- Mobile Submit Button -->
+            <button type="submit" form="checkout-form" class="submit-order-btn submit-order-btn--mobile">שלח הזמנה</button>
         </div>
     </div>
 </div>

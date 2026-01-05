@@ -3626,7 +3626,7 @@ ul {
 
 .checkout-content {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 40px;
     margin-top: 30px;
 }
@@ -3732,6 +3732,10 @@ ul {
 
 .submit-order-btn:hover {
     background-color: var(--hover-color);
+}
+
+.submit-order-btn--mobile {
+    display: none;
 }
 
 .payment-notice {
@@ -4260,6 +4264,20 @@ ul {
     
     .form-row {
         grid-template-columns: 1fr;
+    }
+    
+    .form-row.form-row--inline {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .submit-order-btn--desktop {
+        display: none;
+    }
+    
+    .submit-order-btn--mobile {
+        display: block;
+        width: 100%;
+        margin-top: 20px;
     }
 }
 

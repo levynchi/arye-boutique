@@ -12,7 +12,7 @@ from .models import (
     Cart, CartItem, ContactMessage, WishlistItem, Order, OrderItem, 
     BelowBestsellersGallery, RetailerStore, InstagramGallery,
     FabricType, ProductVariant, AboutPageSettings, FAQ, BlogPost,
-    NewsletterSubscriber
+    NewsletterSubscriber, Coupon
 )
 import string
 import random
@@ -729,7 +729,46 @@ def checkout(request):
     shipping_fee = Decimal('0.00')
     if subtotal > 0 and subtotal < 75:
         shipping_fee = Decimal('0.00')
-    total = subtotal + shipping_fee
+    
+    # בדיקת קופון מהסשן
+    applied_coupon = request.session.get('applied_coupon', None)
+    discount_amount = Decimal('0.00')
+    coupon_code = ''
+    
+    if applied_coupon:
+        coupon_code = applied_coupon.get('code', '')
+        discount_amount = Decimal(str(applied_coupon.get('discount_amount', 0)))
+        
+        # וידוא שהקופון עדיין תקף
+        coupon_type = applied_coupon.get('type', '')
+        is_valid = False
+        
+        if coupon_type == 'general':
+            try:
+                coupon = Coupon.objects.get(code__iexact=coupon_code)
+                if coupon.is_valid() and (coupon.minimum_order_amount == 0 or subtotal >= coupon.minimum_order_amount):
+                    discount_amount = coupon.calculate_discount(subtotal)
+                    is_valid = True
+            except Coupon.DoesNotExist:
+                pass
+        elif coupon_type == 'newsletter':
+            try:
+                newsletter = NewsletterSubscriber.objects.get(coupon_code__iexact=coupon_code)
+                if newsletter.is_active and not newsletter.is_used:
+                    discount_amount = (subtotal * Decimal(newsletter.discount_percent)) / 100
+                    is_valid = True
+            except NewsletterSubscriber.DoesNotExist:
+                pass
+        
+        if not is_valid:
+            # הקופון לא תקף יותר - הסרה מהסשן
+            if 'applied_coupon' in request.session:
+                del request.session['applied_coupon']
+            applied_coupon = None
+            discount_amount = Decimal('0.00')
+            coupon_code = ''
+    
+    total = subtotal + shipping_fee - discount_amount
     
     if request.method == 'POST':
         form = CheckoutForm(request.POST)
@@ -744,6 +783,8 @@ def checkout(request):
                 guest_city=form.cleaned_data['guest_city'],
                 notes=form.cleaned_data['notes'],
                 total_price=total,
+                coupon_code=coupon_code,
+                discount_amount=discount_amount,
                 status='pending'
             )
             
@@ -761,6 +802,28 @@ def checkout(request):
                 product = cart_item.product
                 product.stock_quantity -= cart_item.quantity
                 product.save()
+            
+            # עדכון שימוש בקופון
+            if applied_coupon:
+                coupon_type = applied_coupon.get('type', '')
+                if coupon_type == 'general':
+                    try:
+                        coupon = Coupon.objects.get(code__iexact=coupon_code)
+                        coupon.times_used += 1
+                        coupon.save()
+                    except Coupon.DoesNotExist:
+                        pass
+                elif coupon_type == 'newsletter':
+                    try:
+                        newsletter = NewsletterSubscriber.objects.get(coupon_code__iexact=coupon_code)
+                        newsletter.is_used = True
+                        newsletter.save()
+                    except NewsletterSubscriber.DoesNotExist:
+                        pass
+                
+                # ניקוי קופון מהסשן
+                if 'applied_coupon' in request.session:
+                    del request.session['applied_coupon']
             
             # ניקוי העגלה
             cart_items.delete()
@@ -791,11 +854,115 @@ def checkout(request):
         'cart_items': cart_items,
         'subtotal': subtotal,
         'shipping_fee': shipping_fee,
+        'discount_amount': discount_amount,
+        'coupon_code': coupon_code,
+        'applied_coupon': applied_coupon,
         'total': total,
         'categories': categories,
     }
     
     return render(request, 'store/checkout.html', context)
+
+
+def apply_coupon(request):
+    """
+    API endpoint לאימות והחלת קופון
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'שיטה לא חוקית'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        coupon_code = data.get('coupon_code', '').strip().upper()
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'נתונים לא חוקיים'}, status=400)
+    
+    if not coupon_code:
+        return JsonResponse({'success': False, 'message': 'נא להזין קוד קופון'})
+    
+    # קבלת סכום העגלה
+    cart = get_or_create_cart(request)
+    cart_total = cart.total_price
+    
+    if cart_total <= 0:
+        return JsonResponse({'success': False, 'message': 'העגלה ריקה'})
+    
+    discount_amount = Decimal('0.00')
+    discount_percent = 0
+    coupon_type = None
+    
+    # בדיקה בקופונים כלליים
+    try:
+        coupon = Coupon.objects.get(code__iexact=coupon_code)
+        if not coupon.is_valid():
+            return JsonResponse({'success': False, 'message': 'הקופון אינו תקף או פג תוקפו'})
+        
+        if coupon.minimum_order_amount > 0 and cart_total < coupon.minimum_order_amount:
+            return JsonResponse({
+                'success': False, 
+                'message': f'סכום מינימום להזמנה עם קופון זה: {coupon.minimum_order_amount}₪'
+            })
+        
+        discount_amount = coupon.calculate_discount(cart_total)
+        if coupon.discount_type == 'percent':
+            discount_percent = int(coupon.discount_value)
+        coupon_type = 'general'
+        
+    except Coupon.DoesNotExist:
+        # בדיקה בקופוני ניוזלטר
+        try:
+            newsletter = NewsletterSubscriber.objects.get(coupon_code__iexact=coupon_code)
+            if not newsletter.is_active:
+                return JsonResponse({'success': False, 'message': 'הקופון אינו פעיל'})
+            if newsletter.is_used:
+                return JsonResponse({'success': False, 'message': 'הקופון כבר נוצל'})
+            
+            discount_percent = newsletter.discount_percent
+            discount_amount = (cart_total * Decimal(discount_percent)) / 100
+            coupon_type = 'newsletter'
+            
+        except NewsletterSubscriber.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'קוד קופון לא נמצא'})
+    
+    # שמירה בסשן
+    request.session['applied_coupon'] = {
+        'code': coupon_code,
+        'type': coupon_type,
+        'discount_amount': float(discount_amount),
+        'discount_percent': discount_percent,
+    }
+    
+    new_total = cart_total - discount_amount
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'הקופון הוחל בהצלחה!',
+        'coupon_code': coupon_code,
+        'discount_amount': float(discount_amount),
+        'discount_percent': discount_percent,
+        'original_total': float(cart_total),
+        'new_total': float(new_total),
+    })
+
+
+def remove_coupon(request):
+    """
+    API endpoint להסרת קופון
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'שיטה לא חוקית'}, status=405)
+    
+    if 'applied_coupon' in request.session:
+        del request.session['applied_coupon']
+    
+    cart = get_or_create_cart(request)
+    cart_total = cart.total_price
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'הקופון הוסר',
+        'total': float(cart_total),
+    })
 
 
 def cart_data(request):

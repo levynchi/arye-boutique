@@ -8,7 +8,7 @@ from .models import (
     Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
     BelowBestsellersGallery, RetailerStore, InstagramGallery, AboutPageSettings,
     GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ, BlogPost, BlogSection,
-    MaterialCareInfo, NewsletterSubscriber
+    MaterialCareInfo, NewsletterSubscriber, Coupon
 )
 from .forms import BulkVariantCreationForm, ProductAdminForm
 
@@ -432,16 +432,20 @@ class OrderAdmin(admin.ModelAdmin):
     """
     ניהול הזמנות
     """
-    list_display = ['id', 'get_customer_name', 'total_price', 'status', 'created_at']
+    list_display = ['id', 'get_customer_name', 'total_price', 'get_discount_display', 'status', 'created_at']
     list_filter = ['status', 'created_at']
-    search_fields = ['id', 'user__username', 'guest_name', 'guest_email', 'guest_phone']
+    search_fields = ['id', 'user__username', 'guest_name', 'guest_email', 'guest_phone', 'coupon_code']
     list_editable = ['status']
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at', 'coupon_code', 'discount_amount']
     inlines = [OrderItemInline]
     
     fieldsets = (
         ('מידע הזמנה', {
             'fields': ('user', 'total_price', 'status', 'notes')
+        }),
+        ('קופון', {
+            'fields': ('coupon_code', 'discount_amount'),
+            'classes': ('collapse',)
         }),
         ('מידע אורח', {
             'fields': ('guest_name', 'guest_email', 'guest_phone', 'guest_address', 'guest_city'),
@@ -459,6 +463,13 @@ class OrderAdmin(admin.ModelAdmin):
             return obj.user.get_full_name() or obj.user.username
         return obj.guest_name or obj.guest_email
     get_customer_name.short_description = 'לקוח'
+    
+    def get_discount_display(self, obj):
+        """הצגת הנחה"""
+        if obj.discount_amount and obj.discount_amount > 0:
+            return format_html('<span style="color: #2e7d32;">-{}₪ ({})</span>', obj.discount_amount, obj.coupon_code)
+        return '-'
+    get_discount_display.short_description = 'הנחה'
 
 
 class CartItemInline(admin.TabularInline):
@@ -1044,3 +1055,44 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         """לא לאפשר הוספה ידנית - רק דרך הטופס"""
         return False
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    """
+    ניהול קופונים כלליים
+    """
+    list_display = ['code', 'discount_type', 'discount_value', 'times_used', 'max_uses', 'is_valid_display', 'is_active', 'valid_until']
+    list_filter = ['discount_type', 'is_active', 'valid_from', 'valid_until']
+    search_fields = ['code']
+    list_editable = ['is_active']
+    list_per_page = 50
+    ordering = ['-created_at']
+    readonly_fields = ['times_used', 'created_at']
+    
+    fieldsets = (
+        ('פרטי קופון', {
+            'fields': ('code', 'is_active')
+        }),
+        ('הגדרות הנחה', {
+            'fields': ('discount_type', 'discount_value', 'minimum_order_amount')
+        }),
+        ('תקופת תוקף', {
+            'fields': ('valid_from', 'valid_until')
+        }),
+        ('הגבלות שימוש', {
+            'fields': ('max_uses', 'times_used')
+        }),
+        ('מידע נוסף', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def is_valid_display(self, obj):
+        """הצגת סטטוס תקינות"""
+        if obj.is_valid():
+            return format_html('<span style="color: #2e7d32; font-weight: bold;">✓ תקף</span>')
+        return format_html('<span style="color: #c62828;">✗ לא תקף</span>')
+    is_valid_display.short_description = 'סטטוס'
+    is_valid_display.admin_order_field = 'is_active'

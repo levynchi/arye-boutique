@@ -94,10 +94,35 @@
                     {% endfor %}
                 </div>
                 
+                <!-- Coupon Section -->
+                <div class="coupon-section">
+                    <h3>יש לך קוד קופון?</h3>
+                    <div class="coupon-input-wrapper" id="coupon-form" {% if applied_coupon %}style="display: none;"{% endif %}>
+                        <input type="text" id="coupon-code" placeholder="הזן קוד קופון" autocomplete="off">
+                        <button type="button" id="apply-coupon-btn" class="apply-coupon-btn">החל</button>
+                    </div>
+                    <div class="coupon-applied" id="coupon-applied" {% if not applied_coupon %}style="display: none;"{% endif %}>
+                        <div class="coupon-applied-info">
+                            <span class="coupon-icon">🎉</span>
+                            <span class="coupon-code-display" id="applied-coupon-code">{{ coupon_code }}</span>
+                        </div>
+                        <button type="button" id="remove-coupon-btn" class="remove-coupon-btn">הסר</button>
+                    </div>
+                    <div class="coupon-message" id="coupon-message"></div>
+                </div>
+                
                 <div class="order-summary-totals">
+                    <div class="summary-row">
+                        <span>סכום ביניים</span>
+                        <span id="subtotal-display">{{ subtotal }} ₪</span>
+                    </div>
+                    <div class="summary-row discount-row" id="discount-row" {% if not applied_coupon %}style="display: none;"{% endif %}>
+                        <span>הנחה</span>
+                        <span id="discount-display">-{{ discount_amount }} ₪</span>
+                    </div>
                     <div class="summary-total">
-                        <span>סה״כ</span>
-                        <span>{{ subtotal }} ₪</span>
+                        <span>סה״כ לתשלום</span>
+                        <span id="total-display">{{ total }} ₪</span>
                     </div>
                 </div>
                 
@@ -108,6 +133,117 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const couponInput = document.getElementById('coupon-code');
+    const applyBtn = document.getElementById('apply-coupon-btn');
+    const removeBtn = document.getElementById('remove-coupon-btn');
+    const couponForm = document.getElementById('coupon-form');
+    const couponApplied = document.getElementById('coupon-applied');
+    const couponMessage = document.getElementById('coupon-message');
+    const appliedCouponCode = document.getElementById('applied-coupon-code');
+    const discountRow = document.getElementById('discount-row');
+    const discountDisplay = document.getElementById('discount-display');
+    const totalDisplay = document.getElementById('total-display');
+    
+    // החלת קופון
+    applyBtn.addEventListener('click', async function() {
+        const code = couponInput.value.trim();
+        if (!code) {
+            showMessage('נא להזין קוד קופון', 'error');
+            return;
+        }
+        
+        applyBtn.disabled = true;
+        applyBtn.textContent = 'מחיל...';
+        
+        try {
+            const response = await fetch('{% url "apply_coupon" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ coupon_code: code })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // הצגת קופון מוחל
+                couponForm.style.display = 'none';
+                couponApplied.style.display = 'flex';
+                appliedCouponCode.textContent = data.coupon_code;
+                
+                // עדכון הסכומים
+                discountRow.style.display = 'flex';
+                discountDisplay.textContent = '-' + data.discount_amount.toFixed(2) + ' ₪';
+                totalDisplay.textContent = data.new_total.toFixed(2) + ' ₪';
+                
+                showMessage(data.message, 'success');
+            } else {
+                showMessage(data.message, 'error');
+            }
+        } catch (error) {
+            showMessage('אירעה שגיאה, נסה שוב', 'error');
+        }
+        
+        applyBtn.disabled = false;
+        applyBtn.textContent = 'החל';
+    });
+    
+    // הסרת קופון
+    removeBtn.addEventListener('click', async function() {
+        try {
+            const response = await fetch('{% url "remove_coupon" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // הסתרת קופון מוחל
+                couponApplied.style.display = 'none';
+                couponForm.style.display = 'flex';
+                couponInput.value = '';
+                
+                // עדכון הסכומים
+                discountRow.style.display = 'none';
+                totalDisplay.textContent = data.total.toFixed(2) + ' ₪';
+                
+                showMessage(data.message, 'info');
+            }
+        } catch (error) {
+            showMessage('אירעה שגיאה, נסה שוב', 'error');
+        }
+    });
+    
+    // Enter להחלת קופון
+    couponInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            applyBtn.click();
+        }
+    });
+    
+    function showMessage(message, type) {
+        couponMessage.textContent = message;
+        couponMessage.className = 'coupon-message ' + type;
+        couponMessage.style.display = 'block';
+        
+        setTimeout(() => {
+            couponMessage.style.display = 'none';
+        }, 4000);
+    }
+});
+</script>
 {% endblock %}
 
 

@@ -321,6 +321,10 @@ class Order(models.Model):
     guest_city = models.CharField(max_length=100, blank=True, verbose_name='עיר אורח')
     
     total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='סכום כולל')
+    # שדות קופון
+    coupon_code = models.CharField(max_length=50, blank=True, verbose_name='קוד קופון')
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='סכום הנחה')
+    
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='סטטוס')
     notes = models.TextField(blank=True, verbose_name='הערות')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
@@ -705,3 +709,52 @@ class NewsletterSubscriber(models.Model):
     
     def __str__(self):
         return f'{self.email} - {self.coupon_code}'
+
+
+class Coupon(models.Model):
+    """
+    קופון הנחה כללי - לשימוש בצ'קאאוט
+    """
+    DISCOUNT_TYPE_CHOICES = [
+        ('percent', 'אחוזים'),
+        ('fixed', 'סכום קבוע'),
+    ]
+    
+    code = models.CharField(max_length=50, unique=True, verbose_name='קוד קופון')
+    discount_type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES, default='percent', verbose_name='סוג הנחה')
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='ערך הנחה', help_text='אחוזים (לדוגמה: 10) או סכום קבוע בש"ח')
+    minimum_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='סכום מינימום להזמנה', help_text='0 = ללא מינימום')
+    max_uses = models.PositiveIntegerField(default=0, verbose_name='מספר שימושים מקסימלי', help_text='0 = ללא הגבלה')
+    times_used = models.PositiveIntegerField(default=0, verbose_name='מספר פעמים שנוצל')
+    valid_from = models.DateTimeField(verbose_name='תקף מתאריך')
+    valid_until = models.DateTimeField(verbose_name='תקף עד תאריך')
+    is_active = models.BooleanField(default=True, verbose_name='פעיל')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
+    
+    class Meta:
+        verbose_name = 'קופון'
+        verbose_name_plural = 'קופונים'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        if self.discount_type == 'percent':
+            return f'{self.code} - {self.discount_value}%'
+        return f'{self.code} - {self.discount_value}₪'
+    
+    def is_valid(self):
+        """בדיקה אם הקופון תקף"""
+        from django.utils import timezone
+        now = timezone.now()
+        if not self.is_active:
+            return False
+        if now < self.valid_from or now > self.valid_until:
+            return False
+        if self.max_uses > 0 and self.times_used >= self.max_uses:
+            return False
+        return True
+    
+    def calculate_discount(self, order_total):
+        """חישוב סכום ההנחה"""
+        if self.discount_type == 'percent':
+            return (order_total * self.discount_value) / 100
+        return min(self.discount_value, order_total)  # לא יותר מסכום ההזמנה

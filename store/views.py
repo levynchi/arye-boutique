@@ -776,6 +776,12 @@ def checkout(request):
     if request.method == 'POST':
         form = CheckoutForm(request.POST)
         if form.is_valid():
+            # בדיקת מלאי לפני יצירת ההזמנה
+            for cart_item in cart_items:
+                if cart_item.product.stock_quantity < cart_item.quantity:
+                    messages.error(request, f'המוצר "{cart_item.product.name}" אזל מהמלאי או שהכמות המבוקשת גדולה מהמלאי הזמין')
+                    return redirect('cart')
+            
             # יצירת הזמנה
             full_name = f"{form.cleaned_data['first_name']} {form.cleaned_data['last_name']}"
             order = Order.objects.create(
@@ -792,7 +798,7 @@ def checkout(request):
                 status='pending'
             )
             
-            # יצירת פריטי הזמנה
+            # יצירת פריטי הזמנה ועדכון מלאי
             for cart_item in cart_items:
                 OrderItem.objects.create(
                     order=order,
@@ -802,10 +808,12 @@ def checkout(request):
                     price=cart_item.product.price
                 )
                 
-                # עדכון מלאי
+                # עדכון מלאי (בדיקה כפולה לבטיחות)
                 product = cart_item.product
-                product.stock_quantity -= cart_item.quantity
-                product.save()
+                product.refresh_from_db()  # רענון מבסיס הנתונים
+                if product.stock_quantity >= cart_item.quantity:
+                    product.stock_quantity -= cart_item.quantity
+                    product.save()
             
             # שמירת מידע הקופון בהזמנה לשימוש מאוחר יותר
             # עדכון שימוש בקופון יתבצע רק אחרי תשלום מוצלח

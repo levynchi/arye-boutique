@@ -12,6 +12,7 @@ class SiteSettings(models.Model):
     hero_title = models.CharField(max_length=200, blank=True, verbose_name='כותרת באנר')
     hero_subtitle = models.TextField(blank=True, verbose_name='תת-כותרת באנר')
     is_active = models.BooleanField(default=True, verbose_name='באנר פעיל')
+    coming_soon_enabled = models.BooleanField(default=False, verbose_name='הפעל דף Coming Soon')
     
     class Meta:
         verbose_name = 'גלריות - גלריה ראשית'

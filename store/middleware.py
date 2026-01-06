@@ -1,6 +1,8 @@
 from django.shortcuts import redirect
 from django.urls import reverse
 
+from .models import SiteSettings
+
 
 class ComingSoonMiddleware:
     """
@@ -12,6 +14,11 @@ class ComingSoonMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
+        # בדיקה אם דף Coming Soon מופעל
+        site_settings = SiteSettings.get_settings()
+        if not site_settings or not site_settings.coming_soon_enabled:
+            return self.get_response(request)  # האתר פעיל, אין הפניה
+        
         # נתיבים שתמיד מותרים (גם למשתמשים לא מחוברים)
         allowed_prefixes = [
             '/admin',  # פאנל הניהול (כולל /admin ו-/admin/)

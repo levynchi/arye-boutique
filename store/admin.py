@@ -51,6 +51,10 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         ('באנר ראשי', {
             'fields': ('hero_banner', 'hero_title', 'hero_subtitle')
         }),
+        ('הגדרות אתר', {
+            'fields': ('coming_soon_enabled',),
+            'description': 'הפעל כדי להציג דף Coming Soon לכל המבקרים (מלבד אדמין)'
+        }),
     )
     
     def has_banner(self, obj):

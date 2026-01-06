@@ -1,0 +1,249 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}שגיאה בתשלום - בוטיק אריה{% endblock %}
+
+{% block extra_css %}
+<style>
+.payment-failure-page {
+    min-height: 60vh;
+    padding: 60px 20px;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+}
+
+.failure-container {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.failure-icon {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    box-shadow: 0 10px 30px rgba(244, 67, 54, 0.3);
+    animation: shake 0.5s ease-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-10px); }
+    40%, 80% { transform: translateX(10px); }
+}
+
+.failure-icon i {
+    font-size: 60px;
+    color: white;
+}
+
+.failure-title {
+    font-size: 2.2rem;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.failure-subtitle {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.error-box {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    border-right: 4px solid #f44336;
+    text-align: right;
+}
+
+.error-box h3 {
+    color: #f44336;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.error-box p {
+    color: #666;
+    margin: 0;
+}
+
+.tips-box {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    text-align: right;
+}
+
+.tips-box h3 {
+    color: #7594b1;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.tips-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tips-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tips-list li:last-child {
+    border-bottom: none;
+}
+
+.tips-list li i {
+    color: #7594b1;
+    width: 20px;
+}
+
+.failure-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.failure-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 35px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.failure-btn-primary {
+    background: #7594b1;
+    color: white;
+}
+
+.failure-btn-primary:hover {
+    background: #5a7a99;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(117, 148, 177, 0.4);
+}
+
+.failure-btn-secondary {
+    background: white;
+    color: #7594b1;
+    border: 2px solid #7594b1;
+}
+
+.failure-btn-secondary:hover {
+    background: #f8f9fa;
+}
+
+.contact-info {
+    margin-top: 40px;
+    padding: 20px;
+    background: #e3f2fd;
+    border-radius: 10px;
+    color: #1565c0;
+}
+
+.contact-info a {
+    color: #1565c0;
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .failure-title {
+        font-size: 1.6rem;
+    }
+    
+    .failure-actions {
+        flex-direction: column;
+    }
+    
+    .failure-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payment-failure-page">
+    <div class="failure-container">
+        <div class="failure-icon">
+            <i class="fas fa-times"></i>
+        </div>
+        
+        <h1 class="failure-title">אופס! משהו השתבש 😔</h1>
+        <p class="failure-subtitle">התשלום לא עבר בהצלחה. אל דאגה, לא חויבת ואפשר לנסות שוב.</p>
+        
+        {% if error_message %}
+        <div class="error-box">
+            <h3><i class="fas fa-exclamation-triangle"></i> פרטי השגיאה:</h3>
+            <p>{{ error_message }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="tips-box">
+            <h3><i class="fas fa-lightbulb"></i> מה אפשר לעשות?</h3>
+            <ul class="tips-list">
+                <li>
+                    <i class="fas fa-credit-card"></i>
+                    וודאו שפרטי הכרטיס נכונים
+                </li>
+                <li>
+                    <i class="fas fa-calendar-alt"></i>
+                    בדקו שהכרטיס לא פג תוקף
+                </li>
+                <li>
+                    <i class="fas fa-wallet"></i>
+                    וודאו שיש מסגרת אשראי מספקת
+                </li>
+                <li>
+                    <i class="fas fa-shield-alt"></i>
+                    אם יש חסימת אבטחה, פנו לחברת האשראי
+                </li>
+                <li>
+                    <i class="fas fa-sync-alt"></i>
+                    נסו שוב או השתמשו בכרטיס אחר
+                </li>
+            </ul>
+        </div>
+        
+        <div class="failure-actions">
+            <a href="{% url 'checkout' %}" class="failure-btn failure-btn-primary">
+                <i class="fas fa-redo"></i>
+                נסה שוב
+            </a>
+            <a href="{% url 'cart' %}" class="failure-btn failure-btn-secondary">
+                <i class="fas fa-shopping-cart"></i>
+                חזרה לעגלה
+            </a>
+        </div>
+        
+        <div class="contact-info">
+            <i class="fas fa-headset"></i>
+            <strong>צריכים עזרה?</strong> צרו איתנו קשר ב-<a href="{% url 'contact' %}">טופס יצירת קשר</a> או ב-WhatsApp ונשמח לעזור!
+        </div>
+    </div>
+</div>
+{% endblock %}
+

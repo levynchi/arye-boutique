@@ -299,7 +299,8 @@ class Order(models.Model):
     הזמנה
     """
     STATUS_CHOICES = [
-        ('pending', 'ממתין'),
+        ('pending', 'ממתין לתשלום'),
+        ('paid', 'שולם'),
         ('confirmed', 'אושר'),
         ('shipped', 'נשלח'),
         ('delivered', 'נמסר'),
@@ -327,6 +328,7 @@ class Order(models.Model):
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='סכום הנחה')
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='סטטוס')
+    payment_reference = models.CharField(max_length=100, blank=True, verbose_name='מזהה תשלום')
     notes = models.TextField(blank=True, verbose_name='הערות')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='תאריך עדכון')

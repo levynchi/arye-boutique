@@ -4,8 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
 import json
+import uuid
+import requests
 import resend
 from .models import (
     Product, Category, Subcategory, SiteSettings, ProductImage, 
@@ -804,36 +807,18 @@ def checkout(request):
                 product.stock_quantity -= cart_item.quantity
                 product.save()
             
-            # עדכון שימוש בקופון
+            # שמירת מידע הקופון בהזמנה לשימוש מאוחר יותר
+            # עדכון שימוש בקופון יתבצע רק אחרי תשלום מוצלח
             if applied_coupon:
-                coupon_type = applied_coupon.get('type', '')
-                if coupon_type == 'general':
-                    try:
-                        coupon = Coupon.objects.get(code__iexact=coupon_code)
-                        coupon.times_used += 1
-                        coupon.save()
-                    except Coupon.DoesNotExist:
-                        pass
-                elif coupon_type == 'newsletter':
-                    try:
-                        newsletter = NewsletterSubscriber.objects.get(coupon_code__iexact=coupon_code)
-                        newsletter.is_used = True
-                        newsletter.save()
-                    except NewsletterSubscriber.DoesNotExist:
-                        pass
-                
-                # ניקוי קופון מהסשן
-                if 'applied_coupon' in request.session:
-                    del request.session['applied_coupon']
+                # שמירת סוג הקופון בסשן לשימוש אחרי תשלום
+                request.session['pending_coupon'] = applied_coupon
             
-            # ניקוי העגלה
-            cart_items.delete()
+            # שמירת מזהה ההזמנה בסשן למקרה של חזרה
+            request.session['pending_order_id'] = order.id
             
-            messages.success(
-                request, 
-                f'ההזמנה שלך התקבלה בהצלחה! מספר הזמנה: {order.id}. נחזור אליך בהקדם.'
-            )
-            return redirect('home')
+            # הפניה לדף התשלום
+            # העגלה תנוקה רק אחרי תשלום מוצלח
+            return redirect('initiate_payment', order_id=order.id)
         else:
             messages.error(request, 'אנא תקן את השגיאות בטופס')
     else:
@@ -1329,3 +1314,313 @@ def newsletter_unsubscribe(request, token):
 </html>'''
     
     return HttpResponse(html, content_type='text/html; charset=utf-8')
+
+
+# ============================================
+# Payment Views - iCredit Integration
+# ============================================
+
+def initiate_payment(request, order_id):
+    """
+    יצירת בקשת תשלום ל-iCredit והפניית הלקוח לדף התשלום
+    """
+    order = get_object_or_404(Order, id=order_id)
+    
+    # בדיקה שההזמנה עדיין ממתינה לתשלום
+    if order.status != 'pending':
+        messages.error(request, 'הזמנה זו כבר שולמה או בוטלה')
+        return redirect('home')
+    
+    # יצירת מזהה ייחודי לעסקה
+    sale_id = str(uuid.uuid4())[:20]
+    
+    # שמירת מזהה העסקה בהזמנה
+    order.payment_reference = sale_id
+    order.save()
+    
+    # הכנת פרטי הפריטים להצגה בדף התשלום
+    items = []
+    for item in order.items.all():
+        items.append({
+            "CatalogNumber": str(item.product.id),
+            "Quantity": item.quantity,
+            "UnitPrice": float(item.price),
+            "Description": item.product.name[:50]  # הגבלה ל-50 תווים
+        })
+    
+    # בניית הבקשה ל-iCredit
+    payload = {
+        "GroupPrivateToken": settings.ICREDIT_GROUP_PRIVATE_TOKEN,
+        "Currency": 1,  # 1 = שקלים
+        "SaleType": 1,  # 1 = חיוב רגיל
+        "Amount": float(order.total_price),
+        "MaxPayments": 1,
+        "HideItemList": False,
+        "CreateToken": False,
+        "RedirectURL": request.build_absolute_uri('/payment/success/'),
+        "FailRedirectURL": request.build_absolute_uri('/payment/failure/'),
+        "IPNURL": request.build_absolute_uri('/payment/notify/'),
+        "CustomerFirstName": order.guest_name.split()[0] if order.guest_name else "",
+        "CustomerLastName": " ".join(order.guest_name.split()[1:]) if order.guest_name and len(order.guest_name.split()) > 1 else "",
+        "Email": order.guest_email,
+        "PhoneNumber": order.guest_phone,
+        "Custom1": str(order.id),  # מזהה הזמנה לשימוש ב-IPN
+        "SaleId": sale_id,
+        "Items": items
+    }
+    
+    try:
+        response = requests.post(
+            settings.ICREDIT_API_URL,
+            json=payload,
+            headers={'Content-Type': 'application/json'},
+            timeout=30
+        )
+        
+        data = response.json()
+        
+        if data.get('Status') == 0:  # הצלחה
+            # הפניה לדף התשלום של iCredit
+            return redirect(data['URL'])
+        else:
+            # שגיאה מ-iCredit
+            error_message = data.get('ErrorMessage', 'שגיאה לא ידועה')
+            messages.error(request, f'שגיאה ביצירת דף תשלום: {error_message}')
+            return redirect('checkout')
+            
+    except requests.exceptions.RequestException as e:
+        messages.error(request, 'שגיאה בהתחברות לשרת התשלומים. נסה שוב.')
+        return redirect('checkout')
+
+
+def payment_success(request):
+    """
+    דף הצלחת תשלום - הלקוח מגיע לכאן אחרי תשלום מוצלח
+    """
+    # iCredit שולח את הפרטים ב-GET parameters
+    sale_id = request.GET.get('SaleId')
+    order_id = request.GET.get('Custom1')
+    
+    # אם אין order_id, ננסה לקחת מהסשן
+    if not order_id:
+        order_id = request.session.get('pending_order_id')
+    
+    order = None
+    
+    # ניסיון למצוא את ההזמנה
+    if order_id:
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            pass
+    elif sale_id:
+        try:
+            order = Order.objects.get(payment_reference=sale_id)
+        except Order.DoesNotExist:
+            pass
+    
+    if order:
+        # אם ה-IPN עדיין לא הגיע, נעדכן את הסטטוס כאן
+        # (יכול לקרות אם הלקוח חזר לפני שה-IPN עובד)
+        if order.status == 'pending':
+            order.status = 'paid'
+            order.save()
+            
+            # עדכון שימוש בקופון
+            if order.coupon_code:
+                try:
+                    coupon = Coupon.objects.filter(code__iexact=order.coupon_code).first()
+                    if coupon:
+                        coupon.times_used += 1
+                        coupon.save()
+                    else:
+                        newsletter = NewsletterSubscriber.objects.filter(coupon_code__iexact=order.coupon_code).first()
+                        if newsletter:
+                            newsletter.is_used = True
+                            newsletter.save()
+                except Exception:
+                    pass
+            
+            # שליחת מייל אישור
+            try:
+                send_order_confirmation_email(order)
+            except Exception:
+                pass
+        
+        # ניקוי העגלה
+        cart = get_or_create_cart(request)
+        cart.items.all().delete()
+        
+        # ניקוי הסשן
+        if 'applied_coupon' in request.session:
+            del request.session['applied_coupon']
+        if 'pending_coupon' in request.session:
+            del request.session['pending_coupon']
+        if 'pending_order_id' in request.session:
+            del request.session['pending_order_id']
+    
+    context = {
+        'order': order,
+    }
+    
+    return render(request, 'store/payment_success.html', context)
+
+
+def payment_failure(request):
+    """
+    דף כישלון תשלום
+    """
+    error_message = request.GET.get('ErrorMessage', '')
+    order_id = request.GET.get('Custom1')
+    
+    context = {
+        'error_message': error_message,
+        'order_id': order_id,
+    }
+    
+    return render(request, 'store/payment_failure.html', context)
+
+
+@csrf_exempt
+def payment_notify(request):
+    """
+    IPN (Instant Payment Notification) - Webhook מ-iCredit
+    מקבל אישור תשלום מהשרת ומעדכן את סטטוס ההזמנה
+    """
+    if request.method == 'POST':
+        try:
+            # iCredit שולח את הנתונים כ-JSON
+            data = json.loads(request.body)
+            
+            sale_id = data.get('SaleId')
+            order_id = data.get('Custom1')
+            status = data.get('Status')
+            
+            # בדיקה שהתשלום הצליח (Status=1)
+            if status == 1:
+                order = None
+                
+                if order_id:
+                    try:
+                        order = Order.objects.get(id=order_id)
+                    except Order.DoesNotExist:
+                        pass
+                elif sale_id:
+                    try:
+                        order = Order.objects.get(payment_reference=sale_id)
+                    except Order.DoesNotExist:
+                        pass
+                
+                if order and order.status == 'pending':
+                    # עדכון סטטוס ההזמנה לשולם
+                    order.status = 'paid'
+                    order.save()
+                    
+                    # עדכון שימוש בקופון
+                    if order.coupon_code:
+                        try:
+                            # ניסיון למצוא קופון רגיל
+                            coupon = Coupon.objects.filter(code__iexact=order.coupon_code).first()
+                            if coupon:
+                                coupon.times_used += 1
+                                coupon.save()
+                            else:
+                                # ניסיון למצוא קופון ניוזלטר
+                                newsletter = NewsletterSubscriber.objects.filter(coupon_code__iexact=order.coupon_code).first()
+                                if newsletter:
+                                    newsletter.is_used = True
+                                    newsletter.save()
+                        except Exception:
+                            pass
+                    
+                    # שליחת מייל אישור הזמנה ללקוח
+                    try:
+                        send_order_confirmation_email(order)
+                    except Exception as e:
+                        # לא נכשיל את ה-IPN בגלל שגיאת מייל
+                        pass
+                    
+                    return JsonResponse({'status': 'ok', 'message': 'Order updated'})
+            
+            return JsonResponse({'status': 'ok', 'message': 'Processed'})
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+
+def send_order_confirmation_email(order):
+    """
+    שליחת מייל אישור הזמנה ללקוח
+    """
+    if not settings.RESEND_API_KEY:
+        return
+    
+    resend.api_key = settings.RESEND_API_KEY
+    
+    # בניית רשימת הפריטים
+    items_html = ""
+    for item in order.items.all():
+        items_html += f"""
+        <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.product.name}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">{item.quantity}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: left;">{item.price} ₪</td>
+        </tr>
+        """
+    
+    html_content = f"""
+    <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #7594b1; padding: 20px; text-align: center;">
+            <h1 style="color: white; margin: 0;">Arye Boutique</h1>
+        </div>
+        
+        <div style="padding: 30px; background-color: #f9f9f9;">
+            <h2 style="color: #333;">תודה על ההזמנה! 🎉</h2>
+            
+            <p style="color: #555;">שלום {order.guest_name},</p>
+            <p style="color: #555;">ההזמנה שלך התקבלה בהצלחה ואנחנו מתחילים לטפל בה.</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #7594b1; margin-top: 0;">פרטי הזמנה #{order.id}</h3>
+                
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: #f5f5f5;">
+                        <th style="padding: 10px; text-align: right;">מוצר</th>
+                        <th style="padding: 10px; text-align: center;">כמות</th>
+                        <th style="padding: 10px; text-align: left;">מחיר</th>
+                    </tr>
+                    {items_html}
+                </table>
+                
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #7594b1;">
+                    <p style="margin: 5px 0;"><strong>סה״כ לתשלום:</strong> {order.total_price} ₪</p>
+                </div>
+            </div>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px;">
+                <h3 style="color: #7594b1; margin-top: 0;">כתובת למשלוח</h3>
+                <p style="margin: 5px 0;">{order.guest_name}</p>
+                <p style="margin: 5px 0;">{order.guest_address}</p>
+                <p style="margin: 5px 0;">{order.guest_city}</p>
+                <p style="margin: 5px 0;">טלפון: {order.guest_phone}</p>
+            </div>
+            
+            <p style="color: #555; margin-top: 20px;">נעדכן אותך כשההזמנה תישלח!</p>
+        </div>
+        
+        <div style="background-color: #333; padding: 20px; text-align: center;">
+            <p style="color: #999; margin: 0; font-size: 12px;">Arye Boutique | בוטיק לתינוקות</p>
+        </div>
+    </div>
+    """
+    
+    resend.Emails.send({
+        "from": settings.DEFAULT_FROM_EMAIL,
+        "to": [order.guest_email],
+        "subject": f"אישור הזמנה #{order.id} - Arye Boutique",
+        "html": html_content
+    })

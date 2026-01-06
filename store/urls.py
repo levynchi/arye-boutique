@@ -41,5 +41,11 @@ urlpatterns = [
     # Newsletter URLs
     path('newsletter/subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
     path('newsletter/unsubscribe/<str:token>/', views.newsletter_unsubscribe, name='newsletter_unsubscribe'),
+    
+    # Payment URLs (iCredit Integration)
+    path('payment/start/<int:order_id>/', views.initiate_payment, name='initiate_payment'),
+    path('payment/success/', views.payment_success, name='payment_success'),
+    path('payment/failure/', views.payment_failure, name='payment_failure'),
+    path('payment/notify/', views.payment_notify, name='payment_notify'),
 ]
 

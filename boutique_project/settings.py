@@ -190,6 +190,11 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'info@arye-boutique.co
 CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'arye.boutique@gmail.com')
 
 
+# iCredit Payment Gateway Configuration
+ICREDIT_GROUP_PRIVATE_TOKEN = os.environ.get('ICREDIT_GROUP_PRIVATE_TOKEN', '')
+ICREDIT_API_URL = 'https://icredit.rivhit.co.il/API/PaymentPageRequest.svc/GetUrl'
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 

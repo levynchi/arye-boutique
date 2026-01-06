@@ -1,0 +1,303 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}תודה על ההזמנה - בוטיק אריה{% endblock %}
+
+{% block extra_css %}
+<style>
+.payment-success-page {
+    min-height: 60vh;
+    padding: 60px 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.success-container {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.success-icon {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
+    animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-icon i {
+    font-size: 60px;
+    color: white;
+}
+
+.success-title {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.success-subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 40px;
+}
+
+.order-details {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    text-align: right;
+}
+
+.order-details h3 {
+    color: #7594b1;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    border-bottom: 2px solid #7594b1;
+    padding-bottom: 10px;
+}
+
+.order-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.order-info-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.order-info-item label {
+    display: block;
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.order-info-item span {
+    font-weight: 600;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.order-items-list {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.order-item-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.order-item-quantity {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.order-item-price {
+    font-weight: 600;
+    color: #7594b1;
+}
+
+.order-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0 0;
+    border-top: 2px solid #7594b1;
+    margin-top: 15px;
+    font-size: 1.3rem;
+}
+
+.order-total span:last-child {
+    font-weight: 700;
+    color: #7594b1;
+}
+
+.success-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.success-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 35px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.success-btn-primary {
+    background: #7594b1;
+    color: white;
+}
+
+.success-btn-primary:hover {
+    background: #5a7a99;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(117, 148, 177, 0.4);
+}
+
+.success-btn-secondary {
+    background: white;
+    color: #7594b1;
+    border: 2px solid #7594b1;
+}
+
+.success-btn-secondary:hover {
+    background: #f8f9fa;
+}
+
+.success-note {
+    margin-top: 40px;
+    padding: 20px;
+    background: #fff3cd;
+    border-radius: 10px;
+    color: #856404;
+}
+
+.success-note i {
+    margin-left: 10px;
+}
+
+@media (max-width: 600px) {
+    .success-title {
+        font-size: 1.8rem;
+    }
+    
+    .order-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .success-actions {
+        flex-direction: column;
+    }
+    
+    .success-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payment-success-page">
+    <div class="success-container">
+        <div class="success-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        
+        <h1 class="success-title">תודה על ההזמנה! 🎉</h1>
+        <p class="success-subtitle">התשלום בוצע בהצלחה וההזמנה שלך בדרך אליך</p>
+        
+        {% if order %}
+        <div class="order-details">
+            <h3><i class="fas fa-receipt"></i> פרטי הזמנה #{{ order.id }}</h3>
+            
+            <div class="order-info">
+                <div class="order-info-item">
+                    <label>שם</label>
+                    <span>{{ order.guest_name }}</span>
+                </div>
+                <div class="order-info-item">
+                    <label>טלפון</label>
+                    <span>{{ order.guest_phone }}</span>
+                </div>
+                <div class="order-info-item">
+                    <label>אימייל</label>
+                    <span>{{ order.guest_email }}</span>
+                </div>
+                <div class="order-info-item">
+                    <label>כתובת למשלוח</label>
+                    <span>{{ order.guest_address }}, {{ order.guest_city }}</span>
+                </div>
+            </div>
+            
+            <div class="order-items-list">
+                <h4 style="margin-bottom: 15px; color: #555;">פריטים בהזמנה:</h4>
+                {% for item in order.items.all %}
+                <div class="order-item">
+                    <div>
+                        <span class="order-item-name">{{ item.product.name }}</span>
+                        <span class="order-item-quantity"> × {{ item.quantity }}</span>
+                    </div>
+                    <span class="order-item-price">{{ item.subtotal }} ₪</span>
+                </div>
+                {% endfor %}
+                
+                {% if order.discount_amount > 0 %}
+                <div class="order-item" style="color: #4CAF50;">
+                    <span>הנחה ({{ order.coupon_code }})</span>
+                    <span>-{{ order.discount_amount }} ₪</span>
+                </div>
+                {% endif %}
+                
+                <div class="order-total">
+                    <span>סה״כ שולם:</span>
+                    <span>{{ order.total_price }} ₪</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="success-actions">
+            <a href="{% url 'home' %}" class="success-btn success-btn-primary">
+                <i class="fas fa-home"></i>
+                חזרה לחנות
+            </a>
+            <a href="{% url 'contact' %}" class="success-btn success-btn-secondary">
+                <i class="fas fa-envelope"></i>
+                צור קשר
+            </a>
+        </div>
+        
+        <div class="success-note">
+            <i class="fas fa-info-circle"></i>
+            <strong>שימו לב:</strong> שלחנו אישור הזמנה למייל שלכם. אם לא קיבלתם, בדקו בתיקיית הספאם או צרו איתנו קשר.
+        </div>
+    </div>
+</div>
+{% endblock %}
+

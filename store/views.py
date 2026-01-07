@@ -776,6 +776,9 @@ def checkout(request):
     if request.method == 'POST':
         form = CheckoutForm(request.POST)
         if form.is_valid():
+            # #region agent log
+            print(f"[DEBUG] checkout: Form valid, cart_items={cart_items.count()}")
+            # #endregion
             # בדיקת מלאי לפני יצירת ההזמנה
             for cart_item in cart_items:
                 if cart_item.product.stock_quantity < cart_item.quantity:
@@ -823,6 +826,10 @@ def checkout(request):
             
             # שמירת מזהה ההזמנה בסשן למקרה של חזרה
             request.session['pending_order_id'] = order.id
+            
+            # #region agent log
+            print(f"[DEBUG] checkout: Order created id={order.id}, total={total}, redirecting to payment")
+            # #endregion
             
             # הפניה לדף התשלום
             # העגלה תנוקה רק אחרי תשלום מוצלח
@@ -1332,6 +1339,9 @@ def initiate_payment(request, order_id):
     """
     יצירת בקשת תשלום ל-iCredit והפניית הלקוח לדף התשלום
     """
+    # #region agent log
+    print(f"[DEBUG] initiate_payment: Called with order_id={order_id}")
+    # #endregion
     order = get_object_or_404(Order, id=order_id)
     
     # בדיקה שההזמנה עדיין ממתינה לתשלום
@@ -1378,6 +1388,9 @@ def initiate_payment(request, order_id):
     }
     
     try:
+        # #region agent log
+        print(f"[DEBUG] initiate_payment: Calling iCredit API, url={settings.ICREDIT_API_URL}, amount={order.total_price}, has_token={bool(settings.ICREDIT_GROUP_PRIVATE_TOKEN)}")
+        # #endregion
         response = requests.post(
             settings.ICREDIT_API_URL,
             json=payload,
@@ -1387,16 +1400,26 @@ def initiate_payment(request, order_id):
         
         data = response.json()
         
+        # #region agent log
+        print(f"[DEBUG] initiate_payment: API response status={data.get('Status')}, error={data.get('ErrorMessage', '')}, has_url={'URL' in data}")
+        # #endregion
+        
         if data.get('Status') == 0:  # הצלחה
             # הפניה לדף התשלום של iCredit
             return redirect(data['URL'])
         else:
             # שגיאה מ-iCredit
             error_message = data.get('ErrorMessage', 'שגיאה לא ידועה')
+            # #region agent log
+            print(f"[DEBUG] initiate_payment: iCredit ERROR - {error_message}, response={str(data)[:500]}")
+            # #endregion
             messages.error(request, f'שגיאה ביצירת דף תשלום: {error_message}')
             return redirect('checkout')
             
     except requests.exceptions.RequestException as e:
+        # #region agent log
+        print(f"[DEBUG] initiate_payment: Request EXCEPTION - {str(e)}")
+        # #endregion
         messages.error(request, 'שגיאה בהתחברות לשרת התשלומים. נסה שוב.')
         return redirect('checkout')
 

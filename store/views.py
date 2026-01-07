@@ -1398,7 +1398,19 @@ def initiate_payment(request, order_id):
             timeout=30
         )
         
-        data = response.json()
+        # #region agent log
+        print(f"[DEBUG] initiate_payment: HTTP status={response.status_code}, content_type={response.headers.get('Content-Type', 'unknown')}")
+        print(f"[DEBUG] initiate_payment: Raw response (first 500 chars)={response.text[:500]}")
+        # #endregion
+        
+        try:
+            data = response.json()
+        except Exception as json_err:
+            # #region agent log
+            print(f"[DEBUG] initiate_payment: JSON parse error - {str(json_err)}, full response={response.text}")
+            # #endregion
+            messages.error(request, 'שגיאה בתקשורת עם שרת התשלומים. נסה שוב.')
+            return redirect('checkout')
         
         # #region agent log
         print(f"[DEBUG] initiate_payment: API response status={data.get('Status')}, error={data.get('ErrorMessage', '')}, has_url={'URL' in data}")

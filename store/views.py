@@ -1338,6 +1338,9 @@ def newsletter_unsubscribe(request, token):
 def initiate_payment(request, order_id):
     """
     יצירת בקשת תשלום ל-iCredit והפניית הלקוח לדף התשלום
+    
+    בסביבת טסט: משתמש בדף הדמו של ריווחית
+    בסביבת אמת: משתמש ב-API ליצירת דף תשלום ייחודי
     """
     # #region agent log
     print(f"[DEBUG] initiate_payment: Called with order_id={order_id}")
@@ -1356,21 +1359,31 @@ def initiate_payment(request, order_id):
     order.payment_reference = sale_id
     order.save()
     
-    # הכנת פרטי הפריטים להצגה בדף התשלום
+    # שמירת פרטי ההזמנה בסשן לשימוש אחרי חזרה מהתשלום
+    request.session['pending_order_id'] = order.id
+    request.session['pending_order_total'] = float(order.total_price)
+    
+    # בסביבת טסט - פשוט מפנה לדף הדמו
+    # (דף הדמו הוא כללי ולא תומך בפרמטרים מותאמים אישית)
+    if settings.ICREDIT_TEST_MODE:
+        payment_url = f"https://testicredit.rivhit.co.il/payment/PaymentFullPage.aspx?GroupId={settings.ICREDIT_GROUP_PRIVATE_TOKEN}"
+        print(f"[DEBUG] initiate_payment: TEST MODE - Redirecting to demo page: {payment_url}")
+        return redirect(payment_url)
+    
+    # בסביבת Production - שימוש ב-API ליצירת דף תשלום ייחודי
     items = []
     for item in order.items.all():
         items.append({
             "CatalogNumber": str(item.product.id),
             "Quantity": item.quantity,
             "UnitPrice": float(item.price),
-            "Description": item.product.name[:50]  # הגבלה ל-50 תווים
+            "Description": item.product.name[:50]
         })
     
-    # בניית הבקשה ל-iCredit
     payload = {
         "GroupPrivateToken": settings.ICREDIT_GROUP_PRIVATE_TOKEN,
-        "Currency": 1,  # 1 = שקלים
-        "SaleType": 1,  # 1 = חיוב רגיל
+        "Currency": 1,
+        "SaleType": 1,
         "Amount": float(order.total_price),
         "MaxPayments": 1,
         "HideItemList": False,
@@ -1382,56 +1395,40 @@ def initiate_payment(request, order_id):
         "CustomerLastName": " ".join(order.guest_name.split()[1:]) if order.guest_name and len(order.guest_name.split()) > 1 else "",
         "Email": order.guest_email,
         "PhoneNumber": order.guest_phone,
-        "Custom1": str(order.id),  # מזהה הזמנה לשימוש ב-IPN
+        "Custom1": str(order.id),
         "SaleId": sale_id,
         "Items": items
     }
     
     try:
-        # #region agent log
-        print(f"[DEBUG] initiate_payment: Calling iCredit API, url={settings.ICREDIT_API_URL}, amount={order.total_price}, has_token={bool(settings.ICREDIT_GROUP_PRIVATE_TOKEN)}")
-        # #endregion
+        print(f"[DEBUG] initiate_payment: PRODUCTION - Calling iCredit API")
+        
         response = requests.post(
             settings.ICREDIT_API_URL,
             json=payload,
-            headers={'Content-Type': 'application/json'},
+            headers={
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
             timeout=30
         )
         
-        # #region agent log
-        print(f"[DEBUG] initiate_payment: HTTP status={response.status_code}, content_type={response.headers.get('Content-Type', 'unknown')}")
-        print(f"[DEBUG] initiate_payment: Raw response (first 500 chars)={response.text[:500]}")
-        # #endregion
+        print(f"[DEBUG] initiate_payment: HTTP status = {response.status_code}")
         
-        try:
-            data = response.json()
-        except Exception as json_err:
-            # #region agent log
-            print(f"[DEBUG] initiate_payment: JSON parse error - {str(json_err)}, full response={response.text}")
-            # #endregion
-            messages.error(request, 'שגיאה בתקשורת עם שרת התשלומים. נסה שוב.')
-            return redirect('checkout')
+        data = response.json()
         
-        # #region agent log
-        print(f"[DEBUG] initiate_payment: API response status={data.get('Status')}, error={data.get('ErrorMessage', '')}, has_url={'URL' in data}")
-        # #endregion
-        
-        if data.get('Status') == 0:  # הצלחה
-            # הפניה לדף התשלום של iCredit
-            return redirect(data['URL'])
+        if data.get('Status') == 0:
+            payment_url = data.get('URL')
+            print(f"[DEBUG] initiate_payment: Success! URL: {payment_url}")
+            return redirect(payment_url)
         else:
-            # שגיאה מ-iCredit
             error_message = data.get('ErrorMessage', 'שגיאה לא ידועה')
-            # #region agent log
-            print(f"[DEBUG] initiate_payment: iCredit ERROR - {error_message}, response={str(data)[:500]}")
-            # #endregion
+            print(f"[DEBUG] initiate_payment: Error: {error_message}")
             messages.error(request, f'שגיאה ביצירת דף תשלום: {error_message}')
             return redirect('checkout')
             
-    except requests.exceptions.RequestException as e:
-        # #region agent log
-        print(f"[DEBUG] initiate_payment: Request EXCEPTION - {str(e)}")
-        # #endregion
+    except Exception as e:
+        print(f"[DEBUG] initiate_payment: Exception: {str(e)}")
         messages.error(request, 'שגיאה בהתחברות לשרת התשלומים. נסה שוב.')
         return redirect('checkout')
 

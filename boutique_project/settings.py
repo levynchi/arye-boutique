@@ -193,15 +193,27 @@ CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'arye.boutique@gmail.com')
 # iCredit Payment Gateway Configuration
 # סביבת טסט - להחליף לפרודקשן אחרי קבלת אישור
 ICREDIT_TEST_MODE = os.environ.get('ICREDIT_TEST_MODE', 'True').lower() == 'true'
-ICREDIT_GROUP_PRIVATE_TOKEN = os.environ.get('ICREDIT_GROUP_PRIVATE_TOKEN', '1c9dc7f1-0599-4114-a364-6eb87af66880')
+
+# Test tokens - replace with production tokens when ready
+# Using Hebrew test tokens from rivhit-api.readme.io documentation
+ICREDIT_GROUP_PRIVATE_TOKEN = os.environ.get(
+    'ICREDIT_GROUP_PRIVATE_TOKEN',
+    'a1408bfc-18da-49dc-aa77-d65870f7943e'  # Hebrew test token - works with Postman!
+)
+ICREDIT_CREDIT_BOX_TOKEN = os.environ.get(
+    'ICREDIT_CREDIT_BOX_TOKEN',
+    '7196ca68-1658-4e9a-bb12-a20e0fc79827'  # Hebrew test token
+)
 
 # URLs - טסט או פרודקשן
 if ICREDIT_TEST_MODE:
     ICREDIT_API_URL = 'https://testicredit.rivhit.co.il/API/PaymentPageRequest.svc/GetUrl'
     ICREDIT_VERIFY_URL = 'https://testicredit.rivhit.co.il/API/PaymentPageRequest.svc/Verify'
+    ICREDIT_SALE_URL = 'https://testicredit.rivhit.co.il/API/PaymentPageRequest.svc/SaleChargeToken'
 else:
     ICREDIT_API_URL = 'https://icredit.rivhit.co.il/API/PaymentPageRequest.svc/GetUrl'
     ICREDIT_VERIFY_URL = 'https://icredit.rivhit.co.il/API/PaymentPageRequest.svc/Verify'
+    ICREDIT_SALE_URL = 'https://icredit.rivhit.co.il/API/PaymentPageRequest.svc/SaleChargeToken'
 
 
 # Default primary key field type

@@ -1338,13 +1338,9 @@ def newsletter_unsubscribe(request, token):
 def initiate_payment(request, order_id):
     """
     יצירת בקשת תשלום ל-iCredit והפניית הלקוח לדף התשלום
-    
-    בסביבת טסט: משתמש בדף הדמו של ריווחית
-    בסביבת אמת: משתמש ב-API ליצירת דף תשלום ייחודי
+    משתמש ב-API ליצירת דף תשלום ייחודי (גם בטסט וגם בפרודקשן)
     """
-    # #region agent log
     print(f"[DEBUG] initiate_payment: Called with order_id={order_id}")
-    # #endregion
     order = get_object_or_404(Order, id=order_id)
     
     # בדיקה שההזמנה עדיין ממתינה לתשלום
@@ -1363,67 +1359,82 @@ def initiate_payment(request, order_id):
     request.session['pending_order_id'] = order.id
     request.session['pending_order_total'] = float(order.total_price)
     
-    # בסביבת טסט - פשוט מפנה לדף הדמו
-    # (דף הדמו הוא כללי ולא תומך בפרמטרים מותאמים אישית)
-    if settings.ICREDIT_TEST_MODE:
-        payment_url = f"https://testicredit.rivhit.co.il/payment/PaymentFullPage.aspx?GroupId={settings.ICREDIT_GROUP_PRIVATE_TOKEN}"
-        print(f"[DEBUG] initiate_payment: TEST MODE - Redirecting to demo page: {payment_url}")
-        return redirect(payment_url)
-    
-    # בסביבת Production - שימוש ב-API ליצירת דף תשלום ייחודי
+    # יצירת רשימת פריטים להזמנה - בפורמט שעובד עם iCredit
     items = []
     for item in order.items.all():
         items.append({
-            "CatalogNumber": str(item.product.id),
-            "Quantity": item.quantity,
             "UnitPrice": float(item.price),
-            "Description": item.product.name[:50]
+            "Quantity": int(item.quantity),  # Must be integer, not float
+            "Description": f"Product {item.product.id}"  # ASCII only - Hebrew causes issues
         })
     
+    # Build callback URLs
+    base_url = request.build_absolute_uri('/')
+    if '127.0.0.1' in base_url or 'localhost' in base_url:
+        # For local testing - iCredit doesn't accept localhost URLs
+        # Payment will work, but redirect won't return to our site
+        success_url = "https://example.com/success"
+        failure_url = "https://example.com/failure"
+    else:
+        # Production - use the real domain
+        success_url = f"https://arye-boutique.co.il/payment/success/?order_id={order.id}"
+        failure_url = f"https://arye-boutique.co.il/payment/failure/?order_id={order.id}"
+    
+    # Payload בפורמט שעובד - נבדק עם Postman!
     payload = {
         "GroupPrivateToken": settings.ICREDIT_GROUP_PRIVATE_TOKEN,
-        "Currency": 1,
-        "SaleType": 1,
-        "Amount": float(order.total_price),
+        "Items": items,
+        "RedirectURL": success_url,
+        "FailRedirectURL": failure_url,
+        "Currency": 1,  # 1 = ILS
         "MaxPayments": 1,
-        "HideItemList": False,
-        "CreateToken": False,
-        "RedirectURL": request.build_absolute_uri('/payment/success/'),
-        "FailRedirectURL": request.build_absolute_uri('/payment/failure/'),
-        "IPNURL": request.build_absolute_uri('/payment/notify/'),
-        "CustomerFirstName": order.guest_name.split()[0] if order.guest_name else "",
-        "CustomerLastName": " ".join(order.guest_name.split()[1:]) if order.guest_name and len(order.guest_name.split()) > 1 else "",
-        "Email": order.guest_email,
-        "PhoneNumber": order.guest_phone,
-        "Custom1": str(order.id),
-        "SaleId": sale_id,
-        "Items": items
+        "DocumentLanguage": "he"
     }
     
     try:
-        print(f"[DEBUG] initiate_payment: PRODUCTION - Calling iCredit API")
+        api_url = settings.ICREDIT_API_URL
+        print(f"[DEBUG] initiate_payment: Calling iCredit API at {api_url}")
+        print(f"[DEBUG] initiate_payment: Payload: {json.dumps(payload, ensure_ascii=False)}")
         
+        # Send request exactly like Postman does
         response = requests.post(
-            settings.ICREDIT_API_URL,
-            json=payload,
+            api_url,
+            data=json.dumps(payload),  # Use data instead of json for exact control
             headers={
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'User-Agent': 'PostmanRuntime/7.32.0',
+                'Accept': '*/*'
             },
-            timeout=30
+            timeout=30,
+            allow_redirects=False
         )
         
         print(f"[DEBUG] initiate_payment: HTTP status = {response.status_code}")
+        print(f"[DEBUG] initiate_payment: Headers = {dict(response.headers)}")
+        print(f"[DEBUG] initiate_payment: Response = {response.text[:1000] if response.text else 'empty'}")
+        
+        # Handle redirect responses
+        if response.status_code in [301, 302, 303, 307, 308]:
+            redirect_url = response.headers.get('Location')
+            print(f"[DEBUG] initiate_payment: Got redirect to: {redirect_url}")
+            messages.error(request, f'שגיאה: ה-API מחזיר redirect במקום תשובה')
+            return redirect('checkout')
+        
+        # Handle non-200 responses
+        if response.status_code != 200:
+            print(f"[DEBUG] initiate_payment: Non-200 status code: {response.status_code}")
+            messages.error(request, f'שגיאה בשרת התשלומים (קוד {response.status_code})')
+            return redirect('checkout')
         
         data = response.json()
         
         if data.get('Status') == 0:
             payment_url = data.get('URL')
-            print(f"[DEBUG] initiate_payment: Success! URL: {payment_url}")
+            print(f"[DEBUG] initiate_payment: Success! Payment URL: {payment_url}")
             return redirect(payment_url)
         else:
-            error_message = data.get('ErrorMessage', 'שגיאה לא ידועה')
-            print(f"[DEBUG] initiate_payment: Error: {error_message}")
+            error_message = data.get('ErrorMessage') or data.get('StatusDescription') or f"Status: {data.get('Status')}"
+            print(f"[DEBUG] initiate_payment: API Error: {error_message}, Full response: {data}")
             messages.error(request, f'שגיאה ביצירת דף תשלום: {error_message}')
             return redirect('checkout')
             

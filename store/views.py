@@ -1380,6 +1380,11 @@ def initiate_payment(request, order_id):
         success_url = f"https://arye-boutique.co.il/payment/success/?order_id={order.id}"
         failure_url = f"https://arye-boutique.co.il/payment/failure/?order_id={order.id}"
     
+    # פיצול שם הלקוח לשם פרטי ושם משפחה
+    name_parts = order.guest_name.split() if order.guest_name else ["לקוח"]
+    first_name = name_parts[0] if name_parts else "לקוח"
+    last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else "לקוח"
+    
     # Payload בפורמט שעובד - נבדק עם Postman!
     payload = {
         "GroupPrivateToken": settings.ICREDIT_GROUP_PRIVATE_TOKEN,
@@ -1388,7 +1393,16 @@ def initiate_payment(request, order_id):
         "FailRedirectURL": failure_url,
         "Currency": 1,  # 1 = ILS
         "MaxPayments": 1,
-        "DocumentLanguage": "he"
+        "DocumentLanguage": "he",
+        # פרטי לקוח
+        "CustomerFirstName": first_name,
+        "CustomerLastName": last_name,
+        "EmailAddress": order.guest_email or "",
+        "PhoneNumber": order.guest_phone or "",
+        "Address": order.guest_address or "",
+        "City": order.guest_city or "",
+        # מזהה הזמנה
+        "Custom1": str(order.id),
     }
     
     try:

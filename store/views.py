@@ -1365,7 +1365,7 @@ def initiate_payment(request, order_id):
         items.append({
             "UnitPrice": float(item.price),
             "Quantity": int(item.quantity),  # Must be integer, not float
-            "Description": f"Product {item.product.id}"  # ASCII only - Hebrew causes issues
+            "Description": item.product.name  # שם המוצר בעברית
         })
     
     # Build callback URLs

@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
 from django.utils.text import slugify
 
@@ -575,7 +576,9 @@ class ProductVariant(models.Model):
         FabricType,
         on_delete=models.PROTECT,
         related_name='variants',
-        verbose_name='סוג בד'
+        verbose_name='סוג בד',
+        null=True,
+        blank=True
     )
     size = models.ForeignKey(
         Size,
@@ -602,11 +605,24 @@ class ProductVariant(models.Model):
     class Meta:
         verbose_name = 'וריאנט מוצר'
         verbose_name_plural = 'וריאנטים של מוצרים'
-        ordering = ['fabric_type__order', 'size__order']
-        unique_together = ['product', 'fabric_type', 'size']
+        ordering = ['size__order']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product', 'size'],
+                condition=Q(fabric_type__isnull=True),
+                name='store_productvariant_unique_product_size_no_fabric',
+            ),
+            models.UniqueConstraint(
+                fields=['product', 'fabric_type', 'size'],
+                condition=Q(fabric_type__isnull=False),
+                name='store_productvariant_unique_product_fabric_size',
+            ),
+        ]
     
     def __str__(self):
-        return f'{self.product.name} - {self.fabric_type.name} - {self.size.name}'
+        if self.fabric_type:
+            return f'{self.product.name} - {self.fabric_type.name} - {self.size.name}'
+        return f'{self.product.name} - {self.size.name}'
     
     @property
     def effective_price(self):
@@ -615,7 +631,9 @@ class ProductVariant(models.Model):
     
     def get_display_name(self):
         """שם לתצוגה ללקוח"""
-        return f'{self.fabric_type.name}, {self.product.size_label} {self.size.display_name}'
+        if self.fabric_type:
+            return f'{self.fabric_type.name}, {self.product.size_label} {self.size.display_name}'
+        return f'{self.product.size_label} {self.size.display_name}'
 
 
 class WishlistItem(models.Model):

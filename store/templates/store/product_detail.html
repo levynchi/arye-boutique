@@ -106,7 +106,8 @@
                 {% if has_variants %}
                 <!-- Variant Selection -->
                 <div class="variant-selection">
-                    <!-- Fabric Type Selection -->
+                    {% if show_fabric_selector %}
+                    <!-- Fabric Type Selection (only when 2+ fabric groups) -->
                     <div class="fabric-selection">
                         <label class="selection-label">בחר סוג בד:</label>
                         <div class="fabric-options" id="fabric-options">
@@ -117,14 +118,17 @@
                             {% endfor %}
                         </div>
                     </div>
+                    {% endif %}
                     
                     <!-- Size Selection -->
-                    <div class="size-selection" id="size-selection" style="display: none;">
+                    <div class="size-selection" id="size-selection" {% if show_fabric_selector %}style="display: none;"{% endif %}>
                         <label class="selection-label">בחר {{ product.size_label }}:</label>
                         <div class="size-options" id="size-options">
                             <!-- Sizes will be populated by JavaScript -->
                         </div>
+                        {% if show_fabric_selector %}
                         <p class="selection-hint">אנא בחר סוג בד תחילה</p>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}
@@ -209,6 +213,7 @@
     // Variants data from server
     const variantsData = {{ variants_json|safe }};
     const hasVariants = {{ has_variants|yesno:"true,false" }};
+    const showFabricSelector = {{ show_fabric_selector|yesno:"true,false" }};
     const baseProductPrice = '{{ product.price }}';
     const productPriceDisplay = document.getElementById('product-price-display');
     function setDisplayPrice(priceStr) {
@@ -426,30 +431,15 @@
             const hiddenVariantId = document.getElementById('hidden-variant-id');
             const addToCartBtn = document.getElementById('add-to-cart-btn');
             
-            // Fabric selection
-            fabricOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    // Remove active class from all fabric options
-                    fabricOptions.forEach(opt => opt.classList.remove('active'));
-                    // Add active to clicked option
-                    this.classList.add('active');
-                    
-                    // Get selected fabric ID
-                    selectedFabricId = this.getAttribute('data-fabric-id');
-                    
-                    // Show size selection
+            // Single fabric or no-fabric: show sizes immediately
+            if (!showFabricSelector && sizeSelection) {
+                const firstKey = Object.keys(variantsData)[0];
+                if (firstKey) {
+                    selectedFabricId = firstKey;
+                    populateSizes(firstKey);
                     sizeSelection.style.display = 'block';
-                    
-                    // Populate sizes for this fabric
-                    populateSizes(selectedFabricId);
-                    
-                    // Reset size selection and price
-                    selectedVariantId = null;
-                    hiddenVariantId.value = '';
-                    setDisplayPrice(baseProductPrice);
-                    updateAddToCartButton();
-                });
-            });
+                }
+            }
             
             function populateSizes(fabricId) {
                 const fabric = variantsData[fabricId];
@@ -508,6 +498,31 @@
                     addToCartBtn.textContent = 'בחר אפשרויות להוספה';
                 }
             }
+            
+            // Fabric selection
+            fabricOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove active class from all fabric options
+                    fabricOptions.forEach(opt => opt.classList.remove('active'));
+                    // Add active to clicked option
+                    this.classList.add('active');
+                    
+                    // Get selected fabric ID
+                    selectedFabricId = this.getAttribute('data-fabric-id');
+                    
+                    // Show size selection
+                    sizeSelection.style.display = 'block';
+                    
+                    // Populate sizes for this fabric
+                    populateSizes(selectedFabricId);
+                    
+                    // Reset size selection and price
+                    selectedVariantId = null;
+                    hiddenVariantId.value = '';
+                    setDisplayPrice(baseProductPrice);
+                    updateAddToCartButton();
+                });
+            });
         }
         
         // Quantity selector

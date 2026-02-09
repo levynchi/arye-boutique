@@ -102,7 +102,7 @@ def product_detail(request, slug):
         is_active=True
     ).distinct().order_by('order', 'name')
     
-    # בניית מבנה נתונים לוריאנטים - לכל בד, רשימת המידות הזמינות
+    # בניית מבנה נתונים לוריאנטים - לכל בד, רשימת המידות הזמינות (+ וריאנטים בלי בד)
     variants_data = {}
     for fabric in fabric_types:
         variants_data[fabric.id] = {
@@ -111,22 +111,40 @@ def product_detail(request, slug):
             'sizes': []
         }
     
+    # וריאנטים ללא סוג בד (אופציונלי)
+    no_fabric_variants = product.variants.filter(
+        is_available=True, fabric_type__isnull=True
+    ).select_related('size')
+    if no_fabric_variants.exists():
+        variants_data['no_fabric'] = {
+            'name': '',
+            'order': -1,
+            'sizes': []
+        }
+    
     # קבלת כל הוריאנטים
     all_variants = product.variants.select_related('fabric_type', 'size').filter(is_available=True)
     for variant in all_variants:
-        if variant.fabric_type_id in variants_data:
-            variants_data[variant.fabric_type_id]['sizes'].append({
-                'id': variant.id,
-                'size': str(variant.size),  # המרה למחרוזת עבור JSON
-                'price': str(variant.effective_price),
-                'warehouse_location': variant.warehouse_location
-            })
+        size_payload = {
+            'id': variant.id,
+            'size': str(variant.size),
+            'price': str(variant.effective_price),
+            'warehouse_location': variant.warehouse_location
+        }
+        if variant.fabric_type_id is not None and variant.fabric_type_id in variants_data:
+            variants_data[variant.fabric_type_id]['sizes'].append(size_payload)
+        elif variant.fabric_type_id is None and 'no_fabric' in variants_data:
+            variants_data['no_fabric']['sizes'].append(size_payload)
     
     # המרה ל-JSON עבור JavaScript
     variants_json = json.dumps(variants_data)
     
     # האם למוצר יש וריאנטים
-    has_variants = fabric_types.exists()
+    has_variants = bool(variants_data)
+    
+    # הצגת בחירת בד רק כשיש יותר מקבוצה אחת (2+ סוגי בד או בד אחד + no_fabric)
+    fabric_key_count = sum(1 for k in variants_data if k != 'no_fabric') + (1 if 'no_fabric' in variants_data else 0)
+    show_fabric_selector = fabric_key_count > 1
     
     # קבלת קטגוריות לניווט
     categories = Category.objects.filter(is_active=True)
@@ -138,6 +156,7 @@ def product_detail(request, slug):
         'fabric_types': fabric_types,
         'variants_json': variants_json,
         'has_variants': has_variants,
+        'show_fabric_selector': show_fabric_selector,
         'categories': categories,
     }
     
@@ -1041,16 +1060,23 @@ def product_variants_api(request, product_id):
             'sizes': []
         }
     
+    # וריאנטים ללא סוג בד
+    if product.variants.filter(is_available=True, fabric_type__isnull=True).exists():
+        variants_data['no_fabric'] = {'name': '', 'order': -1, 'sizes': []}
+    
     # קבלת כל הוריאנטים
     all_variants = product.variants.select_related('fabric_type', 'size').filter(is_available=True)
     for variant in all_variants:
-        if variant.fabric_type_id in variants_data:
-            variants_data[variant.fabric_type_id]['sizes'].append({
-                'id': variant.id,
-                'size': str(variant.size),
-                'size_display': variant.size.display_name or variant.size.name,
-                'price': float(variant.effective_price),
-            })
+        size_payload = {
+            'id': variant.id,
+            'size': str(variant.size),
+            'size_display': variant.size.display_name or variant.size.name,
+            'price': float(variant.effective_price),
+        }
+        if variant.fabric_type_id is not None and variant.fabric_type_id in variants_data:
+            variants_data[variant.fabric_type_id]['sizes'].append(size_payload)
+        elif variant.fabric_type_id is None and 'no_fabric' in variants_data:
+            variants_data['no_fabric']['sizes'].append(size_payload)
     
     # בניית רשימת סוגי בד עם המידות
     fabrics_list = []
@@ -1062,14 +1088,12 @@ def product_variants_api(request, product_id):
         })
     
     # האם למוצר יש וריאנטים
-    has_variants = fabric_types.exists()
+    has_variants = bool(variants_data)
     
     # קבלת כל המידות הזמינות (ללא תלות בבד)
     all_sizes = []
-    if has_variants:
-        # אם יש בד אחד בלבד, נציג את המידות שלו
-        if len(fabrics_list) == 1:
-            all_sizes = fabrics_list[0]['sizes']
+    if has_variants and len(fabrics_list) == 1:
+        all_sizes = fabrics_list[0]['sizes']
     
     return JsonResponse({
         'success': True,

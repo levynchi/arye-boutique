@@ -220,7 +220,7 @@ class ProductVariantInline(admin.TabularInline):
     can_delete = True
     show_change_link = False
     fields = ('fabric_type', 'size', 'is_available', 'warehouse_location', 'price_override')
-    ordering = ['fabric_type__order', 'size__order']
+    ordering = ['size__order']
     
     # אפשר הוספת related objects (אייקון +)
     def has_add_permission(self, request, obj=None):

@@ -253,6 +253,12 @@ class Product(models.Model):
         related_name='products',
         verbose_name='הרכב חומרים וטיפול'
     )
+    size_label = models.CharField(
+        max_length=50,
+        default='מידה',
+        verbose_name='תווית מידה',
+        help_text='למשל: "מידה" לבגדים, "סוג" לסדינים'
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='תאריך עדכון')
     
@@ -448,6 +454,8 @@ class CartItem(models.Model):
     @property
     def subtotal(self):
         """סכום ביניים של הפריט"""
+        if self.variant and self.variant.price_override is not None:
+            return self.variant.price_override * self.quantity
         return self.product.price * self.quantity
 
 
@@ -582,6 +590,14 @@ class ProductVariant(models.Model):
         verbose_name='מיקום תא במחסן',
         help_text='למשל: A12, B05, C23'
     )
+    price_override = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name='מחיר מותאם',
+        help_text='השאר ריק לשימוש במחיר המוצר הרגיל'
+    )
     
     class Meta:
         verbose_name = 'וריאנט מוצר'
@@ -592,9 +608,14 @@ class ProductVariant(models.Model):
     def __str__(self):
         return f'{self.product.name} - {self.fabric_type.name} - {self.size.name}'
     
+    @property
+    def effective_price(self):
+        """מחיר אפקטיבי: מחיר מותאם אם הוגדר, אחרת מחיר המוצר"""
+        return self.price_override if self.price_override is not None else self.product.price
+    
     def get_display_name(self):
         """שם לתצוגה ללקוח"""
-        return f'{self.fabric_type.name}, מידה {self.size.display_name}'
+        return f'{self.fabric_type.name}, {self.product.size_label} {self.size.display_name}'
 
 
 class WishlistItem(models.Model):

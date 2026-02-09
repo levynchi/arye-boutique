@@ -93,7 +93,7 @@
                     <p class="product-subtitle">{{ product.subtitle }}</p>
                     {% endif %}
                     
-                    <p class="product-price">{{ product.price }} ש"ח</p>
+                    <p class="product-price" id="product-price-display">{{ product.price }} ש"ח</p>
                 </div>
                 
                 {% if product.size and not has_variants %}
@@ -120,7 +120,7 @@
                     
                     <!-- Size Selection -->
                     <div class="size-selection" id="size-selection" style="display: none;">
-                        <label class="selection-label">בחר מידה:</label>
+                        <label class="selection-label">בחר {{ product.size_label }}:</label>
                         <div class="size-options" id="size-options">
                             <!-- Sizes will be populated by JavaScript -->
                         </div>
@@ -209,6 +209,11 @@
     // Variants data from server
     const variantsData = {{ variants_json|safe }};
     const hasVariants = {{ has_variants|yesno:"true,false" }};
+    const baseProductPrice = '{{ product.price }}';
+    const productPriceDisplay = document.getElementById('product-price-display');
+    function setDisplayPrice(priceStr) {
+        if (productPriceDisplay) productPriceDisplay.textContent = priceStr + ' ש"ח';
+    }
     
     // State
     let selectedFabricId = null;
@@ -438,9 +443,10 @@
                     // Populate sizes for this fabric
                     populateSizes(selectedFabricId);
                     
-                    // Reset size selection
+                    // Reset size selection and price
                     selectedVariantId = null;
                     hiddenVariantId.value = '';
+                    setDisplayPrice(baseProductPrice);
                     updateAddToCartButton();
                 });
             });
@@ -459,6 +465,7 @@
                     sizeBtn.className = 'size-option';
                     sizeBtn.textContent = sizeData.size;
                     sizeBtn.setAttribute('data-variant-id', sizeData.id);
+                    if (sizeData.price) sizeBtn.setAttribute('data-price', sizeData.price);
                     
                     sizeBtn.addEventListener('click', function() {
                         // Remove active from all size options
@@ -469,6 +476,10 @@
                         // Set selected variant
                         selectedVariantId = this.getAttribute('data-variant-id');
                         hiddenVariantId.value = selectedVariantId;
+                        
+                        // Update displayed price if variant has its own price
+                        const variantPrice = this.getAttribute('data-price');
+                        setDisplayPrice(variantPrice ? variantPrice : baseProductPrice);
                         
                         updateAddToCartButton();
                     });
@@ -482,6 +493,8 @@
                     singleSizeBtn.classList.add('active');
                     selectedVariantId = fabric.sizes[0].id;
                     hiddenVariantId.value = selectedVariantId;
+                    const singlePrice = fabric.sizes[0].price;
+                    setDisplayPrice(singlePrice ? singlePrice : baseProductPrice);
                     updateAddToCartButton();
                 }
             }

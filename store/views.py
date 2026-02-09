@@ -118,6 +118,7 @@ def product_detail(request, slug):
             variants_data[variant.fabric_type_id]['sizes'].append({
                 'id': variant.id,
                 'size': str(variant.size),  # המרה למחרוזת עבור JSON
+                'price': str(variant.effective_price),
                 'warehouse_location': variant.warehouse_location
             })
     
@@ -610,7 +611,7 @@ def cart_view(request):
     עמוד עגלת הקניות
     """
     cart = get_or_create_cart(request)
-    cart_items = cart.items.all().select_related('product')
+    cart_items = cart.items.all().select_related('product', 'variant', 'variant__product')
     
     # חישוב סיכומים
     subtotal = cart.total_price
@@ -720,7 +721,7 @@ def checkout(request):
     עמוד ביצוע הזמנה
     """
     cart = get_or_create_cart(request)
-    cart_items = cart.items.all().select_related('product')
+    cart_items = cart.items.all().select_related('product', 'variant', 'variant__product')
     
     # בדיקה שהעגלה לא ריקה
     if not cart_items.exists():
@@ -803,12 +804,13 @@ def checkout(request):
             
             # יצירת פריטי הזמנה ועדכון מלאי
             for cart_item in cart_items:
+                item_price = cart_item.variant.effective_price if cart_item.variant else cart_item.product.price
                 OrderItem.objects.create(
                     order=order,
                     product=cart_item.product,
                     variant=cart_item.variant,
                     quantity=cart_item.quantity,
-                    price=cart_item.product.price
+                    price=item_price
                 )
                 
                 # עדכון מלאי (בדיקה כפולה לבטיחות)
@@ -972,7 +974,7 @@ def cart_data(request):
     API endpoint להחזרת נתוני העגלה בפורמט JSON
     """
     cart = get_or_create_cart(request)
-    cart_items = cart.items.all().select_related('product')
+    cart_items = cart.items.all().select_related('product', 'variant', 'variant__product')
     
     # חישוב סיכומים
     subtotal = cart.total_price
@@ -1047,6 +1049,7 @@ def product_variants_api(request, product_id):
                 'id': variant.id,
                 'size': str(variant.size),
                 'size_display': variant.size.display_name or variant.size.name,
+                'price': float(variant.effective_price),
             })
     
     # בניית רשימת סוגי בד עם המידות

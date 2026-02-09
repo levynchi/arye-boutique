@@ -219,7 +219,7 @@ class ProductVariantInline(admin.TabularInline):
     extra = 0
     can_delete = True
     show_change_link = False
-    fields = ('fabric_type', 'size', 'is_available', 'warehouse_location')
+    fields = ('fabric_type', 'size', 'is_available', 'warehouse_location', 'price_override')
     ordering = ['fabric_type__order', 'size__order']
     
     # אפשר הוספת related objects (אייקון +)
@@ -240,7 +240,7 @@ class ProductVariantInline(admin.TabularInline):
         """
         # הסרת variant_display_name מה-fields שנשלחים ל-formset
         # כי זה readonly field בלבד
-        kwargs.setdefault('fields', ('fabric_type', 'size', 'is_available', 'warehouse_location'))
+        kwargs.setdefault('fields', ('fabric_type', 'size', 'is_available', 'warehouse_location', 'price_override'))
         formset = super().get_formset(request, obj, **kwargs)
         original_form = formset.form
         
@@ -315,8 +315,8 @@ class ProductAdmin(admin.ModelAdmin):
             'fields': ('image',)
         }),
         ('הגדרות', {
-            'fields': ('is_active', 'is_featured', 'is_bestseller', 'order'),
-            'description': 'מספר נמוך יותר = יופיע קודם בתצוגה'
+            'fields': ('is_active', 'is_featured', 'is_bestseller', 'order', 'size_label'),
+            'description': 'מספר נמוך יותר = יופיע קודם בתצוגה. תווית מידה: "מידה" לבגדים, "סוג" לסדינים'
         }),
         ('הרכב חומרים וטיפול', {
             'fields': ('material_care_info',),

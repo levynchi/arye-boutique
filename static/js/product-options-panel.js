@@ -169,7 +169,10 @@ document.addEventListener('DOMContentLoaded', function() {
             renderSizes(fabric.sizes);
         }
         
-        // Reset add button
+        // Reset price to base and add button
+        if (currentProductData && currentProductData.product && productPrice) {
+            productPrice.textContent = currentProductData.product.price.toFixed(2) + ' ₪';
+        }
         addBtn.disabled = true;
         addBtn.textContent = 'בחר מידה';
     }
@@ -190,19 +193,27 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.className = 'product-options-btn';
             btn.textContent = sizeData.size_display || sizeData.size;
             btn.dataset.variantId = sizeData.id;
-            btn.addEventListener('click', () => selectSize(sizeData.id));
+            if (sizeData.price != null) btn.dataset.price = sizeData.price;
+            btn.addEventListener('click', () => selectSize(sizeData.id, sizeData.price));
             sizesContainer.appendChild(btn);
         });
     }
     
     // Select size
-    function selectSize(variantId) {
+    function selectSize(variantId, variantPrice) {
         selectedVariantId = variantId;
         
         // Update size buttons
         sizesContainer.querySelectorAll('.product-options-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.variantId == variantId);
         });
+        
+        // Update displayed price if variant has its own price
+        if (productPrice && currentProductData && currentProductData.product) {
+            const basePrice = currentProductData.product.price;
+            const price = (variantPrice != null && variantPrice !== basePrice) ? variantPrice : basePrice;
+            productPrice.textContent = Number(price).toFixed(2) + ' ₪';
+        }
         
         // Enable add button
         addBtn.disabled = false;

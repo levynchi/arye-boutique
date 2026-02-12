@@ -85,7 +85,7 @@
                                 <p class="product-card-subcategory">{{ product.subcategory.name }}</p>
                             {% endif %}
                             <p class="product-card-name">{{ product.name }}</p>
-                            <p class="product-card-price">{{ product.price }} ש"ח</p>
+                            <p class="product-card-price">{{ product.get_display_price }} ש"ח</p>
                         </div>
                     </a>
                 </div>

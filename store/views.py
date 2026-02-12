@@ -153,7 +153,7 @@ def product_detail(request, slug):
             price_min = min(variant_prices)
             price_max = max(variant_prices)
     if price_min is not None and price_max is not None:
-        price_display_initial = f'{price_min:.2f}-{price_max:.2f}' if price_min != price_max else f'{price_min:.2f}'
+        price_display_initial = f'{price_min:.2f} - {price_max:.2f}' if price_min != price_max else f'{price_min:.2f}'
     else:
         price_display_initial = str(product.price)
     

@@ -280,6 +280,26 @@ class Product(models.Model):
     def is_in_stock(self):
         """בדיקה אם המוצר במלאי"""
         return self.stock_quantity > 0
+    
+    def get_display_price(self):
+        """מחיר לתצוגה: טווח אם יש וריאנטים עם מחירים שונים, אחרת מחיר המוצר"""
+        from django.db.models import Min, Max
+        from django.db.models.expressions import Case, When, F
+        from django.db.models import DecimalField
+        
+        result = self.variants.filter(is_available=True).annotate(
+            eff_price=Case(
+                When(price_override__isnull=False, then=F('price_override')),
+                default=F('product__price'),
+                output_field=DecimalField()
+            )
+        ).aggregate(min_p=Min('eff_price'), max_p=Max('eff_price'))
+        min_p, max_p = result['min_p'], result['max_p']
+        if min_p is not None and max_p is not None and min_p != max_p:
+            return f'{min_p:.2f} - {max_p:.2f}'
+        if min_p is not None:
+            return f'{min_p:.2f}'
+        return f'{self.price:.2f}'
 
 
 class ProductImage(models.Model):

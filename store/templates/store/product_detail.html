@@ -93,7 +93,7 @@
                     <p class="product-subtitle">{{ product.subtitle }}</p>
                     {% endif %}
                     
-                    <p class="product-price" id="product-price-display">{{ product.price }} ש"ח</p>
+                    <p class="product-price" id="product-price-display">{{ price_display_initial }} ש"ח</p>
                 </div>
                 
                 {% if product.size and not has_variants %}
@@ -214,7 +214,7 @@
     const variantsData = {{ variants_json|safe }};
     const hasVariants = {{ has_variants|yesno:"true,false" }};
     const showFabricSelector = {{ show_fabric_selector|yesno:"true,false" }};
-    const baseProductPrice = '{{ product.price }}';
+    const baseProductPrice = '{{ price_display_initial }}';
     const productPriceDisplay = document.getElementById('product-price-display');
     function setDisplayPrice(priceStr) {
         if (productPriceDisplay) productPriceDisplay.textContent = priceStr + ' ש"ח';

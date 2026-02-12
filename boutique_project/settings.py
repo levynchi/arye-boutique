@@ -158,8 +158,13 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-# WhiteNoise for serving static files in production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Static files storage: WhiteNoise in production, default in development
+if DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    # Remove WhiteNoise in development so runserver serves from static/ directly
+    MIDDLEWARE = [m for m in MIDDLEWARE if 'WhiteNoise' not in m]
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Media files (User uploaded files)

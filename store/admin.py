@@ -296,6 +296,13 @@ class ProductAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at', 'variant_creation_button']
     inlines = [ProductImageInline, ProductVariantInline]
     
+    def get_readonly_fields(self, request, obj=None):
+        """כשיש וריאנטים עם מחיר מותאם - השדה מחיר אינו ניתן לעריכה"""
+        readonly = list(super().get_readonly_fields(request, obj))
+        if obj and obj.pk and obj.variants.filter(price_override__isnull=False).exists():
+            readonly = readonly + ['price']
+        return readonly
+    
     class Media:
         js = ('admin/js/product_variants.js',)
         css = {

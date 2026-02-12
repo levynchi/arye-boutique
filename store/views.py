@@ -142,6 +142,21 @@ def product_detail(request, slug):
     # האם למוצר יש וריאנטים
     has_variants = bool(variants_data)
     
+    # חישוב טווח מחירים כשיש וריאנטים עם מחירים שונים
+    price_min = price_max = None
+    if has_variants:
+        variant_prices = [
+            float(v['price']) for group in variants_data.values()
+            for v in group.get('sizes', [])
+        ]
+        if variant_prices:
+            price_min = min(variant_prices)
+            price_max = max(variant_prices)
+    if price_min is not None and price_max is not None:
+        price_display_initial = f'{price_min:.2f}-{price_max:.2f}' if price_min != price_max else f'{price_min:.2f}'
+    else:
+        price_display_initial = str(product.price)
+    
     # הצגת בחירת בד רק כשיש יותר מקבוצה אחת (2+ סוגי בד או בד אחד + no_fabric)
     fabric_key_count = sum(1 for k in variants_data if k != 'no_fabric') + (1 if 'no_fabric' in variants_data else 0)
     show_fabric_selector = fabric_key_count > 1
@@ -157,6 +172,7 @@ def product_detail(request, slug):
         'variants_json': variants_json,
         'has_variants': has_variants,
         'show_fabric_selector': show_fabric_selector,
+        'price_display_initial': price_display_initial,
         'categories': categories,
     }
     

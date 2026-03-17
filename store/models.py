@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Q
 from django.conf import settings
 from django.utils.text import slugify
+import uuid
 
 
 class SiteSettings(models.Model):
@@ -14,7 +15,8 @@ class SiteSettings(models.Model):
     hero_subtitle = models.TextField(blank=True, verbose_name='תת-כותרת באנר')
     is_active = models.BooleanField(default=True, verbose_name='באנר פעיל')
     coming_soon_enabled = models.BooleanField(default=False, verbose_name='הפעל דף Coming Soon')
-    
+    demo_token = models.UUIDField(default=uuid.uuid4, verbose_name='טוקן דמו', help_text='שלח קישור עם ?demo=TOKEN כדי לאפשר גלישה בלי רכישה')
+
     class Meta:
         verbose_name = 'גלריות - גלריה ראשית'
         verbose_name_plural = 'גלריות - גלריה ראשית'

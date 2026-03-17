@@ -55,7 +55,24 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             'fields': ('coming_soon_enabled',),
             'description': 'הפעל כדי להציג דף Coming Soon לכל המבקרים (מלבד אדמין)'
         }),
+        ('קישור דמו', {
+            'fields': ('demo_token', 'demo_link_display'),
+            'description': 'שלח את הקישור הזה ללקוח לצפייה באתר ללא אפשרות רכישה'
+        }),
     )
+    readonly_fields = ('demo_link_display',)
+
+    def demo_link_display(self, obj):
+        from django.utils.html import format_html
+        from django.conf import settings as django_settings
+        base = getattr(django_settings, 'SITE_URL', 'https://arye-boutique.co.il')
+        link = f"{base}/?demo={obj.demo_token}"
+        return format_html(
+            '<a href="{}" target="_blank">{}</a>'
+            '<br><small style="color:#666">שתף קישור זה עם לקוחות לתצוגת דמו</small>',
+            link, link
+        )
+    demo_link_display.short_description = 'קישור דמו לשיתוף'
     
     def has_banner(self, obj):
         """האם יש תמונת באנר"""

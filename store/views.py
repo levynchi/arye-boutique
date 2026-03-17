@@ -755,9 +755,14 @@ def checkout(request):
     """
     עמוד ביצוע הזמנה
     """
+    # חסימה במצב דמו
+    if request.session.get('demo_mode'):
+        messages.info(request, 'זהו אתר דמו — רכישות אינן זמינות')
+        return redirect('cart')
+
     cart = get_or_create_cart(request)
     cart_items = cart.items.all().select_related('product', 'variant', 'variant__product')
-    
+
     # בדיקה שהעגלה לא ריקה
     if not cart_items.exists():
         messages.warning(request, 'העגלה שלך ריקה')
@@ -1383,6 +1388,11 @@ def initiate_payment(request, order_id):
     יצירת בקשת תשלום ל-iCredit והפניית הלקוח לדף התשלום
     משתמש ב-API ליצירת דף תשלום ייחודי (גם בטסט וגם בפרודקשן)
     """
+    # חסימה במצב דמו
+    if request.session.get('demo_mode'):
+        messages.info(request, 'זהו אתר דמו — רכישות אינן זמינות')
+        return redirect('home')
+
     print(f"[DEBUG] initiate_payment: Called with order_id={order_id}")
     order = get_object_or_404(Order, id=order_id)
     

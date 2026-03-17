@@ -24,6 +24,11 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    {% if demo_mode %}
+    <div style="background:#1a1a1a;color:#f5f5f0;text-align:center;padding:8px 16px;font-size:13px;letter-spacing:0.03em;position:relative;z-index:9999;">
+        🔍 <strong>מצב תצוגה בלבד</strong> — זהו אתר דמו. גלישה חופשית, רכישות אינן זמינות.
+    </div>
+    {% endif %}
     <a class="skip-link" href="#main-content">דלג לתוכן הראשי</a>
     <div class="accessibility-toolbar" id="accessibility-toolbar">
         <button type="button" class="accessibility-toggle" id="accessibility-toggle" aria-expanded="false" aria-controls="accessibility-panel">

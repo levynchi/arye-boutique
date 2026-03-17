@@ -1,6 +1,15 @@
 from .models import Cart, WishlistItem
 
 
+def demo_mode(request):
+    """
+    Context processor להוספת מצב דמו לכל template
+    """
+    return {
+        'demo_mode': request.session.get('demo_mode', False)
+    }
+
+
 def cart_items_count(request):
     """
     Context processor להוספת מספר הפריטים בעגלה לכל template

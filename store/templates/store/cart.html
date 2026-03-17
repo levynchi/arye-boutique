@@ -59,7 +59,11 @@
                     <span class="cart-total">{{ total }} ₪</span>
                 </div>
                 
+                {% if demo_mode %}
+                <button class="checkout-btn" disabled style="opacity:0.5;cursor:not-allowed;" title="מצב דמו — רכישות אינן זמינות">לקופה (דמו)</button>
+                {% else %}
                 <a href="{% url 'checkout' %}" class="checkout-btn">לקופה</a>
+                {% endif %}
                 
                 <a href="{% url 'home' %}" class="continue-shopping">המשך קניה</a>
             </div>

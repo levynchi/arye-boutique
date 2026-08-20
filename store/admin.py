@@ -312,6 +312,17 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ['price', 'stock_quantity', 'order', 'is_active', 'is_featured', 'is_bestseller']
     readonly_fields = ['created_at', 'updated_at', 'variant_creation_button']
     inlines = [ProductImageInline, ProductVariantInline]
+    actions = ['make_inactive', 'make_active']
+
+    @admin.action(description='העבר ללא-פעיל')
+    def make_inactive(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'{updated} מוצרים הועברו ללא-פעיל')
+
+    @admin.action(description='החזר לפעיל')
+    def make_active(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'{updated} מוצרים הוחזרו לפעיל')
     
     def get_readonly_fields(self, request, obj=None):
         """כשיש וריאנטים עם מחיר מותאם - השדה מחיר אינו ניתן לעריכה"""

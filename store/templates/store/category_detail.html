@@ -92,6 +92,11 @@
                         {% else %}
                             <div class="product-card-placeholder">אין תמונה</div>
                         {% endif %}
+                        {% for img in product.images.all %}
+                            {% if '_print' in img.image.name %}
+                            <img src="{{ img.image.url }}" alt="{{ product.name }} תקריב דפוס" class="product-card-print">
+                            {% endif %}
+                        {% endfor %}
                         
                         <!-- Gallery Arrows (shown only if multiple images) -->
                         {% if product.images.all|length > 0 or product.image and product.images.all|length > 0 %}

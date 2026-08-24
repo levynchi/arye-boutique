@@ -2712,6 +2712,7 @@ ul {
     aspect-ratio: 1;
     overflow: hidden;
     background-color: var(--bg-light);
+    isolation: isolate;
 }
 
 /* Product Card Gallery Arrows */
@@ -2796,10 +2797,14 @@ ul {
         overflow: visible;
         margin-bottom: 12px;
     }
+
+    .product-card .product-image-wrapper {
+        overflow: hidden;
+    }
     
     .product-card-dots {
         display: flex;
-        bottom: -18px;
+        bottom: 8px;
         top: auto;
         left: 50%;
         transform: translateX(-50%);
@@ -2822,7 +2827,20 @@ ul {
     height: 100%;
     object-fit: contain;
     display: block;
+    transform-origin: center center;
     transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.product-card-print {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
+    transition: opacity 0.3s ease;
 }
 
 /* Product Card - Slide Animation */
@@ -2866,9 +2884,14 @@ ul {
     }
 }
 
-.product-card:hover .product-card-image {
-    filter: grayscale(30%);
-    opacity: 0.9;
+@media (hover: hover) and (pointer: fine) {
+    .product-card:hover .product-image-wrapper {
+        overflow: hidden;
+    }
+
+    .product-card:hover .product-card-print {
+        opacity: 1;
+    }
 }
 
 .product-card-placeholder {

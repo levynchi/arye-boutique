@@ -2,6 +2,7 @@
 ייבוא סטי בגדים לתינוק מתיקייה מקומית לקטגוריית newborn.
 """
 import os
+import re
 import tempfile
 from pathlib import Path
 
@@ -14,6 +15,13 @@ from store.models import Category, Product, ProductImage, ProductVariant, Size, 
 
 IMAGE_SUFFIXES = ('.jpg', '.jpeg', '.png', '.webp')
 GALLERY_SUFFIXES = ('_bottom', '_extra', '_top', '_print')
+KIND_ORDER = {
+    '_top': 1,
+    '_bottom': 2,
+    '_print': 3,
+    '_extra': 4,
+}
+KIND_PATTERN = re.compile(r'(_print|_bottom|_extra|_top)(?:_sq)?(?:_[A-Za-z0-9]{7})?$')
 PRINT_CROP_RATIO = 0.4
 PRINT_OUTPUT_SIZE = 2000
 
@@ -60,6 +68,11 @@ class Command(BaseCommand):
             action='store_true',
             help='ייצר תמונת תקריב דפוס מ-_top (או _extra / ראשית) והעלה כתמונת גלריה',
         )
+        parser.add_argument(
+            '--prune-gallery',
+            action='store_true',
+            help='מחק תמונות גלריה שלא סופקו מחדש. תקריב נשמר כשמופעל --generate-print',
+        )
 
     def handle(self, *args, **options):
         source_dir = Path(options['source_dir'])
@@ -104,10 +117,20 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.ERROR(f'אין תמונה ראשית: {set_dir.name}'))
                         continue
                     extras = [] if options['main_only'] else extra_images
+                    prune = options['prune_gallery'] and not options['main_only']
+                    if options['prune_gallery'] and options['main_only']:
+                        self.stdout.write(self.style.WARNING('--prune-gallery מתעלם כי הוגדר --main-only'))
+                    keep_print = options['generate_print']
+                    _, used, creates, deletes = self._match_gallery(product, extras, prune, keep_print)
                     label = 'ראשית בלבד' if options['main_only'] else f'{main_image.name} + {len(extras)}'
-                    self.stdout.write(f'מחליף תמונות: {name} ({label})')
+                    created_names = ', '.join(path.name for path in creates) or '-'
+                    removed_names = ', '.join(Path(img.image.name).name for img in deletes) or '-'
+                    self.stdout.write(
+                        f'מחליף תמונות: {name} ({label}) | '
+                        f'חדשות: {created_names} | נמחקות: {removed_names}'
+                    )
                     if not options['dry_run']:
-                        self._replace_product_images(product, main_image, extras)
+                        self._replace_product_images(product, main_image, used, creates, deletes)
                     replaced += 1
                 elif not options['generate_print']:
                     self.stdout.write(self.style.WARNING(f'דולג (קיים): {name}'))
@@ -176,7 +199,50 @@ class Command(BaseCommand):
             api_secret=os.environ.get('CLOUDINARY_API_SECRET', ''),
         )
 
-    def _replace_product_images(self, product, main_image, extra_images):
+    def _image_kind(self, stem):
+        match = KIND_PATTERN.search(stem.lower())
+        return match.group(1) if match else None
+
+    def _match_gallery(self, product, extra_images, prune, keep_print):
+        existing = list(product.images.all())
+        used = {}
+        creates = []
+        for extra in extra_images:
+            kind = self._image_kind(extra.stem)
+            match = None
+            if kind:
+                match = next(
+                    (
+                        img for img in existing
+                        if img.pk not in used and self._image_kind(Path(img.image.name).stem) == kind
+                    ),
+                    None,
+                )
+            if match is None:
+                match = next(
+                    (
+                        img for img in existing
+                        if img.pk not in used and Path(img.image.name).name.lower() == extra.name.lower()
+                    ),
+                    None,
+                )
+            if match:
+                used[match.pk] = extra
+            else:
+                creates.append(extra)
+
+        deletes = []
+        if prune:
+            for img in existing:
+                if img.pk in used:
+                    continue
+                kind = self._image_kind(Path(img.image.name).stem)
+                if keep_print and kind == '_print':
+                    continue
+                deletes.append(img)
+        return existing, used, creates, deletes
+
+    def _replace_product_images(self, product, main_image, used, creates, deletes):
         self._assign_image(product, main_image)
         existing = list(product.images.all())
         main_stems = {
@@ -186,30 +252,47 @@ class Command(BaseCommand):
             f'{main_image.stem.lower()}_pair2',
         }
         for img in existing:
-            stem = Path(img.image.name).stem.lower()
-            if stem in main_stems:
+            if img.pk in used or any(img.pk == item.pk for item in deletes):
+                continue
+            if Path(img.image.name).stem.lower() in main_stems:
                 self._assign_image(img, main_image)
-        for extra in extra_images:
-            match = next(
-                (
-                    img for img in existing
-                    if Path(img.image.name).name.lower() == extra.name.lower()
-                ),
-                None,
+
+        for img in existing:
+            extra = used.get(img.pk)
+            if not extra:
+                continue
+            self._assign_image(img, extra)
+            kind = self._image_kind(extra.stem)
+            order = KIND_ORDER.get(kind)
+            if order is not None and img.order != order:
+                img.order = order
+                img.save(update_fields=['order'])
+
+        for extra in creates:
+            kind = self._image_kind(extra.stem)
+            extra_obj = ProductImage(
+                product=product,
+                is_primary=False,
+                order=KIND_ORDER.get(kind, product.images.count() + 1),
             )
-            if match:
-                self._assign_image(match, extra)
-            else:
-                extra_obj = ProductImage(
-                    product=product,
-                    is_primary=False,
-                    order=len(existing) + 1,
-                )
-                extra_obj.save()
-                self._assign_image(extra_obj, extra)
-                existing.append(extra_obj)
+            extra_obj.save()
+            self._assign_image(extra_obj, extra)
+
+        for img in deletes:
+            self._delete_gallery_image(img)
+
+    def _delete_gallery_image(self, img):
+        name = img.image.name
+        try:
+            if name:
+                img.image.delete(save=False)
+        except Exception as exc:
+            self.stdout.write(self.style.WARNING(f'לא נמחק קובץ {name}: {exc}'))
+        img.delete()
 
     def _assign_image(self, instance, path):
+        storage = instance.image.storage
+        old_name = instance.image.name
         if self.use_cloudinary:
             import cloudinary.uploader
             stem_lower = path.stem.lower()
@@ -226,13 +309,24 @@ class Command(BaseCommand):
                 invalidate=True,
                 resource_type='image',
             )
-            # New public_id so Cloudinary v1 URLs are not served from the old cache
-            instance.image.name = f'media/products/{public_stem}.jpg'
+            new_name = f'media/products/{public_stem}.jpg'
+            instance.image.name = new_name
             instance.save(update_fields=['image'])
+            if old_name and old_name != new_name:
+                self._delete_stored_file(storage, old_name)
             return
 
+        if old_name:
+            self._delete_stored_file(storage, old_name)
+            instance.image.name = None
         with path.open('rb') as fh:
             instance.image.save(path.name, File(fh), save=True)
+
+    def _delete_stored_file(self, storage, name):
+        try:
+            storage.delete(name)
+        except Exception as exc:
+            self.stdout.write(self.style.WARNING(f'לא נמחק קובץ {name}: {exc}'))
 
     def _find_print_source(self, set_dir, main_image):
         for suffix in ('_top', '_extra'):
@@ -247,8 +341,7 @@ class Command(BaseCommand):
 
     def _existing_print_image(self, product):
         for img in product.images.all():
-            stem = Path(img.image.name).stem.lower()
-            if stem.endswith('_print') or stem.endswith('_print_sq'):
+            if self._image_kind(Path(img.image.name).stem) == '_print':
                 return img
         return None
 
@@ -274,13 +367,15 @@ class Command(BaseCommand):
             self._make_print_closeup(source, dest)
             print_image = self._existing_print_image(product)
             if not print_image:
-                existing_count = product.images.count()
                 print_image = ProductImage(
                     product=product,
                     is_primary=False,
-                    order=existing_count + 1,
+                    order=KIND_ORDER['_print'],
                 )
                 print_image.save()
+            elif print_image.order != KIND_ORDER['_print']:
+                print_image.order = KIND_ORDER['_print']
+                print_image.save(update_fields=['order'])
             self._assign_image(print_image, dest)
         return True
 

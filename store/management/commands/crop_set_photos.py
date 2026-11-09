@@ -93,8 +93,8 @@ class Command(BaseCommand):
         with Image.open(src) as raw:
             image = ImageOps.exif_transpose(raw).convert('RGB')
         image = self._rotate(image, rotate)
-        bbox, background = self._garment_bbox(image, threshold)
-        cropped = self._square_crop(image, bbox, background, margin)
+        bbox, _background = self._garment_bbox(image, threshold)
+        cropped = self._square_crop(image, bbox, margin)
         if cropped.size != (size, size):
             cropped = cropped.resize((size, size), Image.Resampling.LANCZOS)
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -148,7 +148,7 @@ class Command(BaseCommand):
         mid = len(samples) // 2
         return tuple(sorted(pixel[channel] for pixel in samples)[mid] for channel in range(3))
 
-    def _square_crop(self, image, bbox, background, margin):
+    def _square_crop(self, image, bbox, margin):
         x0, y0, x1, y1 = bbox
         box_w = max(1, x1 - x0)
         box_h = max(1, y1 - y0)
@@ -179,12 +179,75 @@ class Command(BaseCommand):
             bottom = image.height
         left = max(0, left)
         top = max(0, top)
-        cropped = image.crop((left, top, min(right, image.width), min(bottom, image.height)))
+        right = min(right, image.width)
+        bottom = min(bottom, image.height)
+        cropped = image.crop((left, top, right, bottom))
         if cropped.size == (side, side):
             return cropped
-        canvas = Image.new('RGB', (side, side), background)
-        canvas.paste(cropped, ((side - cropped.width) // 2, (side - cropped.height) // 2))
-        return canvas
+        # רוחב רצועות הרקע הנקיות (ללא בגד) בכל צד של החיתוך
+        gx0, gy0, gx1, gy1 = bbox
+        clean = (
+            max(0, gx0 - left),
+            max(0, gy0 - top),
+            max(0, right - gx1),
+            max(0, bottom - gy1),
+        )
+        return self._extend_background(cropped, side, clean)
+
+    def _extend_background(self, cropped, side, clean):
+        """
+        ריפוד לריבוע ע"י המשך הרקע של הצילום עצמו: רצועת הרקע הנקייה שבין קצה
+        הצילום לבגד משוקפת ונמתחת לרוחב הריפוד, ואז מטושטשת בעדינות. כך הגוון
+        והטקסטורה תואמים לרקע הטבעי ולא נראים כפס אחיד, ובלי לשקף את הבגד.
+        """
+        clean_left, clean_top, clean_right, clean_bottom = clean
+        offset_x = (side - cropped.width) // 2
+        offset_y = (side - cropped.height) // 2
+        canvas = Image.new('RGB', (side, side))
+        canvas.paste(cropped, (offset_x, offset_y))
+
+        if offset_x > 0:
+            left_strip = self._mirror_strip(cropped, offset_x, clean_left, axis='x', from_start=True)
+            canvas.paste(left_strip, (0, offset_y))
+            right_width = side - offset_x - cropped.width
+            right_strip = self._mirror_strip(cropped, right_width, clean_right, axis='x', from_start=False)
+            canvas.paste(right_strip, (offset_x + cropped.width, offset_y))
+
+        if offset_y > 0:
+            band = canvas.crop((0, offset_y, side, offset_y + cropped.height))
+            top_strip = self._mirror_strip(band, offset_y, clean_top, axis='y', from_start=True)
+            canvas.paste(top_strip, (0, 0))
+            bottom_height = side - offset_y - cropped.height
+            bottom_strip = self._mirror_strip(band, bottom_height, clean_bottom, axis='y', from_start=False)
+            canvas.paste(bottom_strip, (0, offset_y + cropped.height))
+
+        # טשטוש רק באזורי הריפוד, עם מעבר רך לתמונה המקורית
+        blur_radius = max(10, side // 80)
+        blurred = canvas.filter(ImageFilter.GaussianBlur(blur_radius))
+        mask = Image.new('L', (side, side), 255)
+        inner = Image.new('L', (cropped.width, cropped.height), 0)
+        mask.paste(inner, (offset_x, offset_y))
+        mask = mask.filter(ImageFilter.GaussianBlur(blur_radius))
+        return Image.composite(blurred, canvas, mask)
+
+    def _mirror_strip(self, source, size, clean, axis, from_start):
+        """רצועת רקע משוקפת ברוחב size, שנלקחת רק מתוך clean פיקסלים נקיים בקצה."""
+        if size <= 0:
+            return Image.new('RGB', (1, 1))
+        min_take = 8
+        if axis == 'x':
+            take = max(min_take, min(size, clean, source.width))
+            box = (0, 0, take, source.height) if from_start else (source.width - take, 0, source.width, source.height)
+            strip = source.crop(box).transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            if strip.width != size:
+                strip = strip.resize((size, source.height), Image.Resampling.LANCZOS)
+            return strip
+        take = max(min_take, min(size, clean, source.height))
+        box = (0, 0, source.width, take) if from_start else (0, source.height - take, source.width, source.height)
+        strip = source.crop(box).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+        if strip.height != size:
+            strip = strip.resize((source.width, size), Image.Resampling.LANCZOS)
+        return strip
 
     def _write_contact_sheet(self, items, dest):
         columns = 3

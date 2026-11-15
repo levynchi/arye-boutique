@@ -232,13 +232,20 @@ ICREDIT_TEST_MODE = os.environ.get('ICREDIT_TEST_MODE', 'True').lower() == 'true
 # Public test tokens from the rivhit-api.readme.io documentation.
 # They only work against the test environment.
 _ICREDIT_TEST_GROUP_PRIVATE_TOKEN = 'a1408bfc-18da-49dc-aa77-d65870f7943e'
-ICREDIT_GROUP_PRIVATE_TOKEN = os.environ.get('ICREDIT_GROUP_PRIVATE_TOKEN', _ICREDIT_TEST_GROUP_PRIVATE_TOKEN)
+if ICREDIT_TEST_MODE:
+    # Test mode always talks to the test environment with the test token, so the real
+    # ICREDIT_GROUP_PRIVATE_TOKEN can stay configured and switching modes is one variable.
+    ICREDIT_GROUP_PRIVATE_TOKEN = os.environ.get(
+        'ICREDIT_TEST_GROUP_PRIVATE_TOKEN', _ICREDIT_TEST_GROUP_PRIVATE_TOKEN
+    )
+else:
+    ICREDIT_GROUP_PRIVATE_TOKEN = os.environ.get('ICREDIT_GROUP_PRIVATE_TOKEN', '')
+    if ICREDIT_GROUP_PRIVATE_TOKEN in ('', _ICREDIT_TEST_GROUP_PRIVATE_TOKEN):
+        raise ImproperlyConfigured('ICREDIT_GROUP_PRIVATE_TOKEN must be set when ICREDIT_TEST_MODE is off')
 ICREDIT_CREDIT_BOX_TOKEN = os.environ.get(
     'ICREDIT_CREDIT_BOX_TOKEN',
     '7196ca68-1658-4e9a-bb12-a20e0fc79827'  # Hebrew test token
 )
-if not ICREDIT_TEST_MODE and ICREDIT_GROUP_PRIVATE_TOKEN == _ICREDIT_TEST_GROUP_PRIVATE_TOKEN:
-    raise ImproperlyConfigured('ICREDIT_GROUP_PRIVATE_TOKEN must be set when ICREDIT_TEST_MODE is off')
 
 # Base URL iCredit calls back for the payment notification (IPN).
 # Empty = the host the customer is browsing on.

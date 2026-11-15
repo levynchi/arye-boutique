@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.tokens import default_token_generator
@@ -41,18 +42,20 @@ def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                messages.success(request, f'שלום {user.first_name or user.username}! התחברת בהצלחה.')
-                
-                # חזרה לדף שממנו בא (אם קיים)
-                next_page = request.GET.get('next')
-                if next_page:
-                    return redirect(next_page)
-                return redirect('home')
+            # הטופס כבר אימת את שם המשתמש והסיסמה
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, f'שלום {user.first_name or user.username}! התחברת בהצלחה.')
+            
+            # חזרה לדף שממנו בא (אם קיים) - רק לכתובת בתוך האתר
+            next_page = request.GET.get('next')
+            if next_page and url_has_allowed_host_and_scheme(
+                next_page,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_page)
+            return redirect('home')
         else:
             messages.error(request, 'שם משתמש או סיסמה שגויים.')
     else:
@@ -81,44 +84,10 @@ class CustomPasswordResetView(PasswordResetView):
     subject_template_name = 'users/password_reset_subject.txt'
     success_url = reverse_lazy('users:password_reset_done')
     
-    def dispatch(self, request, *args, **kwargs):
-        print("\n" + "=" * 80)
-        print("PASSWORD RESET VIEW - DISPATCH")
-        print(f"Method: {request.method}")
-        print(f"Path: {request.path}")
-        print("=" * 80)
-        return super().dispatch(request, *args, **kwargs)
-    
-    def post(self, request, *args, **kwargs):
-        print("\n" + "=" * 80)
-        print("POST REQUEST RECEIVED")
-        print(f"POST Data: {request.POST}")
-        print(f"Email from POST: {request.POST.get('email')}")
-        print("=" * 80)
-        return super().post(request, *args, **kwargs)
-    
     def form_valid(self, form):
-        print("\n" + "=" * 80)
-        print("FORM IS VALID!")
-        print(f"Email: {form.cleaned_data.get('email')}")
-        print("Attempting to send email...")
-        print("=" * 80)
-        
         result = super().form_valid(form)
-        
-        print("\n" + "=" * 80)
-        print("EMAIL SHOULD BE SENT NOW - CHECK CONSOLE OUTPUT ABOVE")
-        print("=" * 80 + "\n")
-        
         messages.success(self.request, 'אם כתובת המייל קיימת במערכת, נשלח אליך קישור לאיפוס הסיסמה.')
         return result
-    
-    def form_invalid(self, form):
-        print("\n" + "=" * 80)
-        print("FORM IS INVALID!")
-        print(f"Errors: {form.errors}")
-        print("=" * 80 + "\n")
-        return super().form_invalid(form)
 
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):

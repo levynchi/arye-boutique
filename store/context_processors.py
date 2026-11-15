@@ -1,4 +1,14 @@
-from .models import Cart, WishlistItem
+from .models import Cart, Category, WishlistItem
+
+
+def nav_categories(request):
+    """
+    קטגוריות לתפריט הניווט - ברירת מחדל לדפים שלא מעבירים categories בעצמם
+    (למשל דף 404). ה-queryset עצל: אם ה-view מעביר categories משלו, אין שאילתה נוספת.
+    """
+    return {
+        'categories': Category.objects.filter(is_active=True)
+    }
 
 
 def demo_mode(request):

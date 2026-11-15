@@ -130,20 +130,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update cart summary
     function updateCartSummary(data) {
+        // כל הסכומים (כולל דמי משלוח והנחת קופון) מחושבים בשרת
         const subtotalElement = document.querySelector('.cart-subtotal');
-        const shippingElement = document.querySelector('.shipping-fee');
+        const shippingElement = document.querySelector('.cart-summary .shipping-fee');
         const totalElement = document.querySelector('.cart-total');
+        const discountRow = document.querySelector('.cart-discount-row');
+        const discountElement = document.querySelector('.cart-discount');
         
         if (subtotalElement) {
             subtotalElement.textContent = `${data.cart_subtotal.toFixed(2)} ₪`;
         }
         
-        if (shippingElement) {
-            if (data.cart_subtotal >= 75) {
-                shippingElement.textContent = 'חינם';
+        if (discountRow && discountElement) {
+            if (data.discount_amount > 0) {
+                discountRow.style.display = 'flex';
+                discountElement.textContent = `-${data.discount_amount.toFixed(2)} ₪`;
             } else {
-                shippingElement.textContent = `${data.shipping_fee.toFixed(2)} ₪`;
+                discountRow.style.display = 'none';
             }
+        }
+        
+        if (shippingElement) {
+            shippingElement.textContent = data.shipping_fee > 0 ? `${data.shipping_fee.toFixed(2)} ₪` : 'חינם';
         }
         
         if (totalElement) {
@@ -151,17 +159,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Update shipping notice
-        const shippingNotice = document.querySelector('.shipping-notice');
+        const shippingNotice = document.querySelector('.cart-summary .shipping-notice');
         if (shippingNotice) {
-            if (data.cart_subtotal >= 75 || data.cart_subtotal === 0) {
-                shippingNotice.style.display = 'none';
-            } else {
+            if (data.remaining_for_free_shipping > 0) {
                 shippingNotice.style.display = 'block';
-                const remaining = 75 - data.cart_subtotal;
                 const remainingAmount = shippingNotice.querySelector('.remaining-amount');
                 if (remainingAmount) {
-                    remainingAmount.textContent = `עוד ${remaining.toFixed(2)} ₪ למשלוח חינם`;
+                    remainingAmount.textContent = `עוד ${data.remaining_for_free_shipping.toFixed(2)} ₪ למשלוח חינם`;
                 }
+            } else {
+                shippingNotice.style.display = 'none';
             }
         }
     }

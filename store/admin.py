@@ -471,16 +471,26 @@ class OrderAdmin(admin.ModelAdmin):
     """
     ניהול הזמנות
     """
-    list_display = ['id', 'get_customer_name', 'total_price', 'get_discount_display', 'status', 'created_at']
-    list_filter = ['status', 'created_at']
+    list_display = ['id', 'get_customer_name', 'total_price', 'get_discount_display', 'get_shipping_display', 'status', 'created_at']
+    list_filter = ['status', 'shipping_method', 'created_at']
     search_fields = ['id', 'user__username', 'guest_name', 'guest_email', 'guest_phone', 'coupon_code']
     list_editable = ['status']
-    readonly_fields = ['created_at', 'updated_at', 'coupon_code', 'discount_amount']
+    readonly_fields = [
+        'created_at', 'updated_at', 'coupon_code', 'discount_amount',
+        'shipping_method', 'shipping_fee', 'paid_at', 'payment_transaction_id',
+    ]
     inlines = [OrderItemInline]
     
     fieldsets = (
         ('מידע הזמנה', {
             'fields': ('user', 'total_price', 'status', 'notes')
+        }),
+        ('משלוח', {
+            'fields': ('shipping_method', 'shipping_fee'),
+        }),
+        ('תשלום', {
+            'fields': ('paid_at', 'payment_transaction_id'),
+            'classes': ('collapse',)
         }),
         ('קופון', {
             'fields': ('coupon_code', 'discount_amount'),
@@ -509,6 +519,15 @@ class OrderAdmin(admin.ModelAdmin):
             return format_html('<span style="color: #2e7d32;">-{}₪ ({})</span>', obj.discount_amount, obj.coupon_code)
         return '-'
     get_discount_display.short_description = 'הנחה'
+    
+    def get_shipping_display(self, obj):
+        """שיטת משלוח ודמי משלוח"""
+        if obj.shipping_method == 'pickup':
+            return 'איסוף עצמי'
+        if obj.shipping_fee and obj.shipping_fee > 0:
+            return f'משלוח ({obj.shipping_fee}₪)'
+        return 'משלוח (חינם)'
+    get_shipping_display.short_description = 'משלוח'
 
 
 class CartItemInline(admin.TabularInline):

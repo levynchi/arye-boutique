@@ -3642,6 +3642,65 @@ ul {
     margin-bottom: 20px;
 }
 
+.empty-cart .btn-primary,
+.error-page .btn-primary {
+    display: inline-block;
+    padding: 12px 30px;
+    background-color: #7594B1;
+    color: var(--white);
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.empty-cart .btn-primary:hover,
+.error-page .btn-primary:hover {
+    background-color: #5a7a99;
+}
+
+/* Error pages (404) */
+.error-page {
+    padding: 80px 0;
+    min-height: 50vh;
+    text-align: center;
+}
+
+.error-page-code {
+    margin: 0;
+    font-size: 72px;
+    font-weight: 700;
+    line-height: 1;
+    color: #7594B1;
+}
+
+.error-page-title {
+    margin: 15px 0 10px;
+    font-size: 28px;
+    color: var(--text-color);
+}
+
+.error-page-text {
+    max-width: 480px;
+    margin: 0 auto 25px;
+    font-size: 16px;
+    color: var(--text-light);
+}
+
+.error-page-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.error-page-link {
+    color: #7594B1;
+    text-decoration: underline;
+}
+
 /* ==========================================================================
    Checkout Page
    ========================================================================== */
@@ -3675,6 +3734,116 @@ ul {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
+}
+
+/* Checkout: shipping method (delivery / pickup) */
+.checkout-form h2 {
+    margin-bottom: 0;
+}
+
+.checkout-form h2:not(:first-of-type) {
+    margin-top: 10px;
+}
+
+.shipping-method-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.shipping-method-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--white);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.shipping-method-option:hover {
+    border-color: var(--primary-color);
+}
+
+.shipping-method-option:has(input:checked) {
+    border-color: #7594B1;
+    background-color: #f0f7ff;
+}
+
+.shipping-method-option:has(input:focus-visible) {
+    outline: 2px solid #7594B1;
+    outline-offset: 2px;
+}
+
+.shipping-method-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    flex-shrink: 0;
+    accent-color: #7594B1;
+}
+
+.shipping-method-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.shipping-method-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.shipping-method-desc {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+.shipping-method-price {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+
+#delivery-address-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#delivery-address-fields[hidden],
+.pickup-notice[hidden] {
+    display: none;
+}
+
+.pickup-notice {
+    background-color: #f0f7ff;
+    padding: 14px 16px;
+    border-radius: 8px;
+}
+
+.pickup-notice p {
+    margin: 0;
+    font-size: 14px;
+    color: #3d5870;
+}
+
+.cart-pickup-note,
+.sidebar-shipping-note {
+    margin: 10px 0 0;
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+}
+
+.sidebar-shipping-note:empty {
+    display: none;
 }
 
 .order-summary {

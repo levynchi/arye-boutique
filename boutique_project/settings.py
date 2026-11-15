@@ -13,19 +13,23 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-2x8pmkevpq^d*o8ly^t-pkng2y6c=rz2^m2(0p$p!^=+j&x8-i')
+# True when running on Railway (the platform sets these variables itself)
+ON_RAILWAY = bool(os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_PUBLIC_DOMAIN'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+# Debug is on by default only on a developer machine, never on the server.
+DEBUG = os.environ.get('DEBUG', 'False' if ON_RAILWAY else 'True').lower() == 'true'
+
+# SECURITY WARNING: keep the secret key used in production secret!
+_DEV_SECRET_KEY = 'django-insecure-2x8pmkevpq^d*o8ly^t-pkng2y6c=rz2^m2(0p$p!^=+j&x8-i'
+SECRET_KEY = os.environ.get('SECRET_KEY', _DEV_SECRET_KEY)
+if not DEBUG and SECRET_KEY == _DEV_SECRET_KEY:
+    raise ImproperlyConfigured('SECRET_KEY must be set in the environment when DEBUG is off')
 
 # Allowed Hosts - automatically include Railway domain
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
@@ -86,6 +90,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'store.context_processors.nav_categories',
                 'store.context_processors.cart_items_count',
                 'store.context_processors.wishlist_count',
                 'store.context_processors.demo_mode',
@@ -166,6 +171,8 @@ if DEBUG:
     MIDDLEWARE = [m for m in MIDDLEWARE if 'WhiteNoise' not in m]
 else:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    # A missing static file should fall back to its plain URL, not take the page down with a 500
+    WHITENOISE_MANIFEST_STRICT = False
 
 
 # Media files (User uploaded files)
@@ -189,37 +196,56 @@ else:
 # Custom User Model
 AUTH_USER_MODEL = 'users.CustomUser'
 
+# Password reset links are valid for 24 hours (as the reset email says)
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24
+
 
 # Email Configuration (Resend API)
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'info@arye-boutique.co.il')
 CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'arye.boutique@gmail.com')
 
+# Django's own emails (password reset etc.) go through Resend as well.
+# Without an API key (local development) they are printed to the console.
+if RESEND_API_KEY:
+    EMAIL_BACKEND = 'store.email_backend.ResendEmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Public address of the site, used for links inside emails
+SITE_URL = os.environ.get('SITE_URL', 'https://arye-boutique.co.il').rstrip('/')
+
 
 # iCredit Payment Gateway Configuration
-# סביבת טסט - להחליף לפרודקשן אחרי קבלת אישור
+# סביבת טסט כברירת מחדל; פרודקשן רק כש-ICREDIT_TEST_MODE=False מוגדר במפורש
 ICREDIT_TEST_MODE = os.environ.get('ICREDIT_TEST_MODE', 'True').lower() == 'true'
 
-# Test tokens - replace with production tokens when ready
-# Using Hebrew test tokens from rivhit-api.readme.io documentation
-ICREDIT_GROUP_PRIVATE_TOKEN = os.environ.get(
-    'ICREDIT_GROUP_PRIVATE_TOKEN',
-    'a1408bfc-18da-49dc-aa77-d65870f7943e'  # Hebrew test token - works with Postman!
-)
+# Public test tokens from the rivhit-api.readme.io documentation.
+# They only work against the test environment.
+_ICREDIT_TEST_GROUP_PRIVATE_TOKEN = 'a1408bfc-18da-49dc-aa77-d65870f7943e'
+ICREDIT_GROUP_PRIVATE_TOKEN = os.environ.get('ICREDIT_GROUP_PRIVATE_TOKEN', _ICREDIT_TEST_GROUP_PRIVATE_TOKEN)
 ICREDIT_CREDIT_BOX_TOKEN = os.environ.get(
     'ICREDIT_CREDIT_BOX_TOKEN',
     '7196ca68-1658-4e9a-bb12-a20e0fc79827'  # Hebrew test token
 )
+if not ICREDIT_TEST_MODE and ICREDIT_GROUP_PRIVATE_TOKEN == _ICREDIT_TEST_GROUP_PRIVATE_TOKEN:
+    raise ImproperlyConfigured('ICREDIT_GROUP_PRIVATE_TOKEN must be set when ICREDIT_TEST_MODE is off')
+
+# Base URL iCredit calls back for the payment notification (IPN).
+# Empty = the host the customer is browsing on.
+PAYMENT_IPN_BASE_URL = os.environ.get('PAYMENT_IPN_BASE_URL', '').rstrip('/')
 
 # URLs - טסט או פרודקשן
 if ICREDIT_TEST_MODE:
     ICREDIT_API_URL = 'https://testicredit.rivhit.co.il/API/PaymentPageRequest.svc/GetUrl'
     ICREDIT_VERIFY_URL = 'https://testicredit.rivhit.co.il/API/PaymentPageRequest.svc/Verify'
     ICREDIT_SALE_URL = 'https://testicredit.rivhit.co.il/API/PaymentPageRequest.svc/SaleChargeToken'
+    ICREDIT_SALE_DETAILS_URL = 'https://testicredit.rivhit.co.il/API/PaymentPageRequest.svc/SaleDetails'
 else:
     ICREDIT_API_URL = 'https://icredit.rivhit.co.il/API/PaymentPageRequest.svc/GetUrl'
     ICREDIT_VERIFY_URL = 'https://icredit.rivhit.co.il/API/PaymentPageRequest.svc/Verify'
     ICREDIT_SALE_URL = 'https://icredit.rivhit.co.il/API/PaymentPageRequest.svc/SaleChargeToken'
+    ICREDIT_SALE_DETAILS_URL = 'https://icredit.rivhit.co.il/API/PaymentPageRequest.svc/SaleDetails'
 
 
 # Default primary key field type
@@ -229,10 +255,48 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Security settings for production
+# The app runs behind Railway's proxy (and Cloudflare), which terminates HTTPS and
+# passes the original scheme in X-Forwarded-Proto. Without this Django sees every
+# request as plain HTTP and SECURE_SSL_REDIRECT loops forever.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 if not DEBUG:
-    SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
     SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').lower() == 'true'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    # HSTS starts short (1 hour) so a mistake is easy to undo; raise via the environment once stable
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '3600'))
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+
+# Logging - everything goes to the console, which is what Railway collects.
+# Without this, errors on a DEBUG=False server are not written anywhere.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '{levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+    },
+}

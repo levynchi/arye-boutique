@@ -153,6 +153,10 @@ class Category(models.Model):
     def __str__(self):
         return self.name
     
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('category_detail', kwargs={'slug': self.slug})
+    
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)
@@ -346,6 +350,11 @@ class Order(models.Model):
         ('cancelled', 'בוטל'),
     ]
     
+    SHIPPING_METHOD_CHOICES = [
+        ('delivery', 'משלוח עד הבית'),
+        ('pickup', 'איסוף עצמי'),
+    ]
+    
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.SET_NULL, 
@@ -365,6 +374,14 @@ class Order(models.Model):
     # שדות קופון
     coupon_code = models.CharField(max_length=50, blank=True, verbose_name='קוד קופון')
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='סכום הנחה')
+    # שדות משלוח
+    shipping_method = models.CharField(
+        max_length=20,
+        choices=SHIPPING_METHOD_CHOICES,
+        default='delivery',
+        verbose_name='שיטת משלוח'
+    )
+    shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='דמי משלוח')
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='סטטוס')
     
@@ -419,6 +436,25 @@ class OrderItem(models.Model):
     def subtotal(self):
         """סכום ביניים של הפריט"""
         return self.price * self.quantity
+
+
+class OrderPayment(models.Model):
+    """
+    תשלום שאושר מול חברת הסליקה.
+    מזהה העסקה ייחודי, כך שעסקה אחת לעולם לא תוכל לשלם על שתי הזמנות,
+    ולכל הזמנה יש לכל היותר תשלום אחד.
+    """
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment', verbose_name='הזמנה')
+    sale_id = models.CharField(max_length=64, unique=True, verbose_name='מזהה עסקה')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='סכום')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך אישור')
+    
+    class Meta:
+        verbose_name = 'תשלום'
+        verbose_name_plural = 'תשלומים'
+    
+    def __str__(self):
+        return f'תשלום להזמנה #{self.order_id}'
 
 
 class Cart(models.Model):

@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261109a">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261115a">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -249,6 +249,10 @@
                     <span>סכום ביניים</span>
                     <span id="sidebar-total">0 ₪</span>
                 </div>
+                <div class="shipping-notice" id="sidebar-shipping-notice" style="display: none;">
+                    <p class="remaining-amount">עוד <span id="sidebar-remaining">0</span> ₪ למשלוח חינם</p>
+                </div>
+                <p class="sidebar-shipping-note" id="sidebar-shipping-note"></p>
             </div>
             
             <a href="{% url 'checkout' %}" class="sidebar-checkout-btn">לקופה</a>
@@ -453,7 +457,7 @@
     <script src="{% static 'js/accessibility-toolbar.js' %}"></script>
 
     <!-- Cart Sidebar JavaScript -->
-    <script src="{% static 'js/cart-sidebar.js' %}"></script>
+    <script src="{% static 'js/cart-sidebar.js' %}?v=20261115a"></script>
 
     <!-- Mobile Navigation JavaScript -->
     <script src="{% static 'js/mobile-nav.js' %}"></script>

@@ -11,10 +11,34 @@
         <div class="checkout-content">
             <!-- Checkout Form Section -->
             <div class="checkout-form-section">
-                <h2>פרטי משלוח</h2>
-                
                 <form method="post" class="checkout-form" id="checkout-form">
                     {% csrf_token %}
+                    
+                    <h2>אופן קבלת ההזמנה</h2>
+                    
+                    <div class="shipping-method-options" role="radiogroup" aria-label="אופן קבלת ההזמנה">
+                        <label class="shipping-method-option">
+                            <input type="radio" name="shipping_method" value="delivery" {% if shipping_method != 'pickup' %}checked{% endif %}>
+                            <span class="shipping-method-text">
+                                <span class="shipping-method-title">משלוח עד הבית</span>
+                                <span class="shipping-method-desc">2–5 ימי עסקים</span>
+                            </span>
+                            <span class="shipping-method-price" id="delivery-fee-label">{% if totals.delivery_fee > 0 %}{{ totals.delivery_fee }} ₪{% else %}חינם{% endif %}</span>
+                        </label>
+                        <label class="shipping-method-option">
+                            <input type="radio" name="shipping_method" value="pickup" {% if shipping_method == 'pickup' %}checked{% endif %}>
+                            <span class="shipping-method-text">
+                                <span class="shipping-method-title">איסוף עצמי</span>
+                                <span class="shipping-method-desc">{{ pickup_address }} · עד 3 ימי עסקים · א'-ה' 09:00–15:00</span>
+                            </span>
+                            <span class="shipping-method-price">ללא עלות</span>
+                        </label>
+                    </div>
+                    {% if form.shipping_method.errors %}
+                        <div class="form-error">{{ form.shipping_method.errors }}</div>
+                    {% endif %}
+                    
+                    <h2>פרטי המזמין</h2>
                     
                     <div class="form-row form-row--inline">
                         <div class="form-group">
@@ -48,18 +72,24 @@
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        {{ form.guest_address }}
-                        {% if form.guest_address.errors %}
-                            <div class="form-error">{{ form.guest_address.errors }}</div>
-                        {% endif %}
+                    <div id="delivery-address-fields" {% if shipping_method == 'pickup' %}hidden{% endif %}>
+                        <div class="form-group">
+                            {{ form.guest_address }}
+                            {% if form.guest_address.errors %}
+                                <div class="form-error">{{ form.guest_address.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.guest_city }}
+                            {% if form.guest_city.errors %}
+                                <div class="form-error">{{ form.guest_city.errors }}</div>
+                            {% endif %}
+                        </div>
                     </div>
                     
-                    <div class="form-group">
-                        {{ form.guest_city }}
-                        {% if form.guest_city.errors %}
-                            <div class="form-error">{{ form.guest_city.errors }}</div>
-                        {% endif %}
+                    <div class="pickup-notice" id="pickup-notice" {% if shipping_method != 'pickup' %}hidden{% endif %}>
+                        <p>נשלח הודעת אימייל כשההזמנה מוכנה לאיסוף מ{{ pickup_address }}. יש להציג את מספר ההזמנה בעת האיסוף.</p>
                     </div>
                     
                     <div class="form-group">
@@ -123,6 +153,10 @@
                         <span>הנחה</span>
                         <span id="discount-display">-{{ discount_amount }} ₪</span>
                     </div>
+                    <div class="summary-row">
+                        <span id="shipping-label">{% if shipping_method == 'pickup' %}איסוף עצמי{% else %}משלוח עד הבית{% endif %}</span>
+                        <span id="shipping-display">{% if shipping_fee > 0 %}{{ shipping_fee }} ₪{% elif shipping_method == 'pickup' %}ללא עלות{% else %}חינם{% endif %}</span>
+                    </div>
                     <div class="summary-total">
                         <span>סה״כ לתשלום</span>
                         <span id="total-display">{{ total }} ₪</span>
@@ -142,6 +176,7 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ totals_json|json_script:"checkout-totals" }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const couponInput = document.getElementById('coupon-code');
@@ -154,6 +189,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const discountRow = document.getElementById('discount-row');
     const discountDisplay = document.getElementById('discount-display');
     const totalDisplay = document.getElementById('total-display');
+    const shippingLabel = document.getElementById('shipping-label');
+    const shippingDisplay = document.getElementById('shipping-display');
+    const deliveryFeeLabel = document.getElementById('delivery-fee-label');
+    const addressFields = document.getElementById('delivery-address-fields');
+    const pickupNotice = document.getElementById('pickup-notice');
+    const methodInputs = document.querySelectorAll('input[name="shipping_method"]');
+    
+    // הסכומים מחושבים בשרת; כאן רק מציגים אותם. הסכום הקובע הוא זה שהשרת מחשב בשליחת הטופס.
+    let totals = JSON.parse(document.getElementById('checkout-totals').textContent);
+    
+    function selectedMethod() {
+        const checked = document.querySelector('input[name="shipping_method"]:checked');
+        return checked ? checked.value : 'delivery';
+    }
+    
+    function formatPrice(amount) {
+        return amount.toFixed(2) + ' ₪';
+    }
+    
+    function renderTotals() {
+        const isPickup = selectedMethod() === 'pickup';
+        const shippingFee = isPickup ? 0 : totals.delivery_fee;
+        const total = totals.subtotal - totals.discount_amount + shippingFee;
+        
+        deliveryFeeLabel.textContent = totals.delivery_fee > 0 ? formatPrice(totals.delivery_fee) : 'חינם';
+        shippingLabel.textContent = isPickup ? 'איסוף עצמי' : 'משלוח עד הבית';
+        shippingDisplay.textContent = isPickup ? 'ללא עלות' : (shippingFee > 0 ? formatPrice(shippingFee) : 'חינם');
+        
+        if (totals.discount_amount > 0) {
+            discountRow.style.display = 'flex';
+            discountDisplay.textContent = '-' + formatPrice(totals.discount_amount);
+        } else {
+            discountRow.style.display = 'none';
+        }
+        
+        totalDisplay.textContent = formatPrice(total);
+        addressFields.hidden = isPickup;
+        pickupNotice.hidden = !isPickup;
+    }
+    
+    methodInputs.forEach(function(input) {
+        input.addEventListener('change', renderTotals);
+    });
     
     // החלת קופון
     applyBtn.addEventListener('click', async function() {
@@ -173,22 +251,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
-                body: JSON.stringify({ coupon_code: code })
+                body: JSON.stringify({ coupon_code: code, shipping_method: selectedMethod() })
             });
             
             const data = await response.json();
             
             if (data.success) {
-                // הצגת קופון מוחל
+                totals = data;
                 couponForm.style.display = 'none';
                 couponApplied.style.display = 'flex';
                 appliedCouponCode.textContent = data.coupon_code;
-                
-                // עדכון הסכומים
-                discountRow.style.display = 'flex';
-                discountDisplay.textContent = '-' + data.discount_amount.toFixed(2) + ' ₪';
-                totalDisplay.textContent = data.new_total.toFixed(2) + ' ₪';
-                
+                renderTotals();
                 showMessage(data.message, 'success');
             } else {
                 showMessage(data.message, 'error');
@@ -209,21 +282,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}'
-                }
+                },
+                body: JSON.stringify({ shipping_method: selectedMethod() })
             });
             
             const data = await response.json();
             
             if (data.success) {
-                // הסתרת קופון מוחל
+                totals = data;
                 couponApplied.style.display = 'none';
                 couponForm.style.display = 'flex';
                 couponInput.value = '';
-                
-                // עדכון הסכומים
-                discountRow.style.display = 'none';
-                totalDisplay.textContent = data.total.toFixed(2) + ' ₪';
-                
+                renderTotals();
                 showMessage(data.message, 'info');
             }
         } catch (error) {
@@ -248,8 +318,8 @@ document.addEventListener('DOMContentLoaded', function() {
             couponMessage.style.display = 'none';
         }, 4000);
     }
+    
+    renderTotals();
 });
 </script>
 {% endblock %}
-
-

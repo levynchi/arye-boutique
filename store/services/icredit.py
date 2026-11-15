@@ -1,207 +1,238 @@
 """
 iCredit Payment Gateway Service
-שירות תשלומים באמצעות iCredit API
+שירות תשלומים באמצעות iCredit API (Rivhit)
+
+הזרימה:
+1. create_payment_page - יוצר דף תשלום (GetUrl) בסכום הזהה ל-order.total_price.
+2. iCredit שולח IPN לשרת אחרי תשלום, עם SaleId.
+3. verify_payment - שואל את iCredit (Verify) אם העסקה באמת שולמה בסכום ההזמנה.
+   רק תשובת VERIFIED מאפשרת לסמן הזמנה כ"שולמה".
 """
-import requests
-import hashlib
 import json
 import logging
+import uuid
+from dataclasses import dataclass
 from decimal import Decimal
+
+import requests
 from django.conf import settings
-from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
+REQUEST_TIMEOUT = 30
+MAX_DESCRIPTION_LENGTH = 120
 
-class ICreditService:
+# iCredit דוחה בקשות ללא User-Agent של לקוח HTTP מוכר
+HEADERS = {
+    'Content-Type': 'application/json',
+    'User-Agent': 'PostmanRuntime/7.32.0',
+    'Accept': '*/*',
+}
+
+
+@dataclass
+class PaymentPageResult:
+    ok: bool
+    url: str = ''
+    private_sale_token: str = ''
+    public_sale_token: str = ''
+    error: str = ''
+
+
+def is_valid_sale_id(sale_id):
+    """SaleId של iCredit הוא GUID."""
+    try:
+        uuid.UUID(str(sale_id))
+    except (ValueError, AttributeError, TypeError):
+        return False
+    return True
+
+
+def _split_name(full_name):
+    parts = (full_name or '').split()
+    first_name = parts[0] if parts else 'לקוח'
+    last_name = ' '.join(parts[1:]) if len(parts) > 1 else 'לקוח'
+    return first_name, last_name
+
+
+def build_items(order):
     """
-    Service class for iCredit payment gateway integration
+    שורות החיוב של ההזמנה: פריטים + שורת משלוח.
+    מחזיר (items, discount). אם סכום השורות פחות ההנחה אינו שווה בדיוק
+    ל-order.total_price, מוחזרת שורה מסכמת אחת בסכום ההזמנה - כך שהלקוח
+    לעולם לא יחויב בסכום שונה ממה שהוצג לו.
     """
-    
-    def __init__(self):
-        self.api_url = settings.ICREDIT_API_URL
-        self.verify_url = settings.ICREDIT_VERIFY_URL
-        self.group_private_token = settings.ICREDIT_GROUP_PRIVATE_TOKEN
-        self.credit_box_token = settings.ICREDIT_CREDIT_BOX_TOKEN
-        self.test_mode = settings.ICREDIT_TEST_MODE
-    
-    def create_payment_request(self, order, request):
-        """
-        יצירת בקשת תשלום ל-iCredit
-        
-        Args:
-            order: Order model instance
-            request: HTTP request for building absolute URLs
-            
-        Returns:
-            dict: Response with payment URL or error
-        """
-        # Build callback URLs
-        base_url = request.build_absolute_uri('/')[:-1]  # Remove trailing slash
-        success_url = f"{base_url}{reverse('payment_success')}"
-        fail_url = f"{base_url}{reverse('payment_fail')}"
-        ipn_url = f"{base_url}{reverse('payment_ipn')}"
-        
-        # Prepare payment data
-        payload = {
-            "GroupPrivateToken": self.group_private_token,
-            "CreditboxToken": self.credit_box_token,
-            "CustomerLastName": order.guest_name.split()[-1] if order.guest_name else "",
-            "CustomerFirstName": order.guest_name.split()[0] if order.guest_name else "",
-            "PhoneNumber": order.guest_phone or "",
-            "EmailAddress": order.guest_email or "",
-            "FlexItem": True,
-            "Items": [{
-                "Quantity": 1,
-                "UnitPrice": str(order.total_price),
-                "Description": f"הזמנה #{order.id} - בוטיק אריה"
-            }],
-            "Currency": 1,  # 1 = ILS
-            "Sale": {
-                "SaleId": str(order.id),
-                "Amount": str(order.total_price)
-            },
-            "RedirectURL": success_url,
-            "FailRedirectURL": fail_url,
-            "IPNURL": ipn_url,
-            "HideItemList": True,
-            "CustomFields": json.dumps({"order_id": order.id}),
-            "DocumentType": 4,  # 4 = Invoice
-        }
-        
-        logger.info(f"Creating iCredit payment for order #{order.id}, amount: {order.total_price}")
-        
-        try:
-            response = requests.post(
-                self.api_url,
-                json=payload,
-                headers={"Content-Type": "application/json"},
-                timeout=30
-            )
-            
-            logger.debug(f"iCredit API response status: {response.status_code}")
-            logger.debug(f"iCredit API response: {response.text}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                if data.get("Status") == 0:
-                    # Success - return payment URL
-                    payment_url = data.get("URL")
-                    logger.info(f"Payment URL created for order #{order.id}: {payment_url}")
-                    return {
-                        "success": True,
-                        "payment_url": payment_url,
-                        "private_sale_token": data.get("PrivateSaleToken")
-                    }
-                else:
-                    # API returned error
-                    error_msg = data.get("StatusDescription", "Unknown error")
-                    logger.error(f"iCredit API error for order #{order.id}: {error_msg}")
-                    return {
-                        "success": False,
-                        "error": error_msg
-                    }
-            else:
-                logger.error(f"iCredit API HTTP error: {response.status_code}")
-                return {
-                    "success": False,
-                    "error": f"HTTP Error: {response.status_code}"
-                }
-                
-        except requests.exceptions.Timeout:
-            logger.error("iCredit API timeout")
-            return {
-                "success": False,
-                "error": "Connection timeout"
-            }
-        except requests.exceptions.RequestException as e:
-            logger.error(f"iCredit API request error: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
-    def verify_payment(self, sale_id, private_sale_token):
-        """
-        אימות תשלום מול iCredit
-        
-        Args:
-            sale_id: מזהה ההזמנה
-            private_sale_token: טוקן פרטי שהתקבל מ-iCredit
-            
-        Returns:
-            dict: פרטי התשלום או שגיאה
-        """
-        payload = {
-            "GroupPrivateToken": self.group_private_token,
-            "SaleId": str(sale_id),
-            "PrivateSaleToken": private_sale_token
-        }
-        
-        try:
-            response = requests.post(
-                self.verify_url,
-                json=payload,
-                headers={"Content-Type": "application/json"},
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                return {
-                    "success": data.get("Status") == 0,
-                    "data": data
-                }
-            else:
-                return {
-                    "success": False,
-                    "error": f"HTTP Error: {response.status_code}"
-                }
-                
-        except Exception as e:
-            logger.error(f"Payment verification error: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
-    def process_ipn(self, data):
-        """
-        עיבוד IPN (Instant Payment Notification) מ-iCredit
-        
-        Args:
-            data: נתוני ה-IPN
-            
-        Returns:
-            dict: תוצאת העיבוד
-        """
-        logger.info(f"Processing IPN: {json.dumps(data)}")
-        
-        try:
-            sale_id = data.get("SaleId") or data.get("sale_id")
-            status = data.get("TransStatus") or data.get("trans_status")
-            transaction_id = data.get("TransactionId") or data.get("transaction_id")
-            
-            # Status codes:
-            # 0 = Success
-            # Other = Failed
-            
-            return {
-                "sale_id": sale_id,
-                "status": "approved" if str(status) == "0" else "failed",
-                "transaction_id": transaction_id,
-                "raw_data": data
-            }
-            
-        except Exception as e:
-            logger.error(f"IPN processing error: {str(e)}")
-            return {
-                "sale_id": None,
-                "status": "error",
-                "error": str(e)
-            }
+    items = []
+    lines_total = Decimal('0.00')
+
+    for item in order.items.select_related('product', 'variant__size', 'variant__fabric_type'):
+        description = item.product.name
+        if item.variant:
+            description = f'{description} - {item.variant.get_display_name()}'
+        items.append({
+            'UnitPrice': float(item.price),
+            'Quantity': int(item.quantity),
+            'Description': description[:MAX_DESCRIPTION_LENGTH],
+        })
+        lines_total += item.price * item.quantity
+
+    if order.shipping_fee and order.shipping_fee > 0:
+        items.append({
+            'UnitPrice': float(order.shipping_fee),
+            'Quantity': 1,
+            'Description': 'משלוח עד הבית',
+        })
+        lines_total += order.shipping_fee
+
+    discount = order.discount_amount or Decimal('0.00')
+
+    if lines_total - discount != order.total_price:
+        logger.warning(
+            'Order %s: line items (%s) minus discount (%s) do not match total (%s); sending a single summary line',
+            order.id, lines_total, discount, order.total_price,
+        )
+        return [{
+            'UnitPrice': float(order.total_price),
+            'Quantity': 1,
+            'Description': f'הזמנה #{order.id} - אריה בוטיק',
+        }], Decimal('0.00')
+
+    return items, discount
 
 
-# Singleton instance
-icredit_service = ICreditService()
+def build_payment_payload(order, success_url, failure_url, ipn_url=None):
+    """בניית גוף הבקשה ל-GetUrl."""
+    items, discount = build_items(order)
+    first_name, last_name = _split_name(order.guest_name)
+
+    payload = {
+        'GroupPrivateToken': settings.ICREDIT_GROUP_PRIVATE_TOKEN,
+        'Items': items,
+        'RedirectURL': success_url,
+        'FailRedirectURL': failure_url,
+        'Currency': 1,  # 1 = ILS
+        'MaxPayments': 1,
+        'DocumentLanguage': 'he',
+        'CustomerFirstName': first_name,
+        'CustomerLastName': last_name,
+        'EmailAddress': order.guest_email or '',
+        'PhoneNumber': order.guest_phone or '',
+        'Address': order.guest_address or '',
+        'City': order.guest_city or '',
+        # מזהה ההזמנה - חוזר אלינו ב-IPN
+        'Custom1': str(order.id),
+        'Order': str(order.id),
+    }
+    if discount > 0:
+        payload['Discount'] = float(discount)
+    if ipn_url:
+        payload['IPNURL'] = ipn_url
+    return payload
+
+
+def create_payment_page(order, success_url, failure_url, ipn_url=None):
+    """
+    יצירת דף תשלום ב-iCredit עבור ההזמנה.
+    """
+    payload = build_payment_payload(order, success_url, failure_url, ipn_url)
+
+    try:
+        response = requests.post(
+            settings.ICREDIT_API_URL,
+            data=json.dumps(payload),
+            headers=HEADERS,
+            timeout=REQUEST_TIMEOUT,
+            allow_redirects=False,
+        )
+    except requests.RequestException as exc:
+        logger.error('iCredit GetUrl request failed for order %s: %s', order.id, exc)
+        return PaymentPageResult(ok=False, error='connection')
+
+    if response.status_code != 200:
+        logger.error('iCredit GetUrl returned HTTP %s for order %s', response.status_code, order.id)
+        return PaymentPageResult(ok=False, error=f'http {response.status_code}')
+
+    try:
+        data = response.json()
+    except ValueError:
+        logger.error('iCredit GetUrl returned a non-JSON response for order %s', order.id)
+        return PaymentPageResult(ok=False, error='invalid response')
+
+    if data.get('Status') != 0 or not data.get('URL'):
+        error = data.get('DebugMessage') or data.get('ErrorMessage') or data.get('StatusDescription') or f"status {data.get('Status')}"
+        logger.error('iCredit GetUrl error for order %s: %s', order.id, error)
+        return PaymentPageResult(ok=False, error=str(error))
+
+    logger.info('iCredit payment page created for order %s (amount %s)', order.id, order.total_price)
+    return PaymentPageResult(
+        ok=True,
+        url=data['URL'],
+        private_sale_token=str(data.get('PrivateSaleToken') or ''),
+        public_sale_token=str(data.get('PublicSaleToken') or ''),
+    )
+
+
+EMPTY_GUID = '00000000-0000-0000-0000-000000000000'
+
+
+def find_sale_id(sale_private_token):
+    """
+    שליפת מזהה העסקה (SaleId) של דף תשלום לפי ה-PrivateSaleToken שקיבלנו ב-GetUrl.
+    מחזיר '' אם עדיין אין עסקה. התשובה אינה הוכחת תשלום - את זה קובע רק verify_payment.
+    """
+    if not is_valid_sale_id(sale_private_token):
+        return ''
+
+    try:
+        response = requests.post(
+            settings.ICREDIT_SALE_DETAILS_URL,
+            data=json.dumps({'SalePrivateToken': str(sale_private_token)}),
+            headers=HEADERS,
+            timeout=REQUEST_TIMEOUT,
+            allow_redirects=False,
+        )
+        data = response.json() if response.status_code == 200 else {}
+    except (requests.RequestException, ValueError) as exc:
+        logger.error('iCredit SaleDetails request failed: %s', exc)
+        return ''
+
+    if not isinstance(data, dict):
+        return ''
+    sale_id = str(data.get('SaleId') or '').strip().lower()
+    if not sale_id or sale_id == EMPTY_GUID or not is_valid_sale_id(sale_id):
+        return ''
+    return sale_id
+
+
+def verify_payment(sale_id, amount):
+    """
+    אימות מול iCredit שהעסקה sale_id שולמה בסכום amount.
+    מחזיר True רק אם iCredit ענה VERIFIED.
+    """
+    if not is_valid_sale_id(sale_id):
+        return False
+
+    payload = {
+        'GroupPrivateToken': settings.ICREDIT_GROUP_PRIVATE_TOKEN,
+        'SaleId': str(sale_id),
+        'TotalAmount': float(amount),
+    }
+
+    try:
+        response = requests.post(
+            settings.ICREDIT_VERIFY_URL,
+            data=json.dumps(payload),
+            headers=HEADERS,
+            timeout=REQUEST_TIMEOUT,
+            allow_redirects=False,
+        )
+        data = response.json() if response.status_code == 200 else {}
+    except (requests.RequestException, ValueError) as exc:
+        logger.error('iCredit Verify request failed for sale %s: %s', sale_id, exc)
+        return False
+
+    status = str(data.get('Status') or '').strip().upper()
+    if status != 'VERIFIED':
+        logger.warning('iCredit Verify for sale %s amount %s returned %r', sale_id, amount, status or response.status_code)
+        return False
+    return True

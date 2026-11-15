@@ -1,5 +1,6 @@
 from django import forms
 from .models import ContactMessage, Order, Size, SizeGroup, FabricType, ProductVariant, Product
+from .services.shipping import SHIPPING_DELIVERY, SHIPPING_METHOD_CHOICES
 
 
 class ContactForm(forms.ModelForm):
@@ -92,9 +93,16 @@ class CheckoutForm(forms.Form):
             'placeholder': 'דוא״ל',
         })
     )
+    shipping_method = forms.ChoiceField(
+        choices=SHIPPING_METHOD_CHOICES,
+        initial=SHIPPING_DELIVERY,
+        required=True,
+        label='שיטת משלוח',
+        widget=forms.RadioSelect,
+    )
     guest_address = forms.CharField(
         max_length=255,
-        required=True,
+        required=False,  # חובה רק במשלוח עד הבית - נבדק ב-clean
         label='כתובת*',
         widget=forms.TextInput(attrs={
             'class': 'form-input',
@@ -103,7 +111,7 @@ class CheckoutForm(forms.Form):
     )
     guest_city = forms.CharField(
         max_length=100,
-        required=True,
+        required=False,  # חובה רק במשלוח עד הבית - נבדק ב-clean
         label='עיר*',
         widget=forms.TextInput(attrs={
             'class': 'form-input',
@@ -119,6 +127,15 @@ class CheckoutForm(forms.Form):
             'rows': 4,
         })
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # כתובת ועיר נדרשות רק כשההזמנה נשלחת עד הבית
+        if cleaned_data.get('shipping_method') == SHIPPING_DELIVERY:
+            for field_name in ('guest_address', 'guest_city'):
+                if not (cleaned_data.get(field_name) or '').strip():
+                    self.add_error(field_name, 'שדה זה נדרש למשלוח עד הבית')
+        return cleaned_data
 
 
 class BulkVariantCreationForm(forms.Form):

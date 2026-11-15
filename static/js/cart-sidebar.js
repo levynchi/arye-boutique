@@ -101,6 +101,16 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
+    // Escape text before placing it inside innerHTML
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+    
     // Render cart items
     function renderCartItems(data) {
         const cartItemsContainer = document.getElementById('cart-sidebar-items');
@@ -122,31 +132,34 @@ document.addEventListener('DOMContentLoaded', function() {
             cartFooter.style.display = 'block';
             cartEmpty.style.display = 'none';
             
-            cartItemsContainer.innerHTML = data.items.map(item => `
+            cartItemsContainer.innerHTML = data.items.map(item => {
+                const name = escapeHtml(item.product_name);
+                return `
                 <div class="cart-sidebar-item" data-item-id="${item.id}" role="listitem">
                     <div class="cart-sidebar-item-image">
-                        <img src="${item.product_image}" alt="${item.product_name}">
+                        <img src="${escapeHtml(item.product_image)}" alt="${name}">
                     </div>
                     
                     <div class="cart-sidebar-item-details">
-                        <h3 class="cart-sidebar-item-name">${item.product_name}</h3>
-                        ${item.product_subtitle ? `<p class="cart-sidebar-item-subtitle">${item.product_subtitle}</p>` : ''}
-                        ${item.variant_display ? `<p class="cart-sidebar-item-variant">${item.variant_display}</p>` : ''}
-                        ${item.product_size && !item.variant_display ? `<p class="cart-sidebar-item-size">${item.product_size}</p>` : ''}
+                        <h3 class="cart-sidebar-item-name">${name}</h3>
+                        ${item.product_subtitle ? `<p class="cart-sidebar-item-subtitle">${escapeHtml(item.product_subtitle)}</p>` : ''}
+                        ${item.variant_display ? `<p class="cart-sidebar-item-variant">${escapeHtml(item.variant_display)}</p>` : ''}
+                        ${item.product_size && !item.variant_display ? `<p class="cart-sidebar-item-size">${escapeHtml(item.product_size)}</p>` : ''}
                         <p class="cart-sidebar-item-price">${item.product_price.toFixed(2)} ₪</p>
                     </div>
                     
                     <div class="cart-sidebar-item-actions">
-                        <button class="sidebar-remove-btn" data-item-id="${item.id}" title="הסר" aria-label="הסר את ${item.product_name} מהעגלה">×</button>
+                        <button class="sidebar-remove-btn" data-item-id="${item.id}" title="הסר" aria-label="הסר את ${name} מהעגלה">×</button>
                         
                         <div class="sidebar-quantity-controls">
-                            <button class="sidebar-quantity-btn sidebar-quantity-decrease" data-item-id="${item.id}" aria-label="הקטן כמות עבור ${item.product_name}">-</button>
-                            <input type="number" class="sidebar-quantity-input" value="${item.quantity}" min="1" max="${item.max_quantity}" data-item-id="${item.id}" readonly aria-label="כמות עבור ${item.product_name}">
-                            <button class="sidebar-quantity-btn sidebar-quantity-increase" data-item-id="${item.id}" aria-label="הגדל כמות עבור ${item.product_name}">+</button>
+                            <button class="sidebar-quantity-btn sidebar-quantity-decrease" data-item-id="${item.id}" aria-label="הקטן כמות עבור ${name}">-</button>
+                            <input type="number" class="sidebar-quantity-input" value="${item.quantity}" min="1" max="${item.max_quantity}" data-item-id="${item.id}" readonly aria-label="כמות עבור ${name}">
+                            <button class="sidebar-quantity-btn sidebar-quantity-increase" data-item-id="${item.id}" aria-label="הגדל כמות עבור ${name}">+</button>
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
             
             // Attach event listeners to new elements
             attachItemEventListeners();
@@ -155,24 +168,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update cart summary
     function updateCartSummary(data) {
-        const shippingElement = document.getElementById('sidebar-shipping');
         const totalElement = document.getElementById('sidebar-total');
         const shippingNotice = document.getElementById('sidebar-shipping-notice');
         const remainingElement = document.getElementById('sidebar-remaining');
+        const shippingNote = document.getElementById('sidebar-shipping-note');
         
-        // הצג רק את סכום הפריטים (subtotal) בתור סה״כ
-        totalElement.textContent = `${data.subtotal.toFixed(2)} ₪`;
+        // הצג רק את סכום הפריטים (subtotal); דמי המשלוח מחושבים בשרת ומוצגים כהערה
+        if (totalElement) {
+            totalElement.textContent = `${data.subtotal.toFixed(2)} ₪`;
+        }
         
-        if (data.subtotal >= data.free_shipping_threshold) {
-            shippingElement.textContent = 'חינם';
-            shippingNotice.style.display = 'none';
-        } else if (data.subtotal > 0) {
-            shippingElement.textContent = `${data.shipping_fee.toFixed(2)} ₪`;
-            shippingNotice.style.display = 'block';
-            remainingElement.textContent = data.remaining_for_free_shipping.toFixed(2);
-        } else {
-            shippingElement.textContent = 'חינם';
-            shippingNotice.style.display = 'none';
+        if (shippingNotice && remainingElement) {
+            if (data.subtotal > 0 && data.remaining_for_free_shipping > 0) {
+                shippingNotice.style.display = 'block';
+                remainingElement.textContent = data.remaining_for_free_shipping.toFixed(2);
+            } else {
+                shippingNotice.style.display = 'none';
+            }
+        }
+        
+        if (shippingNote) {
+            if (data.subtotal <= 0) {
+                shippingNote.textContent = '';
+            } else if (data.shipping_fee > 0) {
+                shippingNote.textContent = `משלוח עד הבית: ${data.shipping_fee.toFixed(2)} ₪ · איסוף עצמי ללא עלות`;
+            } else {
+                shippingNote.textContent = 'משלוח עד הבית חינם';
+            }
         }
         
         // Update header cart count

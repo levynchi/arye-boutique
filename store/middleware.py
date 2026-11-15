@@ -26,6 +26,8 @@ class ComingSoonMiddleware:
             '/users/login',
             '/coming-soon',
             '/newsletter/unsubscribe',  # ביטול הרשמה לניוזלטר
+            '/payment/notify',  # IPN מ-iCredit - בקשה משרת לשרת, בלי התחברות
+            '/robots.txt',
         ]
 
         # בדיקה אם הנתיב מותר

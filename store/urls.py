@@ -1,7 +1,8 @@
 from django.urls import path
-from . import views
+from . import views, cart_views, payment_views
 
 urlpatterns = [
+    path('robots.txt', views.robots_txt, name='robots_txt'),
     path('coming-soon/', views.coming_soon, name='coming_soon'),
     path('', views.home, name='home'),
     path('search/', views.search, name='search'),
@@ -12,14 +13,14 @@ urlpatterns = [
     path('product/<int:product_id>/variants/', views.product_variants_api, name='product_variants_api'),
     
     # Cart URLs
-    path('cart/', views.cart_view, name='cart'),
-    path('cart/data/', views.cart_data, name='cart_data'),
+    path('cart/', cart_views.cart_view, name='cart'),
+    path('cart/data/', cart_views.cart_data, name='cart_data'),
     path('cart/add/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
-    path('cart/update/<int:item_id>/', views.cart_update_quantity, name='cart_update_quantity'),
-    path('cart/remove/<int:item_id>/', views.cart_remove_item, name='cart_remove_item'),
-    path('checkout/', views.checkout, name='checkout'),
-    path('checkout/apply-coupon/', views.apply_coupon, name='apply_coupon'),
-    path('checkout/remove-coupon/', views.remove_coupon, name='remove_coupon'),
+    path('cart/update/<int:item_id>/', cart_views.cart_update_quantity, name='cart_update_quantity'),
+    path('cart/remove/<int:item_id>/', cart_views.cart_remove_item, name='cart_remove_item'),
+    path('checkout/', cart_views.checkout, name='checkout'),
+    path('checkout/apply-coupon/', cart_views.apply_coupon, name='apply_coupon'),
+    path('checkout/remove-coupon/', cart_views.remove_coupon, name='remove_coupon'),
     
     path('contact/', views.contact, name='contact'),
     path('about-us/', views.about_us, name='about_us'),
@@ -43,9 +44,8 @@ urlpatterns = [
     path('newsletter/unsubscribe/<str:token>/', views.newsletter_unsubscribe, name='newsletter_unsubscribe'),
     
     # Payment URLs (iCredit Integration)
-    path('payment/start/<int:order_id>/', views.initiate_payment, name='initiate_payment'),
-    path('payment/success/', views.payment_success, name='payment_success'),
-    path('payment/failure/', views.payment_failure, name='payment_failure'),
-    path('payment/notify/', views.payment_notify, name='payment_notify'),
+    path('payment/start/<int:order_id>/', payment_views.initiate_payment, name='initiate_payment'),
+    path('payment/success/', payment_views.payment_success, name='payment_success'),
+    path('payment/failure/', payment_views.payment_failure, name='payment_failure'),
+    path('payment/notify/', payment_views.payment_notify, name='payment_notify'),
 ]
-

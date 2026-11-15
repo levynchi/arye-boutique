@@ -1,6 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm, SetPasswordForm
 from .models import CustomUser
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class RegisterForm(UserCreationForm):
@@ -93,9 +96,10 @@ class LoginForm(AuthenticationForm):
     username = forms.CharField(
         widget=forms.TextInput(attrs={
             'class': 'form-input',
-            'placeholder': 'שם משתמש',
+            'placeholder': 'כתובת מייל או שם משתמש',
+            'autocomplete': 'username',
         }),
-        label='שם משתמש*'
+        label='כתובת מייל או שם משתמש*'
     )
     
     password = forms.CharField(
@@ -105,6 +109,18 @@ class LoginForm(AuthenticationForm):
         }),
         label='סיסמה*'
     )
+    
+    def clean_username(self):
+        """
+        ההרשמה לאתר היא עם כתובת מייל (שם המשתמש נוצר אוטומטית), ולכן
+        מאפשרים להתחבר גם עם המייל: ממירים אותו לשם המשתמש של החשבון.
+        """
+        username = (self.cleaned_data.get('username') or '').strip()
+        if '@' in username:
+            matches = list(CustomUser.objects.filter(email__iexact=username)[:2])
+            if len(matches) == 1:
+                return matches[0].username
+        return username
 
 
 class PasswordResetRequestForm(PasswordResetForm):
@@ -119,6 +135,16 @@ class PasswordResetRequestForm(PasswordResetForm):
         }),
         label='כתובת מייל*'
     )
+    
+    def send_mail(self, *args, **kwargs):
+        """
+        תקלה בשליחת המייל לא צריכה להפיל את הדף (500) ולא לחשוף אם הכתובת קיימת.
+        השגיאה נרשמת בלוג.
+        """
+        try:
+            super().send_mail(*args, **kwargs)
+        except Exception:
+            logger.exception('Password reset: failed to send email')
 
 
 class CustomSetPasswordForm(SetPasswordForm):

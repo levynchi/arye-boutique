@@ -201,6 +201,22 @@
     margin-left: 10px;
 }
 
+.pending-icon {
+    background: linear-gradient(135deg, #7594b1 0%, #5a7a99 100%);
+    box-shadow: 0 10px 30px rgba(117, 148, 177, 0.3);
+}
+
+.pending-icon.is-warning {
+    background: linear-gradient(135deg, #f0ad4e 0%, #d9902f 100%);
+    box-shadow: 0 10px 30px rgba(240, 173, 78, 0.3);
+}
+
+.order-item-variant {
+    display: block;
+    color: #888;
+    font-size: 0.85rem;
+}
+
 @media (max-width: 600px) {
     .success-title {
         font-size: 1.8rem;
@@ -225,14 +241,41 @@
 {% block content %}
 <div class="payment-success-page">
     <div class="success-container">
+        {% if is_paid %}
         <div class="success-icon">
             <i class="fas fa-check"></i>
         </div>
         
         <h1 class="success-title">תודה על ההזמנה! 🎉</h1>
+        {% if order.shipping_method == 'pickup' %}
+        <p class="success-subtitle">התשלום בוצע בהצלחה. נעדכן אותך במייל כשההזמנה מוכנה לאיסוף.</p>
+        {% else %}
         <p class="success-subtitle">התשלום בוצע בהצלחה וההזמנה שלך בדרך אליך</p>
+        {% endif %}
+        {% elif payment_pending and keep_checking %}
+        <div class="success-icon pending-icon">
+            <i class="fas fa-spinner fa-spin"></i>
+        </div>
         
-        {% if order %}
+        <h1 class="success-title">מאמתים את התשלום…</h1>
+        <p class="success-subtitle" role="status">זה לוקח כמה שניות. אין צורך לרענן את הדף או לשלם שוב.</p>
+        {% elif payment_pending %}
+        <div class="success-icon pending-icon is-warning">
+            <i class="fas fa-hourglass-half"></i>
+        </div>
+        
+        <h1 class="success-title">עדיין לא קיבלנו אישור תשלום</h1>
+        <p class="success-subtitle">אם התשלום בוצע, ההזמנה תאושר אוטומטית ותקבלו אישור במייל. אם לא חויבתם, אפשר לחזור לקופה ולנסות שוב. לכל שאלה צרו קשר וציינו את מספר ההזמנה #{{ order.id }}.</p>
+        {% else %}
+        <div class="success-icon pending-icon is-warning">
+            <i class="fas fa-info"></i>
+        </div>
+        
+        <h1 class="success-title">הזמנה #{{ order.id }}</h1>
+        <p class="success-subtitle">ההזמנה הזו אינה פעילה. לכל שאלה צרו איתנו קשר.</p>
+        {% endif %}
+        
+        {% if is_paid or payment_pending %}
         <div class="order-details">
             <h3><i class="fas fa-receipt"></i> פרטי הזמנה #{{ order.id }}</h3>
             
@@ -249,10 +292,17 @@
                     <label>אימייל</label>
                     <span>{{ order.guest_email }}</span>
                 </div>
+                {% if order.shipping_method == 'pickup' %}
+                <div class="order-info-item">
+                    <label>איסוף עצמי</label>
+                    <span>{{ pickup_address }}</span>
+                </div>
+                {% else %}
                 <div class="order-info-item">
                     <label>כתובת למשלוח</label>
                     <span>{{ order.guest_address }}, {{ order.guest_city }}</span>
                 </div>
+                {% endif %}
             </div>
             
             <div class="order-items-list">
@@ -262,6 +312,7 @@
                     <div>
                         <span class="order-item-name">{{ item.product.name }}</span>
                         <span class="order-item-quantity"> × {{ item.quantity }}</span>
+                        {% if item.variant %}<span class="order-item-variant">{{ item.variant.get_display_name }}</span>{% endif %}
                     </div>
                     <span class="order-item-price">{{ item.subtotal }} ₪</span>
                 </div>
@@ -274,8 +325,13 @@
                 </div>
                 {% endif %}
                 
+                <div class="order-item">
+                    <span>{% if order.shipping_method == 'pickup' %}איסוף עצמי{% else %}משלוח עד הבית{% endif %}</span>
+                    <span>{% if order.shipping_fee > 0 %}{{ order.shipping_fee }} ₪{% elif order.shipping_method == 'pickup' %}ללא עלות{% else %}חינם{% endif %}</span>
+                </div>
+                
                 <div class="order-total">
-                    <span>סה״כ שולם:</span>
+                    <span>{% if is_paid %}סה״כ שולם:{% else %}סה״כ לתשלום:{% endif %}</span>
                     <span>{{ order.total_price }} ₪</span>
                 </div>
             </div>
@@ -283,21 +339,40 @@
         {% endif %}
         
         <div class="success-actions">
+            {% if payment_pending and not keep_checking %}
+            <a href="{% url 'checkout' %}" class="success-btn success-btn-primary">
+                <i class="fas fa-redo"></i>
+                חזרה לקופה
+            </a>
+            {% else %}
             <a href="{% url 'home' %}" class="success-btn success-btn-primary">
                 <i class="fas fa-home"></i>
                 חזרה לחנות
             </a>
+            {% endif %}
             <a href="{% url 'contact' %}" class="success-btn success-btn-secondary">
                 <i class="fas fa-envelope"></i>
                 צור קשר
             </a>
         </div>
         
+        {% if is_paid %}
         <div class="success-note">
             <i class="fas fa-info-circle"></i>
             <strong>שימו לב:</strong> שלחנו אישור הזמנה למייל שלכם. אם לא קיבלתם, בדקו בתיקיית הספאם או צרו איתנו קשר.
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
 
+{% block extra_js %}
+{% if payment_pending and keep_checking %}
+<script>
+    // בדיקה חוזרת של סטטוס התשלום עד שמגיע האישור מחברת הסליקה
+    setTimeout(function() {
+        window.location.replace('{{ refresh_url|escapejs }}');
+    }, 3000);
+</script>
+{% endif %}
+{% endblock %}

@@ -49,15 +49,31 @@
             <div class="cart-summary">
                 <h2>סיכום הזמנה</h2>
                 
-                <div class="summary-total">
-                    <span>סה״כ</span>
+                <div class="summary-row">
+                    <span>סכום ביניים</span>
                     <span class="cart-subtotal">{{ subtotal }} ₪</span>
+                </div>
+                
+                <div class="summary-row discount-row cart-discount-row" {% if totals.discount <= 0 %}style="display: none;"{% endif %}>
+                    <span>הנחת קופון</span>
+                    <span class="cart-discount">-{{ totals.discount }} ₪</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>משלוח עד הבית</span>
+                    <span class="shipping-fee">{% if shipping_fee > 0 %}{{ shipping_fee }} ₪{% else %}חינם{% endif %}</span>
+                </div>
+                
+                <div class="shipping-notice" {% if totals.remaining_for_free_shipping <= 0 %}style="display: none;"{% endif %}>
+                    <p class="remaining-amount">עוד {{ totals.remaining_for_free_shipping }} ₪ למשלוח חינם</p>
                 </div>
                 
                 <div class="summary-total">
                     <span>סה״כ</span>
                     <span class="cart-total">{{ total }} ₪</span>
                 </div>
+                
+                <p class="cart-pickup-note">איסוף עצמי מ{{ pickup_address }} ללא עלות – ניתן לבחור בקופה</p>
                 
                 {% if demo_mode %}
                 <button class="checkout-btn" disabled style="opacity:0.5;cursor:not-allowed;" title="מצב דמו — רכישות אינן זמינות">לקופה (דמו)</button>
@@ -85,7 +101,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/cart.js' %}"></script>
+<script src="{% static 'js/cart.js' %}?v=20261115a"></script>
 {% endblock %}
 
 

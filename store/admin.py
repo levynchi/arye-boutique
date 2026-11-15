@@ -3,6 +3,7 @@ from django.urls import path, reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from .models import (
     SiteSettings, Category, Subcategory, Product, ProductImage, 
     Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
@@ -379,7 +380,7 @@ class ProductAdmin(admin.ModelAdmin):
             )
         else:
             # אם זה מוצר חדש - כפתור שישמור ויעביר
-            return format_html(
+            return mark_safe(
                 '<button type="button" id="create-variants-btn" class="button" style="padding: 10px 15px; background-color: #417690; color: white; border: none; border-radius: 4px; cursor: pointer; display: inline-block;">➕ צור וריאנטים אוטומטית</button>'
                 '<p style="color: #666; font-size: 12px; margin-top: 5px;">המוצר יישמר אוטומטית</p>'
             )
@@ -1150,7 +1151,7 @@ class CouponAdmin(admin.ModelAdmin):
     def is_valid_display(self, obj):
         """הצגת סטטוס תקינות"""
         if obj.is_valid():
-            return format_html('<span style="color: #2e7d32; font-weight: bold;">✓ תקף</span>')
-        return format_html('<span style="color: #c62828;">✗ לא תקף</span>')
+            return mark_safe('<span style="color: #2e7d32; font-weight: bold;">✓ תקף</span>')
+        return mark_safe('<span style="color: #c62828;">✗ לא תקף</span>')
     is_valid_display.short_description = 'סטטוס'
     is_valid_display.admin_order_field = 'is_active'

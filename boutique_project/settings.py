@@ -166,21 +166,22 @@ STATICFILES_DIRS = [
 
 # Static files storage: WhiteNoise in production, default in development
 if DEBUG:
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    STATICFILES_STORAGE_BACKEND = 'django.contrib.staticfiles.storage.StaticFilesStorage'
     # Remove WhiteNoise in development so runserver serves from static/ directly
     MIDDLEWARE = [m for m in MIDDLEWARE if 'WhiteNoise' not in m]
 else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    # A missing static file should fall back to its plain URL, not take the page down with a 500
+    STATICFILES_STORAGE_BACKEND = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    # A static file that exists but is missing from the manifest gets hashed on the fly
+    # instead of taking the page down with a 500
     WHITENOISE_MANIFEST_STRICT = False
-
 
 # Media files (User uploaded files)
 # Use Cloudinary in production, local storage in development
+MEDIA_STORAGE_BACKEND = 'django.core.files.storage.FileSystemStorage'
 
 if os.environ.get('CLOUDINARY_CLOUD_NAME'):
     # Production: Use Cloudinary
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    MEDIA_STORAGE_BACKEND = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
         'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
@@ -191,6 +192,14 @@ else:
     # Development: Use local storage
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
+
+# Links typed in the admin without a scheme (e.g. "instagram.com/...") are treated as https
+FORMS_URLFIELD_ASSUME_HTTPS = True
+
+STORAGES = {
+    'default': {'BACKEND': MEDIA_STORAGE_BACKEND},
+    'staticfiles': {'BACKEND': STATICFILES_STORAGE_BACKEND},
+}
 
 
 # Custom User Model

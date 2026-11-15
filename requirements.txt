@@ -1,16 +1,16 @@
 # Django
-Django==5.0
+Django==5.2.19
 Pillow==10.3.0
 
 # Production Server
-gunicorn==21.2.0
+gunicorn==23.0.0
 
 # Database
 psycopg2-binary==2.9.9
 dj-database-url==2.1.0
 
 # Static Files
-whitenoise==6.6.0
+whitenoise==6.9.0
 
 # Media Files (Cloudinary)
 cloudinary==1.36.0
@@ -20,7 +20,7 @@ django-cloudinary-storage==0.3.0
 python-dotenv==1.0.0
 
 # Email (Resend API)
-resend==2.0.0
+resend==2.19.0
 
 # HTTP Requests (iCredit API)
-requests==2.31.0
+requests==2.32.5

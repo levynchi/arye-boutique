@@ -1,0 +1,17 @@
+{% extends 'store/base.html' %}
+
+{% block title %}הדף לא נמצא - בוטיק אריה{% endblock %}
+
+{% block content %}
+<section class="error-page">
+    <div class="container">
+        <p class="error-page-code">404</p>
+        <h1 class="error-page-title">הדף שחיפשת לא נמצא</h1>
+        <p class="error-page-text">ייתכן שהקישור שגוי או שהדף הוסר. אפשר לחזור לדף הבית או לחפש את מה שרצית.</p>
+        <div class="error-page-actions">
+            <a href="{% url 'home' %}" class="btn-primary">חזרה לדף הבית</a>
+            <a href="{% url 'contact' %}" class="error-page-link">צור קשר</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

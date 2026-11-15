@@ -100,7 +100,8 @@
                                 </div>
                                 <div class="order-status-wrapper">
                                     <span class="order-status order-status-{{ order.status }}">
-                                        {% if order.status == 'pending' %}ממתין
+                                        {% if order.status == 'pending' %}ממתין לתשלום
+                                        {% elif order.status == 'paid' %}שולם
                                         {% elif order.status == 'confirmed' %}אושר
                                         {% elif order.status == 'shipped' %}נשלח
                                         {% elif order.status == 'delivered' %}נמסר
@@ -248,6 +249,7 @@
     color: #856404;
 }
 
+.order-status-paid,
 .order-status-confirmed {
     background-color: #d1ecf1;
     color: #0c5460;

@@ -9,8 +9,10 @@
     <div class="container">
         <nav class="breadcrumb-nav">
             <a href="{% url 'home' %}">דף הבית</a>
+            {% if product.category %}
             <span class="breadcrumb-separator">></span>
             <a href="{% url 'category_detail' product.category.slug %}">{{ product.category.name }}</a>
+            {% endif %}
             {% if product.subcategory %}
             <span class="breadcrumb-separator">></span>
             <a href="{% url 'subcategory_detail' product.subcategory.category.slug product.subcategory.slug %}">{{ product.subcategory.name }}</a>
@@ -176,6 +178,7 @@
                         </div>
                     </div>
                     
+                    {% if product.material_care_info %}
                     <div class="info-section">
                         <div class="info-section-header">
                             <span class="info-icon"><i class="fas fa-tshirt"></i></span>
@@ -183,13 +186,10 @@
                             <span class="info-toggle">+</span>
                         </div>
                         <div class="info-section-content" style="display: none;">
-                            {% if product.material_care_info %}
-                                <p>{{ product.material_care_info.description }}</p>
-                            {% else %}
-                                <p>מידע על הרכב חומרים וטיפול יוצג כאן</p>
-                            {% endif %}
+                            <p>{{ product.material_care_info.description }}</p>
                         </div>
                     </div>
+                    {% endif %}
                     
                     <div class="info-section">
                         <div class="info-section-header">
@@ -198,7 +198,9 @@
                             <span class="info-toggle">+</span>
                         </div>
                         <div class="info-section-content" style="display: none;">
-                            <p>מידע על משלוחים והחזרות יוצג כאן</p>
+                            <p>משלוח עד הבית תוך 2–5 ימי עסקים: 30 ₪ בקנייה עד 99 ₪, 25 ₪ בקנייה של 100–199 ₪, 20 ₪ בקנייה של 200–299 ₪, וחינם בקנייה מעל 299 ₪.</p>
+                            <p>איסוף עצמי מרחוב הקישון 6, תל אביב – ללא עלות, עד 3 ימי עסקים.</p>
+                            <p><a href="{% url 'shipping_and_returns' %}">לפרטים המלאים על משלוחים, החלפות והחזרות</a></p>
                         </div>
                     </div>
                 </div>

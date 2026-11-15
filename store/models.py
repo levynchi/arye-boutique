@@ -283,6 +283,16 @@ class Product(models.Model):
         """בדיקה אם המוצר במלאי"""
         return self.stock_quantity > 0
     
+    def card_gallery_images(self):
+        """תמונות נוספות בכרטיס המוצר, בלי תקריב הדפוס שמוצג בריחוף."""
+        gallery = []
+        for img in self.images.all():
+            name = img.image.name if img.image else ''
+            if '_print' in name:
+                continue
+            gallery.append(img)
+        return gallery
+
     def get_display_price(self):
         """מחיר לתצוגה: טווח אם יש וריאנטים עם מחירים שונים, אחרת מחיר המוצר"""
         from django.db.models import Min, Max

@@ -84,7 +84,7 @@
                 
                 <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
                     <div class="product-image-wrapper"
-                         data-images='[{% if product.image %}"{{ product.image.url }}"{% endif %}{% for img in product.images.all %}{% if product.image or not forloop.first %},{% endif %}"{{ img.image.url }}"{% endfor %}]'
+                         data-images='[{% if product.image %}"{{ product.image.url }}"{% endif %}{% for img in product.card_gallery_images %}{% if product.image or not forloop.first %},{% endif %}"{{ img.image.url }}"{% endfor %}]'
                          data-current-index="0">
                         <!-- Product Image -->
                         {% if product.image %}
@@ -99,7 +99,7 @@
                         {% endfor %}
                         
                         <!-- Gallery Arrows (shown only if multiple images) -->
-                        {% if product.images.all|length > 0 or product.image and product.images.all|length > 0 %}
+                        {% if product.card_gallery_images %}
                         <button type="button" class="product-card-arrow product-card-arrow-right" aria-label="תמונה הבאה">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -113,7 +113,7 @@
                         <!-- Gallery Dots (for mobile) -->
                         <div class="product-card-dots">
                             <span class="product-card-dot active"></span>
-                            {% for img in product.images.all %}
+                            {% for img in product.card_gallery_images %}
                             <span class="product-card-dot"></span>
                             {% endfor %}
                         </div>
@@ -228,7 +228,9 @@
             
             let images;
             try {
-                images = JSON.parse(wrapper.dataset.images);
+                images = JSON.parse(wrapper.dataset.images).filter(function(src) {
+                    return src.indexOf('_print') === -1;
+                });
             } catch (err) {
                 return;
             }
@@ -237,6 +239,7 @@
             
             // Ensure index is within bounds
             newIndex = ((newIndex % images.length) + images.length) % images.length;
+            wrapper.classList.add('gallery-active');
             
             // Determine slide direction classes
             const slideOutClass = direction === 'next' ? 'slide-out-left' : 'slide-out-right';

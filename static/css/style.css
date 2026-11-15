@@ -2892,6 +2892,10 @@ ul {
     .product-card:hover .product-card-print {
         opacity: 1;
     }
+
+    .product-card:hover .product-image-wrapper.gallery-active .product-card-print {
+        opacity: 0;
+    }
 }
 
 .product-card-placeholder {

@@ -290,14 +290,15 @@ class Product(models.Model):
         return self.stock_quantity > 0
     
     def card_gallery_images(self):
-        """תמונות נוספות בכרטיס המוצר, בלי תקריב הדפוס שמוצג בריחוף."""
-        gallery = []
+        """תמונות נוספות בכרטיס המוצר, בלי התקריב שמוצג בריחוף."""
+        return [img for img in self.images.all() if not img.show_on_hover]
+
+    def card_hover_image(self):
+        """התקריב שמוצג כשעומדים עם העכבר על כרטיס המוצר, אם הוגדר כזה."""
         for img in self.images.all():
-            name = img.image.name if img.image else ''
-            if '_print' in name:
-                continue
-            gallery.append(img)
-        return gallery
+            if img.show_on_hover and img.image:
+                return img
+        return None
 
     def get_display_price(self):
         """מחיר לתצוגה: טווח אם יש וריאנטים עם מחירים שונים, אחרת מחיר המוצר"""
@@ -327,6 +328,12 @@ class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images', verbose_name='מוצר')
     image = models.ImageField(upload_to='products/', verbose_name='תמונה')
     is_primary = models.BooleanField(default=False, verbose_name='תמונה ראשית')
+    show_on_hover = models.BooleanField(
+        default=False,
+        verbose_name='תקריב בריחוף',
+        help_text='התמונה תוצג כשעומדים עם העכבר על המוצר בדפי הקטגוריה (זום על ההדפס), '
+                  'ולא תופיע בין החצים של כרטיס המוצר. מומלץ לסמן תמונה אחת לכל מוצר.',
+    )
     order = models.PositiveIntegerField(default=0, verbose_name='סדר')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
     

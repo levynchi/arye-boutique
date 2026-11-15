@@ -59,11 +59,11 @@
                         {% else %}
                             <div class="product-card-placeholder">אין תמונה</div>
                         {% endif %}
-                        {% for img in product.images.all %}
-                            {% if '_print' in img.image.name %}
-                            <img src="{{ img.image.url }}" alt="{{ product.name }} תקריב דפוס" class="product-card-print">
-                            {% endif %}
-                        {% endfor %}
+                        {% with hover_image=product.card_hover_image %}
+                        {% if hover_image %}
+                        <img src="{{ hover_image.image.url }}" alt="{{ product.name }} תקריב" class="product-card-print" loading="lazy">
+                        {% endif %}
+                        {% endwith %}
                         
                         <!-- Gallery Arrows (shown only if multiple images) -->
                         {% if product.card_gallery_images %}
@@ -188,9 +188,7 @@
             
             let images;
             try {
-                images = JSON.parse(wrapper.dataset.images).filter(function(src) {
-                    return src.indexOf('_print') === -1;
-                });
+                images = JSON.parse(wrapper.dataset.images);
             } catch (err) {
                 return;
             }

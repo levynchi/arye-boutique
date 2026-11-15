@@ -10,7 +10,8 @@ from django.utils import timezone
 
 from .email_backend import ResendEmailBackend
 from .models import (
-    Category, Coupon, NewsletterSubscriber, Order, OrderItem, OrderPayment, Product, SiteSettings,
+    Category, Coupon, NewsletterSubscriber, Order, OrderItem, OrderPayment, Product, ProductImage,
+    SiteSettings,
 )
 from .services import icredit
 from .services.orders import confirm_order_payment, finalize_paid_order
@@ -734,6 +735,55 @@ class AdminPagesTests(StoreFlowTestCase):
                     # 403 = דף שאין בו הרשאת הוספה; מה שאסור הוא קריסה
                     self.assertIn(self.client.get(url).status_code, (200, 302, 403))
         self.assertTrue(Order.objects.filter(pk=order.pk).exists())
+
+
+class ProductCardHoverTests(TestCase):
+    """תקריב שמוצג בריחוף על כרטיס מוצר בדף קטגוריה."""
+
+    def setUp(self):
+        self.category = Category.objects.create(name='חיתולי טטרה', slug='swaddles')
+        self.product = make_product(category=self.category)
+        self.folded = ProductImage.objects.create(product=self.product, image='products/folded.jpg')
+        self.closeup = ProductImage.objects.create(product=self.product, image='products/closeup.jpg')
+
+    def card_html(self):
+        response = self.client.get(reverse('category_detail', args=[self.category.slug]))
+        self.assertEqual(response.status_code, 200)
+        return response.content.decode()
+
+    def test_card_has_no_hover_image_by_default(self):
+        html = self.card_html()
+        self.assertNotIn('class="product-card-print"', html)
+        self.assertIn('closeup.jpg', html)  # עדיין חלק מגלריית החצים
+
+    def test_marked_image_is_shown_on_hover_and_left_out_of_the_arrows(self):
+        self.closeup.show_on_hover = True
+        self.closeup.save()
+
+        html = self.card_html()
+        self.assertEqual(html.count('class="product-card-print"'), 1)
+        hover_tag = html.split('class="product-card-print"')[0].rsplit('<img', 1)[1]
+        self.assertIn('closeup.jpg', hover_tag)
+
+        gallery = html.split("data-images='", 1)[1].split("'", 1)[0]
+        self.assertIn('folded.jpg', gallery)
+        self.assertNotIn('closeup.jpg', gallery)
+
+        self.assertEqual(self.product.card_hover_image(), self.closeup)
+        self.assertEqual(self.product.card_gallery_images(), [self.folded])
+
+    def test_existing_print_closeups_are_marked_by_the_migration(self):
+        import importlib
+        from django.apps import apps as django_apps
+
+        print_image = ProductImage.objects.create(product=self.product, image='media/products/set_print_ab12cd3')
+        migration = importlib.import_module('store.migrations.0038_productimage_show_on_hover')
+        migration.mark_existing_print_closeups(django_apps, None)
+
+        print_image.refresh_from_db()
+        self.closeup.refresh_from_db()
+        self.assertTrue(print_image.show_on_hover)
+        self.assertFalse(self.closeup.show_on_hover)
 
 
 class SitePagesTests(TestCase):

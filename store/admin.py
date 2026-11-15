@@ -226,7 +226,7 @@ class ProductImageInline(admin.TabularInline):
     """
     model = ProductImage
     extra = 1
-    fields = ('image', 'is_primary', 'order')
+    fields = ('image', 'is_primary', 'show_on_hover', 'order')
 
 
 class ProductVariantInline(admin.TabularInline):
@@ -600,10 +600,10 @@ class ProductImageAdmin(admin.ModelAdmin):
     """
     ניהול תמונות מוצרים
     """
-    list_display = ['product', 'is_primary', 'order', 'created_at']
-    list_filter = ['is_primary', 'created_at']
+    list_display = ['product', 'is_primary', 'show_on_hover', 'order', 'created_at']
+    list_filter = ['is_primary', 'show_on_hover', 'created_at']
     search_fields = ['product__name']
-    list_editable = ['is_primary', 'order']
+    list_editable = ['is_primary', 'show_on_hover', 'order']
 
 
 @admin.register(ContactMessage)

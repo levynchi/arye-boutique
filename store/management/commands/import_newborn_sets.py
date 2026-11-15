@@ -370,12 +370,14 @@ class Command(BaseCommand):
                 print_image = ProductImage(
                     product=product,
                     is_primary=False,
+                    show_on_hover=True,
                     order=KIND_ORDER['_print'],
                 )
                 print_image.save()
-            elif print_image.order != KIND_ORDER['_print']:
+            elif print_image.order != KIND_ORDER['_print'] or not print_image.show_on_hover:
                 print_image.order = KIND_ORDER['_print']
-                print_image.save(update_fields=['order'])
+                print_image.show_on_hover = True
+                print_image.save(update_fields=['order', 'show_on_hover'])
             self._assign_image(print_image, dest)
         return True
 

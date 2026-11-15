@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.db.models import Q
 from django.conf import settings
@@ -435,6 +437,9 @@ class OrderItem(models.Model):
     @property
     def subtotal(self):
         """סכום ביניים של הפריט"""
+        # שורה ריקה (למשל טופס "הוספת פריט" באדמין) עדיין בלי מחיר
+        if self.price is None or self.quantity is None:
+            return Decimal('0.00')
         return self.price * self.quantity
 
 

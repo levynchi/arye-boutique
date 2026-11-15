@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from .email_backend import ResendEmailBackend
 from .models import (
-    Category, Coupon, NewsletterSubscriber, Order, OrderPayment, Product, SiteSettings,
+    Category, Coupon, NewsletterSubscriber, Order, OrderItem, OrderPayment, Product, SiteSettings,
 )
 from .services import icredit
 from .services.orders import confirm_order_payment, finalize_paid_order
@@ -697,6 +697,43 @@ class ComingSoonTests(StoreFlowTestCase):
         response = self.client.get('/robots.txt')
         self.assertEqual(response.status_code, 200)
         self.assertIn('Disallow: /checkout/', response.content.decode())
+
+
+class AdminPagesTests(StoreFlowTestCase):
+    """כל דפי הניהול חייבים להיפתח - בעל האתר מנהל משם את ההזמנות."""
+
+    def setUp(self):
+        super().setUp()
+        from django.contrib.auth import get_user_model
+        self.admin_user = get_user_model().objects.create_superuser(
+            username='owner', email='owner@example.com', password='not-a-real-password-1!',
+        )
+
+    def test_order_page_opens_in_admin(self):
+        order = self.pending_order()
+        self.assertTrue(order.items.exists())
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('admin:store_order_change', args=[order.pk]))
+        self.assertEqual(response.status_code, 200)
+
+    def test_empty_order_line_has_zero_subtotal(self):
+        self.assertEqual(OrderItem().subtotal, Decimal('0.00'))
+
+    def test_every_admin_page_opens(self):
+        from django.contrib import admin
+        order = self.pending_order()
+        self.client.force_login(self.admin_user)
+        for model in admin.site._registry:
+            meta = model._meta
+            base = f'admin:{meta.app_label}_{meta.model_name}'
+            urls = [reverse(f'{base}_changelist'), reverse(f'{base}_add')]
+            if meta.managed:
+                urls += [reverse(f'{base}_change', args=[obj.pk]) for obj in model.objects.all()[:2]]
+            for url in urls:
+                with self.subTest(url=url):
+                    # 403 = דף שאין בו הרשאת הוספה; מה שאסור הוא קריסה
+                    self.assertIn(self.client.get(url).status_code, (200, 302, 403))
+        self.assertTrue(Order.objects.filter(pk=order.pk).exists())
 
 
 class SitePagesTests(TestCase):

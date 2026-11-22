@@ -5137,6 +5137,21 @@ ul {
     margin: 0;
 }
 
+.laundry-rules-list {
+    direction: rtl;
+    text-align: right;
+    list-style: disc;
+    margin: 16px 0 0;
+    padding: 0 22px 0 0;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #000;
+}
+
+.laundry-rules-list li {
+    margin-bottom: 8px;
+}
+
 /* Laundry Symbols Section */
 .laundry-symbols-section {
     color: #000;

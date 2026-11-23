@@ -1,18 +1,12 @@
 import json
-import tempfile
 from datetime import timedelta
 from decimal import Decimal
-from io import StringIO
-from pathlib import Path
 from unittest import mock
 
 from django.core import mail
-from django.core.management import call_command
-from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
-from PIL import Image
 
 from .email_backend import ResendEmailBackend
 from .models import (
@@ -832,6 +826,15 @@ class SitePagesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, 'יוצג כאן')
         self.assertContains(response, reverse('shipping_and_returns'))
+
+    def test_product_page_hides_hover_closeup_from_gallery(self):
+        product = make_product(slug='forest-set')
+        ProductImage.objects.create(product=product, image='products/bodysuit.jpg')
+        ProductImage.objects.create(product=product, image='products/prints.jpg', show_on_hover=True)
+        response = self.client.get(reverse('product_detail', args=[product.slug]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'bodysuit.jpg')
+        self.assertNotContains(response, 'prints.jpg')
 
     def test_contact_email_escapes_user_input(self):
         with override_settings(RESEND_API_KEY='test-key'), mock.patch('store.views.resend.Emails.send') as send:

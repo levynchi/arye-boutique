@@ -101,9 +101,9 @@ def product_detail(request, slug):
         is_active=True
     )
     
-    # קבלת כל התמונות הנלוות של המוצר
-    additional_images = product.images.all()
-    
+    # תמונות לגלריה בדף המוצר - בלי תקריב הריחוף (מוצג רק בכרטיס המוצר בדפי קטגוריה)
+    additional_images = product.images.filter(show_on_hover=False)
+
     # קביעת תמונה ראשית - אם יש תמונה עם is_primary=True, נשתמש בה
     # אחרת, נשתמש בתמונה הראשית מהשדה image של המוצר
     primary_product_image = additional_images.filter(is_primary=True).first()

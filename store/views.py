@@ -298,8 +298,8 @@ def category_detail(request, slug):
     subcategories = category.subcategories.filter(is_active=True)
     has_subcategories = subcategories.exists()
     
-    # אם יש תת-קטגוריות - להציג רק אותן (ללא מוצרים)
-    if has_subcategories:
+    # אם יש תת-קטגוריות - להציג רק אותן (ללא מוצרים), אלא אם הוגדר להציג את כל המוצרים
+    if has_subcategories and not category.show_all_products:
         # קבלת קטגוריות לניווט
         categories = Category.objects.filter(is_active=True)
         
@@ -312,8 +312,11 @@ def category_detail(request, slug):
         
         return render(request, 'store/category_detail.html', context)
     
-    # אין תת-קטגוריות - להציג מוצרים
-    products = Product.objects.filter(category=category, is_active=True).prefetch_related('images')
+    # הצגת מוצרים - כולל מוצרים ששויכו רק לתת-קטגוריה של הקטגוריה
+    products = Product.objects.filter(
+        Q(category=category) | Q(subcategory__category=category),
+        is_active=True,
+    ).distinct().prefetch_related('images')
     
     # סינון לפי מין
     gender_filter = request.GET.get('gender', '')

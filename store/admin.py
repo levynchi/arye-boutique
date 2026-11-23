@@ -151,11 +151,11 @@ class CategoryAdmin(admin.ModelAdmin):
     """
     ניהול קטגוריות
     """
-    list_display = ['name', 'slug', 'is_active', 'created_at']
+    list_display = ['name', 'slug', 'is_active', 'show_all_products', 'created_at']
     list_filter = ['is_active', 'created_at']
     search_fields = ['name', 'description']
     prepopulated_fields = {'slug': ('name',)}
-    list_editable = ['is_active']
+    list_editable = ['is_active', 'show_all_products']
     readonly_fields = ['created_at']
     inlines = [SubcategoryInline]
     
@@ -164,7 +164,7 @@ class CategoryAdmin(admin.ModelAdmin):
             'fields': ('name', 'slug', 'description', 'image')
         }),
         ('הגדרות', {
-            'fields': ('is_active',)
+            'fields': ('is_active', 'show_all_products')
         }),
         ('תאריכים', {
             'fields': ('created_at',),
@@ -298,7 +298,7 @@ class ProductAdmin(admin.ModelAdmin):
     """
     ניהול מוצרים
     """
-    list_display = ['image_preview', 'name', 'category', 'subcategory', 'gender', 'price', 'stock_quantity', 'order', 'is_active', 'is_featured', 'is_bestseller', 'created_at']
+    list_display = ['image_preview', 'name', 'is_active', 'category', 'subcategory', 'gender', 'price', 'stock_quantity', 'order', 'is_featured', 'is_bestseller', 'created_at']
     list_display_links = ['image_preview', 'name']
     
     def image_preview(self, obj):

@@ -145,8 +145,13 @@ class Category(models.Model):
     description = models.TextField(blank=True, verbose_name='תיאור')
     image = models.ImageField(upload_to='categories/', blank=True, verbose_name='תמונה')
     is_active = models.BooleanField(default=True, verbose_name='פעיל')
+    show_all_products = models.BooleanField(
+        default=False,
+        verbose_name='הצג את כל המוצרים ישירות',
+        help_text='בדף הקטגוריה יוצגו כל המוצרים (כולל מכל תתי-הקטגוריות) במקום רשימת תתי-הקטגוריות',
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
-    
+
     class Meta:
         verbose_name = 'קטגוריה'
         verbose_name_plural = 'קטגוריות'

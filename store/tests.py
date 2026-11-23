@@ -1,17 +1,23 @@
 import json
+import tempfile
 from datetime import timedelta
 from decimal import Decimal
+from io import StringIO
+from pathlib import Path
 from unittest import mock
 
 from django.core import mail
+from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
 from .email_backend import ResendEmailBackend
 from .models import (
     Category, Coupon, NewsletterSubscriber, Order, OrderItem, OrderPayment, Product, ProductImage,
-    SiteSettings,
+    SiteSettings, Subcategory,
 )
 from .services import icredit
 from .services.orders import confirm_order_payment, finalize_paid_order
@@ -108,9 +114,9 @@ CHECKOUT_DATA = {
 class ShippingFeeTests(TestCase):
     def test_delivery_tiers_match_published_policy(self):
         cases = [
-            ('1', '30.00'), ('99', '30.00'), ('99.99', '30.00'),
+            ('1', '39.00'), ('99', '39.00'), ('99.99', '39.00'),
             ('100', '25.00'), ('199.99', '25.00'),
-            ('200', '20.00'), ('299.99', '20.00'),
+            ('200', '25.00'), ('299.99', '25.00'),
             ('300', '0.00'), ('1000', '0.00'),
         ]
         for amount, fee in cases:
@@ -141,8 +147,8 @@ class PricingTests(TestCase):
         totals = calculate_totals(Decimal('320'), 'save10')
         self.assertEqual(totals.discount, Decimal('32.00'))
         # 288 אחרי הנחה - כבר לא משלוח חינם
-        self.assertEqual(totals.shipping_fee, Decimal('20.00'))
-        self.assertEqual(totals.total, Decimal('308.00'))
+        self.assertEqual(totals.shipping_fee, Decimal('25.00'))
+        self.assertEqual(totals.total, Decimal('313.00'))
 
     def test_pickup_keeps_delivery_fee_for_display(self):
         totals = calculate_totals(Decimal('160'), shipping_method='pickup')
@@ -221,8 +227,8 @@ class CartAndCheckoutTests(StoreFlowTestCase):
         self.add_to_cart(quantity=1)
         data = self.client.get(reverse('cart_data')).json()
         self.assertEqual(data['subtotal'], 80.0)
-        self.assertEqual(data['shipping_fee'], 30.0)
-        self.assertEqual(data['total'], 110.0)
+        self.assertEqual(data['shipping_fee'], 39.0)
+        self.assertEqual(data['total'], 119.0)
         self.assertEqual(data['free_shipping_threshold'], 300.0)
         self.assertEqual(data['remaining_for_free_shipping'], 220.0)
 
@@ -274,8 +280,8 @@ class CartAndCheckoutTests(StoreFlowTestCase):
         self.add_to_cart(quantity=1)
         self.checkout(shipping_fee='0', total='1', total_price='1')
         order = Order.objects.get()
-        self.assertEqual(order.shipping_fee, Decimal('30.00'))
-        self.assertEqual(order.total_price, Decimal('110.00'))
+        self.assertEqual(order.shipping_fee, Decimal('39.00'))
+        self.assertEqual(order.total_price, Decimal('119.00'))
 
     def test_double_submit_reuses_the_same_order(self):
         self.add_to_cart()
@@ -798,6 +804,27 @@ class SitePagesTests(TestCase):
 
     def test_home_page_renders(self):
         self.assertEqual(self.client.get(reverse('home')).status_code, 200)
+
+    def test_category_with_subcategories_shows_subcategory_tiles(self):
+        category = Category.objects.create(name='בגדים', slug='clothes')
+        subcategory = Subcategory.objects.create(name='בגדי גוף', slug='bodysuits', category=category)
+        make_product(name='בגד גוף לבן', category=category, subcategory=subcategory)
+        response = self.client.get(reverse('category_detail', args=['clothes']))
+        self.assertTrue(response.context['has_subcategories'])
+        self.assertNotContains(response, 'בגד גוף לבן')
+
+    def test_category_can_show_all_products_instead_of_subcategories(self):
+        category = Category.objects.create(name='בייסיקים', slug='basics', show_all_products=True)
+        subcategory = Subcategory.objects.create(name='בגדי גוף', slug='bodysuits', category=category)
+        make_product(name='בגד גוף לבן', category=category, subcategory=subcategory)
+        make_product(name='מכנסיים', category=category)
+        make_product(name='מוצר לא פעיל', category=category, is_active=False)
+        response = self.client.get(reverse('category_detail', args=['basics']))
+        self.assertFalse(response.context['has_subcategories'])
+        self.assertEqual(
+            sorted(p.name for p in response.context['products']),
+            sorted(['בגד גוף לבן', 'מכנסיים']),
+        )
 
     def test_product_page_shows_shipping_summary(self):
         product = make_product(slug='baby-suit')

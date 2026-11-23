@@ -46,6 +46,7 @@
                         <div class="product-image-wrapper"
                              data-images='[{% if product.image %}"{{ product.image.url }}"{% endif %}{% for img in product.card_gallery_images %}{% if product.image or not forloop.first %},{% endif %}"{{ img.image.url }}"{% endfor %}]'
                              data-current-index="0">
+                            <div class="product-card-frame">
                             <!-- Product Image -->
                             {% if product.image %}
                                 <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-image">
@@ -70,7 +71,10 @@
                                     <polyline points="15 18 9 12 15 6"></polyline>
                                 </svg>
                             </button>
+                            {% endif %}
+                            </div>
                             <!-- Gallery Dots (for mobile) -->
+                            {% if product.card_gallery_images %}
                             <div class="product-card-dots">
                                 <span class="product-card-dot active"></span>
 {% for img in product.card_gallery_images %}
@@ -172,8 +176,8 @@
             });
         });
         
-        // Product card gallery navigation
-        function updateProductCardImage(wrapper, newIndex) {
+        // Product card gallery navigation with the same slide as the product page
+        function updateProductCardImage(wrapper, newIndex, direction) {
             const img = wrapper.querySelector('.product-card-image');
             if (!img) return;
             
@@ -186,18 +190,29 @@
             
             if (!images || images.length <= 1) return;
             
-            // Ensure index is within bounds
             newIndex = ((newIndex % images.length) + images.length) % images.length;
             wrapper.classList.add('gallery-active');
             
-            wrapper.dataset.currentIndex = newIndex;
-            img.src = images[newIndex];
+            const slideOutClass = direction === 'next' ? 'slide-out-left' : 'slide-out-right';
+            const slideInClass = direction === 'next' ? 'slide-in-right' : 'slide-in-left';
             
-            // Update dots
-            const dots = wrapper.querySelectorAll('.product-card-dot');
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('active', index === newIndex);
-            });
+            img.classList.add(slideOutClass);
+            
+            setTimeout(() => {
+                wrapper.dataset.currentIndex = newIndex;
+                img.src = images[newIndex];
+                img.classList.remove(slideOutClass);
+                img.classList.add(slideInClass);
+                
+                const dots = wrapper.querySelectorAll('.product-card-dot');
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === newIndex);
+                });
+                
+                setTimeout(() => {
+                    img.classList.remove(slideInClass);
+                }, 120);
+            }, 120);
         }
         
         // Arrow click handlers
@@ -208,12 +223,16 @@
                 e.stopPropagation();
                 
                 const wrapper = this.closest('.product-image-wrapper');
+                const img = wrapper.querySelector('.product-card-image');
+                if (img && (img.classList.contains('slide-out-left') || img.classList.contains('slide-out-right'))) {
+                    return;
+                }
                 let currentIndex = parseInt(wrapper.dataset.currentIndex) || 0;
                 
-                if (this.classList.contains('product-card-arrow-right')) {
-                    updateProductCardImage(wrapper, currentIndex + 1);
+                if (this.classList.contains('product-card-arrow-left')) {
+                    updateProductCardImage(wrapper, currentIndex + 1, 'next');
                 } else {
-                    updateProductCardImage(wrapper, currentIndex - 1);
+                    updateProductCardImage(wrapper, currentIndex - 1, 'prev');
                 }
             });
         });
@@ -232,16 +251,19 @@
                 touchEndX = e.changedTouches[0].screenX;
                 const diff = touchStartX - touchEndX;
                 
-                if (Math.abs(diff) > 50) { // Minimum swipe distance
+                const img = wrapper.querySelector('.product-card-image');
+                if (img && (img.classList.contains('slide-out-left') || img.classList.contains('slide-out-right'))) {
+                    return;
+                }
+                
+                if (Math.abs(diff) > 50) {
                     e.preventDefault();
                     let currentIndex = parseInt(wrapper.dataset.currentIndex) || 0;
                     
                     if (diff > 0) {
-                        // Swipe left - next image
-                        updateProductCardImage(wrapper, currentIndex + 1);
+                        updateProductCardImage(wrapper, currentIndex - 1, 'prev');
                     } else {
-                        // Swipe right - previous image
-                        updateProductCardImage(wrapper, currentIndex - 1);
+                        updateProductCardImage(wrapper, currentIndex + 1, 'next');
                     }
                 }
             });

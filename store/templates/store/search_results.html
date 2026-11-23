@@ -53,6 +53,7 @@
                     <div class="product-image-wrapper"
                          data-images='[{% if product.image %}"{{ product.image.url }}"{% endif %}{% for img in product.card_gallery_images %}{% if product.image or not forloop.first %},{% endif %}"{{ img.image.url }}"{% endfor %}]'
                          data-current-index="0">
+                        <div class="product-card-frame">
                         <!-- Product Image -->
                         {% if product.image %}
                             <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-image">
@@ -77,7 +78,10 @@
                                 <polyline points="15 18 9 12 15 6"></polyline>
                             </svg>
                         </button>
+                        {% endif %}
+                        </div>
                         <!-- Gallery Dots (for mobile) -->
+                        {% if product.card_gallery_images %}
                         <div class="product-card-dots">
                             <span class="product-card-dot active"></span>
                             {% for img in product.card_gallery_images %}
@@ -280,11 +284,11 @@
                     let currentIndex = parseInt(wrapper.dataset.currentIndex) || 0;
                     
                     if (diff > 0) {
-                        // Swipe left - next image
-                        updateProductCardImage(wrapper, currentIndex + 1, 'next');
-                    } else {
-                        // Swipe right - previous image
+                        // Swipe left, same direction as the product page
                         updateProductCardImage(wrapper, currentIndex - 1, 'prev');
+                    } else {
+                        // Swipe right, same direction as the product page
+                        updateProductCardImage(wrapper, currentIndex + 1, 'next');
                     }
                 }
             });

@@ -2801,6 +2801,15 @@ ul {
     isolation: isolate;
 }
 
+/* Clips the photo slide to the square, the same way the product page gallery does */
+.product-card-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background-color: var(--bg-light);
+}
+
 /* Product Card Gallery Arrows */
 .product-card-arrow {
     position: absolute;
@@ -2892,12 +2901,25 @@ ul {
         margin-bottom: 0;
     }
 
+    .product-card .product-card-frame {
+        flex: 0 0 auto;
+        overflow: hidden;
+    }
+
     .product-card .product-card-image,
     .product-card .product-card-placeholder {
         width: 100%;
         height: auto;
         aspect-ratio: 1;
         flex: 0 0 auto;
+    }
+
+    .product-card .product-card-frame .product-card-image,
+    .product-card .product-card-frame .product-card-placeholder {
+        width: 100%;
+        height: 100%;
+        aspect-ratio: auto;
+        flex: none;
     }
 
     .product-card .product-card-print {
@@ -2907,6 +2929,13 @@ ul {
         width: 100%;
         height: auto;
         aspect-ratio: 1;
+    }
+
+    .product-card .product-card-frame .product-card-print {
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        aspect-ratio: auto;
     }
     
     .product-card-dots {

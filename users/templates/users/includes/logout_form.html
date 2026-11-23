@@ -1,0 +1,4 @@
+<form method="post" action="{% url 'users:logout' %}" class="logout-form {{ logout_form_class|default:'' }}">
+    {% csrf_token %}
+    <button type="submit" class="{{ logout_button_class|default:'logout-btn' }}">התנתק</button>
+</form>

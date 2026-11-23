@@ -14,9 +14,14 @@ import os
 from pathlib import Path
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Local secrets live in .env (gitignored). Existing environment variables win,
+# so Railway keeps the values it injects itself.
+load_dotenv(BASE_DIR / '.env')
 
 # True when running on Railway (the platform sets these variables itself)
 ON_RAILWAY = bool(os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_PUBLIC_DOMAIN'))
@@ -204,6 +209,10 @@ STORAGES = {
 
 # Custom User Model
 AUTH_USER_MODEL = 'users.CustomUser'
+
+# בלי זה Django מפנה את מי שלא מחובר ל-/accounts/login/, דף שלא קיים באתר
+LOGIN_URL = 'users:login'
+LOGIN_REDIRECT_URL = 'home'
 
 # Password reset links are valid for 24 hours (as the reset email says)
 PASSWORD_RESET_TIMEOUT = 60 * 60 * 24

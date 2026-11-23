@@ -46,6 +46,38 @@ class LoginTests(TestCase):
                 self.assertRedirects(response, reverse('home'), fetch_redirect_response=False)
 
 
+class LogoutTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            username='dana', email='dana@example.com', password='a-Strong-pass-123', first_name='דנה',
+        )
+
+    def test_profile_redirects_to_the_site_login_page(self):
+        response = self.client.get(reverse('users:profile'))
+        self.assertRedirects(
+            response,
+            f"{reverse('users:login')}?next={reverse('users:profile')}",
+            fetch_redirect_response=False,
+        )
+
+    def test_profile_shows_a_logout_form(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('users:profile'))
+        self.assertContains(response, 'התנתק')
+        self.assertContains(response, reverse('users:logout'))
+
+    def test_logout_ends_the_session(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('users:logout'))
+        self.assertRedirects(response, reverse('home'), fetch_redirect_response=False)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('users:logout'))
+        self.assertRedirects(response, reverse('home'), fetch_redirect_response=False)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+
 class PasswordResetTests(TestCase):
     def setUp(self):
         self.user = CustomUser.objects.create_user(

@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261123b">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261123c">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -142,9 +142,15 @@
                         </a>
                     {% endif %}
                     {% if user.is_authenticated %}
-                        <a href="{% url 'users:profile' %}" class="icon-link" title="אזור אישי" aria-label="כניסה לאזור האישי">
-                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="Account" class="header-icon-svg">
-                        </a>
+                        <div class="account-menu">
+                            <button type="button" class="icon-link account-menu-toggle" aria-expanded="false" aria-haspopup="menu" aria-controls="account-menu-panel" aria-label="תפריט חשבון" title="החשבון שלי">
+                                <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="" class="header-icon-svg">
+                            </button>
+                            <div class="account-menu-panel" id="account-menu-panel" role="menu" hidden>
+                                <a href="{% url 'users:profile' %}" class="account-menu-link" role="menuitem">האזור האישי</a>
+                                {% include 'users/includes/logout_form.html' with logout_form_class='account-menu-form' logout_button_class='account-menu-link account-menu-logout' %}
+                            </div>
+                        </div>
                     {% else %}
                         <a href="{% url 'users:login' %}" class="icon-link" title="התחבר" aria-label="התחברות למערכת">
                             <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="Account" class="header-icon-svg">
@@ -215,6 +221,18 @@
         </div>
         <nav class="mobile-nav-content" aria-label="תפריט ראשי נייד">
             <ul class="nav-menu mobile-nav-menu">
+                {% if user.is_authenticated %}
+                <li class="nav-item mobile-nav-account">
+                    <a href="{% url 'users:profile' %}" class="nav-link" data-mobile-nav-link>האזור האישי</a>
+                </li>
+                <li class="nav-item mobile-nav-account">
+                    {% include 'users/includes/logout_form.html' with logout_form_class='mobile-logout-form' logout_button_class='nav-link mobile-nav-logout' %}
+                </li>
+                {% else %}
+                <li class="nav-item mobile-nav-account">
+                    <a href="{% url 'users:login' %}" class="nav-link" data-mobile-nav-link>התחברות</a>
+                </li>
+                {% endif %}
                 {% for category in categories %}
                 <li class="nav-item">
                     <a href="{% url 'category_detail' category.slug %}" class="nav-link" data-mobile-nav-link>{{ category.name }}</a>
@@ -450,8 +468,7 @@
         <div class="footer-bottom">
             <div class="container">
                 <div class="footer-bottom-content">
-                    <p class="footer-cancel"><a href="{% url 'cancel_order' %}" class="footer-cancel-link">ביטול עסקה</a></p>
-                    <p class="footer-copyright"><span class="footer-business">אריה בוטיק · עוסק מורשה 052064219 · רחוב הקישון 6, תל אביב</span><br><span class="arye-text">ARYE BOUTIQUE</span> <span class="site-by">SITE BY</span> <a href="https://www.instagram.com/hadarlevy_design/" target="_blank" rel="noopener noreferrer" class="hadar-levy-link"><span class="hadar-levy">HADAR LEVY</span></a></p>
+                    <p class="footer-copyright"><span class="footer-business">אריה בוטיק · רחוב הקישון 6, תל אביב</span><br><span class="arye-text">ARYE BOUTIQUE</span> <span class="site-by">SITE BY</span> <a href="https://www.instagram.com/hadarlevy_design/" target="_blank" rel="noopener noreferrer" class="hadar-levy-link"><span class="hadar-levy">HADAR LEVY</span></a></p>
                 </div>
             </div>
         </div>
@@ -465,6 +482,9 @@
 
     <!-- Mobile Navigation JavaScript -->
     <script src="{% static 'js/mobile-nav.js' %}"></script>
+
+    <!-- Account menu (logout) -->
+    <script src="{% static 'js/account-menu.js' %}?v=20261117a"></script>
 
     <!-- Footer Accordion JavaScript -->
     <script src="{% static 'js/footer-accordion.js' %}"></script>

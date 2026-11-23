@@ -18,7 +18,12 @@
 <!-- Profile Section -->
 <section class="contact-section profile-section">
     <div class="container">
-        <h1 class="contact-title">האזור האישי שלי</h1>
+        <div class="profile-page-heading">
+            <h1 class="contact-title">האזור האישי שלי</h1>
+            <div class="profile-page-logout">
+                {% include 'users/includes/logout_form.html' %}
+            </div>
+        </div>
         
         <div class="profile-content">
             <!-- Personal Details Section -->
@@ -158,6 +163,27 @@
 /* Profile Specific Styles */
 .profile-section {
     padding: 40px 0 60px;
+}
+
+.profile-page-heading {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-page-heading .contact-title {
+    grid-column: 2;
+    margin: 0;
+}
+
+.profile-page-logout {
+    grid-column: 1;
+    justify-self: start;
+}
+
+.profile-page-logout .logout-form {
+    margin: 0;
 }
 
 .profile-content {
@@ -375,6 +401,18 @@
     
     .profile-actions {
         flex-direction: column;
+    }
+
+    .profile-page-heading {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: 16px;
+    }
+
+    .profile-page-heading .contact-title,
+    .profile-page-logout {
+        grid-column: 1;
+        justify-self: center;
     }
     
     .order-header {

@@ -1,17 +1,23 @@
 import json
+import tempfile
 from datetime import timedelta
 from decimal import Decimal
+from io import StringIO
+from pathlib import Path
 from unittest import mock
 
 from django.core import mail
+from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
 from .email_backend import ResendEmailBackend
 from .models import (
     CancellationRequest, Category, Coupon, NewsletterSubscriber, Order, OrderItem, OrderPayment, Product, ProductImage,
-    SiteSettings, Subcategory,
+    SiteSettings, Size, Subcategory,
 )
 from .services import icredit
 from .services.orders import confirm_order_payment, finalize_paid_order
@@ -932,6 +938,40 @@ class SitePagesTests(TestCase):
         self.assertIn('&lt;script&gt;', html)
 
 
+class NewsletterSubscribeTests(TestCase):
+    def post_email(self, email):
+        return self.client.post(
+            reverse('newsletter_subscribe'),
+            data=json.dumps({'email': email}),
+            content_type='application/json',
+        )
+
+    @override_settings(RESEND_API_KEY='', DEFAULT_FROM_EMAIL='shop@example.com')
+    def test_missing_api_key_does_not_save_or_claim_success(self):
+        response = self.post_email('new@example.com')
+        self.assertFalse(response.json()['success'])
+        self.assertFalse(NewsletterSubscriber.objects.filter(email='new@example.com').exists())
+
+    @override_settings(RESEND_API_KEY='test-key', DEFAULT_FROM_EMAIL='shop@example.com')
+    def test_failed_send_removes_the_subscriber(self):
+        with mock.patch('store.views.resend.Emails.send', side_effect=RuntimeError('down')):
+            response = self.post_email('new@example.com')
+        self.assertFalse(response.json()['success'])
+        self.assertIn('לא הצלחנו לשלוח', response.json()['message'])
+        self.assertFalse(NewsletterSubscriber.objects.filter(email='new@example.com').exists())
+
+    @override_settings(RESEND_API_KEY='test-key', DEFAULT_FROM_EMAIL='shop@example.com')
+    def test_successful_send_saves_the_coupon(self):
+        with mock.patch('store.views.resend.Emails.send') as send:
+            response = self.post_email('new@example.com')
+        self.assertTrue(response.json()['success'])
+        subscriber = NewsletterSubscriber.objects.get(email='new@example.com')
+        payload = send.call_args.args[0]
+        self.assertEqual(payload['to'], ['new@example.com'])
+        self.assertEqual(payload['from'], 'shop@example.com')
+        self.assertIn(subscriber.coupon_code, payload['html'])
+
+
 class ResendEmailBackendTests(TestCase):
     @override_settings(RESEND_API_KEY='test-key', DEFAULT_FROM_EMAIL='shop@example.com')
     def test_sends_through_resend(self):
@@ -953,3 +993,51 @@ class ResendEmailBackendTests(TestCase):
             with self.assertRaises(RuntimeError):
                 ResendEmailBackend().send_messages([message])
             self.assertEqual(ResendEmailBackend(fail_silently=True).send_messages([message]), 0)
+
+
+class AddProductFromFolderTests(TestCase):
+    def test_creates_product_with_gallery_in_the_given_order(self):
+        category = Category.objects.create(name='ניובורן', slug='newborn')
+        Size.objects.get_or_create(name='0-3')
+        make_product(slug='taken')
+
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / 'תחבורה'
+            source.mkdir()
+            for filename in ('5PACK CARS.jpg', 'KIMONO AIRPLANE.jpg', 'KIMONO TRAIN.jpg'):
+                Image.new('RGB', (4, 4), 'white').save(source / filename)
+            args = dict(
+                source_dir=str(source), main_image='5PACK CARS.jpg',
+                gallery=['KIMONO TRAIN.jpg', 'KIMONO AIRPLANE.jpg'],
+                name='מארז 5 בגדי גוף', subtitle='תחבורה', slug='5pack_transport',
+                description='תיאור', price='150', stock=999, sizes='0-3',
+                category_slug='newborn', stdout=StringIO(),
+            )
+
+            with override_settings(MEDIA_ROOT=str(Path(tmp) / 'media')):
+                call_command('add_product_from_folder', dry_run=True, **args)
+                self.assertFalse(Product.objects.filter(slug='5pack_transport').exists())
+
+                call_command('add_product_from_folder', **args)
+                product = Product.objects.get(slug='5pack_transport')
+                self.assertTrue(product.image.storage.exists(product.image.name))
+
+                with self.assertRaises(CommandError):
+                    call_command('add_product_from_folder', **{**args, 'slug': 'taken'})
+                with self.assertRaises(CommandError):
+                    call_command('add_product_from_folder', **{**args, 'slug': 'other', 'main_image': 'missing.jpg'})
+
+        self.assertEqual(product.price, Decimal('150'))
+        self.assertEqual(product.stock_quantity, 999)
+        self.assertEqual(product.category, category)
+        self.assertEqual(product.subtitle, 'תחבורה')
+        self.assertIn('5pack_cars', product.image.name)
+        self.assertEqual(
+            [(v.size.name, v.fabric_type) for v in product.variants.all()],
+            [('0-3', None)],
+        )
+        gallery = list(product.images.all())
+        self.assertEqual([img.order for img in gallery], [1, 2])
+        self.assertIn('kimono_train', gallery[0].image.name)
+        self.assertIn('kimono_airplane', gallery[1].image.name)
+        self.assertEqual(Product.objects.count(), 2)

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 
@@ -15,6 +16,10 @@ class ComingSoonMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # במחשב הפיתוח האתר תמיד פתוח, גם אם ההגדרה הועתקה מהאתר החי
+        if settings.DEBUG:
+            return self.get_response(request)
+
         # בדיקה אם דף Coming Soon מופעל
         site_settings = SiteSettings.get_settings()
         if not site_settings or not site_settings.coming_soon_enabled:

@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.db.models import Q
 from django.conf import settings
@@ -915,6 +917,11 @@ def newsletter_subscribe(request):
     
     if not email:
         return JsonResponse({'success': False, 'message': 'נא להזין כתובת אימייל'})
+
+    try:
+        validate_email(email)
+    except ValidationError:
+        return JsonResponse({'success': False, 'message': 'נא להזין כתובת אימייל תקינה'})
     
     # בדיקה אם המייל כבר רשום
     existing = NewsletterSubscriber.objects.filter(email=email).first()
@@ -923,6 +930,13 @@ def newsletter_subscribe(request):
             'success': False, 
             'already_exists': True,
             'message': 'כתובת האימייל הזו כבר רשומה במערכת'
+        })
+
+    if not settings.RESEND_API_KEY:
+        logger.error('Newsletter subscribe skipped: RESEND_API_KEY is not configured')
+        return JsonResponse({
+            'success': False,
+            'message': 'לא הצלחנו לשלוח את המייל עם קוד הקופון. נסו שוב בעוד כמה דקות'
         })
     
     # יצירת קוד קופון ייחודי וטוקן לביטול הרשמה
@@ -978,8 +992,12 @@ def newsletter_subscribe(request):
             "html": html_content,
         })
     except Exception:
-        # אם יש בעיה במייל, ההרשמה עדיין נשמרת בDB
         logger.exception('Error sending newsletter email')
+        subscriber.delete()
+        return JsonResponse({
+            'success': False,
+            'message': 'לא הצלחנו לשלוח את המייל עם קוד הקופון. נסו שוב בעוד כמה דקות'
+        })
     
     return JsonResponse({
         'success': True,

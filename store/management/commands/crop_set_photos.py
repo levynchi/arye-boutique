@@ -64,18 +64,21 @@ class Command(BaseCommand):
             if dest in seen_outputs:
                 raise CommandError(f'שני קבצים נכתבים לאותו יעד: {dest}')
             seen_outputs.add(dest)
-            prepared.append((src, dest, product_dir, kind, rotate))
+            threshold = int(spec.get('threshold', options['threshold']))
+            bbox = tuple(spec['bbox']) if spec.get('bbox') else None
+            prepared.append((src, dest, product_dir, kind, rotate, threshold, bbox))
 
         output_dir.mkdir(parents=True, exist_ok=True)
         sheet_items = []
-        for src, dest, product_dir, kind, rotate in prepared:
+        for src, dest, product_dir, kind, rotate, threshold, bbox_override in prepared:
             image, bbox = self._crop_one(
                 src,
                 dest,
                 rotate,
-                options['threshold'],
+                threshold,
                 options['margin'],
                 options['size'],
+                bbox_override,
             )
             self.stdout.write(
                 f'{src.name} -> {dest.name} '
@@ -89,11 +92,14 @@ class Command(BaseCommand):
             f'סיום. {len(prepared)} תמונות ב-{output_dir} | גיליון: {sheet_path}'
         ))
 
-    def _crop_one(self, src, dest, rotate, threshold, margin, size):
+    def _crop_one(self, src, dest, rotate, threshold, margin, size, bbox_override=None):
         with Image.open(src) as raw:
             image = ImageOps.exif_transpose(raw).convert('RGB')
         image = self._rotate(image, rotate)
-        bbox, _background = self._garment_bbox(image, threshold)
+        if bbox_override:
+            bbox = bbox_override
+        else:
+            bbox, _background = self._garment_bbox(image, threshold)
         cropped = self._square_crop(image, bbox, margin)
         if cropped.size != (size, size):
             cropped = cropped.resize((size, size), Image.Resampling.LANCZOS)

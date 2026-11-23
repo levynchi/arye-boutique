@@ -567,6 +567,62 @@ ul {
     text-align: center;
 }
 
+.account-menu {
+    position: relative;
+}
+
+.account-menu-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.account-menu-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    inset-inline-end: 0;
+    z-index: 1200;
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+    padding: 6px 0;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    text-align: right;
+}
+
+.account-menu-panel[hidden] {
+    display: none;
+}
+
+.account-menu-link,
+.account-menu-logout {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-family: 'Heebo', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: right;
+    cursor: pointer;
+}
+
+.account-menu-link:hover,
+.account-menu-logout:hover {
+    background-color: var(--bg-light);
+    color: var(--focus-color);
+}
+
+.account-menu-form {
+    margin: 0;
+}
+
 .mobile-only {
     display: none;
 }
@@ -1195,17 +1251,6 @@ ul {
     text-align: center;
 }
 
-.footer-cancel {
-    margin: 0;
-}
-
-.footer-cancel-link {
-    color: var(--text-color);
-    font-size: 15px;
-    font-weight: 600;
-    text-decoration: underline;
-}
-
 .footer-copyright {
     font-size: 14px;
     color: var(--text-color);
@@ -1359,6 +1404,11 @@ ul {
     .header-icon-svg {
         width: 20px;
         height: 20px;
+    }
+
+    .account-menu-panel {
+        inset-inline-end: auto;
+        inset-inline-start: 0;
     }
     
     .nav-menu {
@@ -1700,6 +1750,20 @@ ul {
 
 .mobile-nav-menu .nav-link:hover {
     color: var(--primary-color);
+}
+
+.mobile-nav-logout {
+    background: none;
+    border: none;
+    padding: 0;
+    width: 100%;
+    text-align: right;
+    font-family: 'Heebo', sans-serif;
+    cursor: pointer;
+}
+
+.mobile-logout-form {
+    margin: 0;
 }
 
 /* ==========================================================================
@@ -2809,7 +2873,7 @@ ul {
     border-color: rgba(0, 0, 0, 0.4);
 }
 
-/* Mobile: Show dots instead of arrows */
+/* Mobile: dots in the flow, under the photo and above the add-to-cart bar */
 @media (max-width: 768px) {
     .product-card-arrow {
         display: none;
@@ -2821,15 +2885,52 @@ ul {
     }
 
     .product-card .product-image-wrapper {
-        overflow: hidden;
+        aspect-ratio: auto;
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0;
+    }
+
+    .product-card .product-card-image,
+    .product-card .product-card-placeholder {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
+        flex: 0 0 auto;
+    }
+
+    .product-card .product-card-print {
+        inset: auto;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
     }
     
     .product-card-dots {
+        position: static;
         display: flex;
-        bottom: 8px;
-        top: auto;
-        left: 50%;
-        transform: translateX(-50%);
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+        margin: 0;
+        padding: 8px 0 6px;
+        transform: none;
+    }
+
+    .product-card-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #d5dbe2;
+        border: none;
+    }
+
+    .product-card-dot.active {
+        background-color: #7594B1;
+        border-color: #7594B1;
     }
 }
 
@@ -3300,16 +3401,17 @@ ul {
 .logout-btn {
     display: inline-block;
     padding: 12px 30px;
-    /* background-color: #e74c3c; */
-    /* color: var(--white); */
+    background-color: var(--white);
+    color: #333;
     border: 1px solid #000000;
-    /* border-radius: 5px; */
     cursor: pointer;
     font-size: 18px;
     font-weight: 600;
     transition: background-color 0.3s ease;
     text-align: center;
     font-family: 'Heebo', sans-serif;
+    text-decoration: none;
+    line-height: 1.2;
 }
 
 .logout-btn:hover {
@@ -5612,9 +5714,11 @@ ul {
     color: var(--white);
 }
 
-/* Mobile: Always visible */
+/* Mobile: bar sits under the photo, always visible */
 @media (max-width: 768px) {
     .product-card-quick-add {
+        position: static;
+        width: 100%;
         opacity: 1;
         visibility: visible;
         padding: 10px 15px;

@@ -42,6 +42,7 @@
                     
                     <div class="form-row form-row--inline">
                         <div class="form-group">
+                            {{ form.first_name.label_tag }}
                             {{ form.first_name }}
                             {% if form.first_name.errors %}
                                 <div class="form-error">{{ form.first_name.errors }}</div>
@@ -49,6 +50,7 @@
                         </div>
                         
                         <div class="form-group">
+                            {{ form.last_name.label_tag }}
                             {{ form.last_name }}
                             {% if form.last_name.errors %}
                                 <div class="form-error">{{ form.last_name.errors }}</div>
@@ -58,6 +60,7 @@
                     
                     <div class="form-row">
                         <div class="form-group">
+                            {{ form.guest_phone.label_tag }}
                             {{ form.guest_phone }}
                             {% if form.guest_phone.errors %}
                                 <div class="form-error">{{ form.guest_phone.errors }}</div>
@@ -65,6 +68,7 @@
                         </div>
                         
                         <div class="form-group">
+                            {{ form.guest_email.label_tag }}
                             {{ form.guest_email }}
                             {% if form.guest_email.errors %}
                                 <div class="form-error">{{ form.guest_email.errors }}</div>
@@ -74,6 +78,7 @@
                     
                     <div id="delivery-address-fields" {% if shipping_method == 'pickup' %}hidden{% endif %}>
                         <div class="form-group">
+                            {{ form.guest_address.label_tag }}
                             {{ form.guest_address }}
                             {% if form.guest_address.errors %}
                                 <div class="form-error">{{ form.guest_address.errors }}</div>
@@ -81,6 +86,7 @@
                         </div>
                         
                         <div class="form-group">
+                            {{ form.guest_city.label_tag }}
                             {{ form.guest_city }}
                             {% if form.guest_city.errors %}
                                 <div class="form-error">{{ form.guest_city.errors }}</div>
@@ -93,9 +99,31 @@
                     </div>
                     
                     <div class="form-group">
+                        {{ form.notes.label_tag }}
                         {{ form.notes }}
                         {% if form.notes.errors %}
                             <div class="form-error">{{ form.notes.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="legal-disclosure">
+                        <p><strong>אריה בוטיק</strong>, עוסק מורשה 052064219, רחוב הקישון 6, תל אביב.</p>
+                        <p>אפשר לבטל את העסקה בתוך 14 ימים מקבלת המוצר או מקבלת מייל האישור, לפי המאוחר. מהסכום ששולם ינוכו דמי ביטול של 5% ממחיר העסקה או 100 ש"ח, לפי הנמוך מביניהם. משלוח ההחזרה על הלקוח. במוצר פגום, באי-התאמה או באיחור לא ייגבו דמי ביטול.</p>
+                        <p>
+                            <a href="{% url 'terms_of_service' %}">תקנון</a>
+                            ·
+                            <a href="{% url 'shipping_and_returns' %}">משלוחים והחזרות</a>
+                            ·
+                            <a href="{% url 'terms_of_service' %}#privacy">מדיניות פרטיות</a>
+                        </p>
+                    </div>
+                    <div class="form-group legal-consent">
+                        <label class="legal-consent-label" for="{{ form.accept_terms.id_for_label }}">
+                            {{ form.accept_terms }}
+                            <span>קראתי את <a href="{% url 'terms_of_service' %}">התקנון</a> ואת <a href="{% url 'shipping_and_returns' %}">מדיניות הביטול וההחזרות</a>, ואני מאשר/ת אותם.</span>
+                        </label>
+                        {% if form.accept_terms.errors %}
+                            <div class="form-error">{{ form.accept_terms.errors }}</div>
                         {% endif %}
                     </div>
                     
@@ -131,6 +159,7 @@
                 <div class="coupon-section">
                     <h3>יש לך קוד קופון?</h3>
                     <div class="coupon-input-wrapper" id="coupon-form" {% if applied_coupon %}style="display: none;"{% endif %}>
+                        <label class="coupon-label" for="coupon-code">קוד קופון</label>
                         <input type="text" id="coupon-code" placeholder="הזן קוד קופון" autocomplete="off">
                         <button type="button" id="apply-coupon-btn" class="apply-coupon-btn">החל</button>
                     </div>
@@ -161,6 +190,7 @@
                         <span>סה״כ לתשלום</span>
                         <span id="total-display">{{ total }} ₪</span>
                     </div>
+                    <p class="price-vat-note">המחיר כולל מע״מ</p>
                 </div>
                 
                 <div class="payment-notice">

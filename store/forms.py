@@ -47,6 +47,7 @@ class ContactForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.label_suffix = ''
         self.fields['full_name'].required = True
         self.fields['phone'].required = True
         self.fields['email'].required = True
@@ -127,6 +128,16 @@ class CheckoutForm(forms.Form):
             'rows': 4,
         })
     )
+    accept_terms = forms.BooleanField(
+        required=True,
+        label='אישור תקנון',
+        error_messages={'required': 'יש לאשר את התקנון ומדיניות הביטול לפני התשלום'},
+        widget=forms.CheckboxInput(attrs={'class': 'legal-consent-input'}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ''
 
     def clean(self):
         cleaned_data = super().clean()

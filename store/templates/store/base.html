@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261115a">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261123a">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -98,7 +98,7 @@
                     WELCOME TO ARYE
                 </div>
                 <div class="social-links">
-                    <a href="https://wa.me/9720533694264" class="social-link" aria-label="WhatsApp" target="_blank" rel="noopener">
+                    <a href="https://wa.me/972533694264" class="social-link" aria-label="WhatsApp" target="_blank" rel="noopener">
                         <img src="{% static 'images/WATSAPP WHITE.svg' %}" alt="WhatsApp" class="social-icon-svg">
                     </a>
                     <a href="mailto:info@arye-boutique.co.il" class="social-link" aria-label="מייל">
@@ -351,6 +351,7 @@
                     <img src="{% static 'images/ARTBOARD_LOGO WHITE FOOTER.svg' %}" alt="ARYE Logo" class="footer-logo">
                     <h3>הצטרפו לניוזלטר שלנו</h3>
                     <p class="newsletter-subtitle">! קבלו לפני 10% הנחה לרכישה הראשונה שלכם</p>
+                    <label class="newsletter-label" for="newsletter-email">אימייל לניוזלטר</label>
                     <form class="newsletter-form" id="newsletter-form">
                         <input type="email" class="newsletter-input" id="newsletter-email" placeholder="אימייל" required>
                         <button type="submit" class="newsletter-button" id="newsletter-submit">הצטרפו עכשיו</button>
@@ -403,6 +404,7 @@
                                 <li><a href="{% url 'faq' %}">שאלות ותשובות</a></li>
                                 <li><a href="{% url 'shipping_and_returns' %}">משלוחים והחזרות</a></li>
                                 <li><a href="{% url 'terms_of_service' %}">תקנון האתר</a></li>
+                                <li><a href="{% url 'terms_of_service' %}#privacy">מדיניות פרטיות</a></li>
                                 <li><a href="{% url 'accessibility_statement' %}">הצהרת נגישות</a></li>
                             </ul>
                         </div>
@@ -447,7 +449,7 @@
         <div class="footer-bottom">
             <div class="container">
                 <div class="footer-bottom-content">
-                    <p class="footer-copyright"><span class="arye-text">ARYE BOUTIQUE</span> <span class="site-by">SITE BY</span> <a href="https://www.instagram.com/hadarlevy_design/" target="_blank" rel="noopener noreferrer" class="hadar-levy-link"><span class="hadar-levy">HADAR LEVY</span></a></p>
+                    <p class="footer-copyright"><span class="footer-business">אריה בוטיק · עוסק מורשה 052064219 · רחוב הקישון 6, תל אביב</span><br><span class="arye-text">ARYE BOUTIQUE</span> <span class="site-by">SITE BY</span> <a href="https://www.instagram.com/hadarlevy_design/" target="_blank" rel="noopener noreferrer" class="hadar-levy-link"><span class="hadar-levy">HADAR LEVY</span></a></p>
                 </div>
             </div>
         </div>

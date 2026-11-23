@@ -59,6 +59,20 @@ def _delivery_block(order):
         """
 
 
+def _cancellation_notice():
+    return """
+            <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                <h3 style="color: #7594b1; margin-top: 0;">ביטול עסקה</h3>
+                <p style="margin: 5px 0;">אריה בוטיק, עוסק מורשה 052064219, רחוב הקישון 6, תל אביב, מיקוד 6609306.</p>
+                <p style="margin: 5px 0;">אפשר לבטל את העסקה בתוך 14 ימים מיום קבלת המוצר או מיום קבלת מייל זה, לפי המאוחר.</p>
+                <p style="margin: 5px 0;">הודעת ביטול: info@arye-boutique.co.il. החזרת המוצר: אריה בוטיק, רחוב הקישון 6, תל אביב, מיקוד 6609306, עם מספר ההזמנה בתוך החבילה.</p>
+                <p style="margin: 5px 0;">מהסכום ששולם, כולל דמי משלוח שנגבו, ינוכו דמי ביטול של 5% ממחיר העסקה או 100 ש"ח, לפי הנמוך מביניהם. משלוח ההחזרה על הלקוח.</p>
+                <p style="margin: 5px 0;">במוצר פגום, באי-התאמה או באיחור באספקה לא ייגבו דמי ביטול, ועלות ההחזרה עלינו.</p>
+                <p style="margin: 5px 0;">המחיר ששולם כולל מע"מ.</p>
+            </div>
+    """
+
+
 def _order_table(order):
     return f"""
             <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -106,6 +120,7 @@ def send_order_confirmation_email(order):
             <p style="color: #555;">שלום {escape(order.guest_name)},</p>
             <p style="color: #555;">ההזמנה שלך התקבלה בהצלחה ואנחנו מתחילים לטפל בה.</p>
             {_order_table(order)}
+            {_cancellation_notice()}
             <p style="color: #555; margin-top: 20px;">{closing}</p>
         </div>
         <div style="background-color: #333; padding: 20px; text-align: center;">

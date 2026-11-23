@@ -102,6 +102,7 @@ CHECKOUT_DATA = {
     'guest_address': 'הרצל 1',
     'guest_city': 'תל אביב',
     'notes': '',
+    'accept_terms': 'on',
 }
 
 
@@ -235,7 +236,18 @@ class CartAndCheckoutTests(StoreFlowTestCase):
         response = self.client.get(reverse('checkout'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'name="shipping_method"')
+        self.assertContains(response, '052064219')
+        self.assertContains(response, 'name="accept_terms"')
         self.assertEqual(response.context['totals_json']['delivery_fee'], 25.0)
+
+    def test_checkout_requires_terms_acceptance(self):
+        self.add_to_cart()
+        data = dict(CHECKOUT_DATA)
+        data.pop('accept_terms')
+        response = self.client.post(reverse('checkout'), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Order.objects.exists())
+        self.assertIn('accept_terms', response.context['form'].errors)
 
     def test_checkout_creates_order_with_delivery_fee(self):
         self.add_to_cart(quantity=2)
@@ -662,6 +674,8 @@ class PaymentConfirmationTests(StoreFlowTestCase):
         self.assertEqual(customer['to'], ['dana@example.com'])
         self.assertEqual(owner['to'], ['owner@example.com'])
         self.assertIn('25.00', customer['html'])  # דמי המשלוח מופיעים במייל
+        self.assertIn('052064219', customer['html'])
+        self.assertIn('14 ימים', customer['html'])
         self.assertIn(f'/admin/store/order/{order.id}/change/', owner['html'])
         # ערכים שהלקוח הזין לא נכנסים כ-HTML
         self.assertNotIn('<b>דנה</b>', customer['html'])
@@ -673,6 +687,29 @@ class PaymentConfirmationTests(StoreFlowTestCase):
         with mock.patch('store.services.emails.resend.Emails.send', side_effect=RuntimeError('mail down')):
             finalize_paid_order(order.id, SALE_ID)
         self.assert_paid_once(order)
+
+
+class LegalPagesTests(TestCase):
+    def test_terms_match_the_cancellation_cap(self):
+        response = self.client.get(reverse('terms_of_service'))
+        self.assertContains(response, '052064219')
+        self.assertContains(response, 'iCredit')
+        self.assertContains(response, 'id="privacy"')
+        self.assertNotContains(response, 'PayPal')
+        self.assertNotContains(response, 'דמי טיפול בסך')
+        self.assertNotContains(response, '50 ש"ח')
+
+    def test_shipping_page_matches_terms(self):
+        response = self.client.get(reverse('shipping_and_returns'))
+        self.assertContains(response, '5%')
+        self.assertContains(response, '100 ש"ח')
+        self.assertContains(response, 'שירות בחירה')
+        self.assertNotContains(response, 'PayPal')
+
+    def test_accessibility_statement_has_a_fixed_date(self):
+        response = self.client.get(reverse('accessibility_statement'))
+        self.assertContains(response, '23.11.2026')
+        self.assertNotContains(response, 'NVDA')
 
 
 class ComingSoonTests(StoreFlowTestCase):

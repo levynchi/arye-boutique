@@ -1,5 +1,5 @@
 from django import forms
-from .models import ContactMessage, Order, Size, SizeGroup, FabricType, ProductVariant, Product
+from .models import ContactMessage, CancellationRequest, Order, Size, SizeGroup, FabricType, ProductVariant, Product
 from .services.shipping import SHIPPING_DELIVERY, SHIPPING_METHOD_CHOICES
 
 
@@ -53,6 +53,40 @@ class ContactForm(forms.ModelForm):
         self.fields['email'].required = True
         self.fields['inquiry'].required = True
         self.fields['order_number'].required = False
+
+
+class CancellationForm(forms.ModelForm):
+    """
+    טופס ביטול עסקה. שליחה של הטופס היא הודעת הביטול.
+    """
+    class Meta:
+        model = CancellationRequest
+        fields = ['full_name', 'phone', 'email', 'order_number', 'note']
+        widgets = {
+            'full_name': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'name'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'tel'}),
+            'email': forms.EmailInput(attrs={'class': 'form-input', 'autocomplete': 'email'}),
+            'order_number': forms.TextInput(attrs={'class': 'form-input'}),
+            'note': forms.Textarea(attrs={'class': 'form-textarea', 'rows': 4}),
+        }
+        labels = {
+            'full_name': 'שם מלא*',
+            'phone': 'טלפון*',
+            'email': 'כתובת אימייל*',
+            'order_number': 'מספר הזמנה*',
+            'note': 'הערה',
+        }
+        error_messages = {
+            'full_name': {'required': 'יש למלא שם מלא'},
+            'phone': {'required': 'יש למלא טלפון'},
+            'email': {'required': 'יש למלא כתובת אימייל'},
+            'order_number': {'required': 'יש למלא מספר הזמנה'},
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ''
+        self.fields['note'].required = False
 
 
 class CheckoutForm(forms.Form):

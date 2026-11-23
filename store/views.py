@@ -12,13 +12,13 @@ import secrets
 import resend
 from .models import (
     Product, Category, Subcategory, SiteSettings, ProductImage, 
-    Cart, CartItem, ContactMessage, WishlistItem, 
+    Cart, CartItem, ContactMessage, CancellationRequest, WishlistItem, 
     BelowBestsellersGallery, RetailerStore, InstagramGallery,
     FabricType, ProductVariant, AboutPageSettings, FAQ, BlogPost,
     NewsletterSubscriber
 )
 import string
-from .forms import ContactForm
+from .forms import ContactForm, CancellationForm
 
 logger = logging.getLogger(__name__)
 
@@ -474,6 +474,57 @@ def contact(request):
     }
     
     return render(request, 'store/contact.html', context)
+
+
+def cancel_order(request):
+    """
+    קישור ייעודי לביטול עסקה. שליחת הטופס היא הודעת הביטול.
+    """
+    categories = Category.objects.filter(is_active=True)
+    receipt = None
+    receipt_id = request.session.pop('cancellation_receipt_id', None)
+    if receipt_id:
+        receipt = CancellationRequest.objects.filter(pk=receipt_id).first()
+
+    if request.method == 'POST':
+        form = CancellationForm(request.POST)
+        if form.is_valid():
+            cancellation = form.save()
+            try:
+                resend.api_key = settings.RESEND_API_KEY
+                html_content = f'''
+                <div dir="rtl" style="font-family: Arial, sans-serif;">
+                    <h2>בקשת ביטול עסקה</h2>
+                    <p><strong>שם:</strong> {escape(cancellation.full_name)}</p>
+                    <p><strong>טלפון:</strong> <a href="tel:{escape(cancellation.phone)}">{escape(cancellation.phone)}</a></p>
+                    <p><strong>אימייל:</strong> <a href="mailto:{escape(cancellation.email)}">{escape(cancellation.email)}</a></p>
+                    <p><strong>מספר הזמנה:</strong> {escape(cancellation.order_number)}</p>
+                    <p><strong>הערה:</strong></p>
+                    <p style="white-space: pre-wrap;">{escape(cancellation.note) or 'לא צוינה'}</p>
+                    <hr>
+                    <p style="color: gray; font-size: 12px;">הודעת ביטול שהתקבלה מטופס ביטול העסקה באתר</p>
+                </div>
+                '''
+                resend.Emails.send({
+                    "from": settings.DEFAULT_FROM_EMAIL,
+                    "to": [settings.CONTACT_EMAIL],
+                    "subject": f"בקשת ביטול עסקה - הזמנה {cancellation.order_number}",
+                    "html": html_content,
+                    "reply_to": cancellation.email,
+                })
+            except Exception:
+                logger.exception('Error sending cancellation email')
+            request.session['cancellation_receipt_id'] = cancellation.id
+            return redirect('cancel_order')
+        messages.error(request, 'אירעה שגיאה במילוי הטופס. אנא בדקו את השדות ומלאו מחדש.')
+    else:
+        form = CancellationForm()
+
+    return render(request, 'store/cancel_order.html', {
+        'form': form,
+        'categories': categories,
+        'receipt': receipt,
+    })
 
 
 def about_us(request):

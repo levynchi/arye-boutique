@@ -23,6 +23,7 @@ urlpatterns = [
     path('checkout/remove-coupon/', cart_views.remove_coupon, name='remove_coupon'),
     
     path('contact/', views.contact, name='contact'),
+    path('cancel/', views.cancel_order, name='cancel_order'),
     path('about-us/', views.about_us, name='about_us'),
     path('accessibility/', views.accessibility_statement, name='accessibility_statement'),
     path('faq/', views.faq, name='faq'),

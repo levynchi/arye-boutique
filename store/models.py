@@ -566,6 +566,28 @@ class ContactMessage(models.Model):
         return f'{self.full_name} - {self.email} ({self.created_at.strftime("%d/%m/%Y")})'
 
 
+class CancellationRequest(models.Model):
+    """
+    הודעת ביטול עסקה שנשלחה מהקישור הייעודי באתר.
+    חותמת הזמן היא מועד קבלת ההודעה.
+    """
+    full_name = models.CharField(max_length=200, verbose_name='שם מלא')
+    phone = models.CharField(max_length=20, verbose_name='טלפון')
+    email = models.EmailField(verbose_name='אימייל')
+    order_number = models.CharField(max_length=50, verbose_name='מספר הזמנה')
+    note = models.TextField(blank=True, verbose_name='הערה')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='מועד קבלת ההודעה')
+    is_read = models.BooleanField(default=False, verbose_name='טופל')
+
+    class Meta:
+        verbose_name = 'בקשת ביטול עסקה'
+        verbose_name_plural = 'בקשות ביטול עסקה'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.full_name} - הזמנה {self.order_number}'
+
+
 class Size(models.Model):
     """
     מידה גלובלית - ניתנת לשימוש חוזר בכל המוצרים

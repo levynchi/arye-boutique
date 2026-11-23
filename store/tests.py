@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from .email_backend import ResendEmailBackend
 from .models import (
-    Category, Coupon, NewsletterSubscriber, Order, OrderItem, OrderPayment, Product, ProductImage,
+    CancellationRequest, Category, Coupon, NewsletterSubscriber, Order, OrderItem, OrderPayment, Product, ProductImage,
     SiteSettings, Subcategory,
 )
 from .services import icredit
@@ -676,6 +676,8 @@ class PaymentConfirmationTests(StoreFlowTestCase):
         self.assertIn('25.00', customer['html'])  # דמי המשלוח מופיעים במייל
         self.assertIn('052064219', customer['html'])
         self.assertIn('14 ימים', customer['html'])
+        self.assertIn('https://arye-boutique.co.il/cancel/', customer['html'])
+        self.assertIn('14 ימים ממועד קבלת הודעת הביטול', customer['html'])
         self.assertIn(f'/admin/store/order/{order.id}/change/', owner['html'])
         # ערכים שהלקוח הזין לא נכנסים כ-HTML
         self.assertNotIn('<b>דנה</b>', customer['html'])
@@ -698,13 +700,54 @@ class LegalPagesTests(TestCase):
         self.assertNotContains(response, 'PayPal')
         self.assertNotContains(response, 'דמי טיפול בסך')
         self.assertNotContains(response, '50 ש"ח')
+        self.assertContains(response, '14 ימים ממועד קבלת הודעת הביטול')
+        self.assertContains(response, 'שרתים מחוץ לישראל')
+        self.assertContains(response, reverse('cancel_order'))
+        self.assertNotContains(response, 'אין לשלוח את בקשת ההסרה')
 
     def test_shipping_page_matches_terms(self):
         response = self.client.get(reverse('shipping_and_returns'))
         self.assertContains(response, '5%')
         self.assertContains(response, '100 ש"ח')
         self.assertContains(response, 'שירות בחירה')
+        self.assertContains(response, '14 ימים ממועד קבלת הודעת הביטול')
+        self.assertContains(response, reverse('cancel_order'))
         self.assertNotContains(response, 'PayPal')
+        self.assertNotContains(response, 'לוחות הזמנים של חברת האשראי')
+
+    def test_footer_links_to_cancellation(self):
+        response = self.client.get(reverse('home'))
+        self.assertContains(response, reverse('cancel_order'))
+        self.assertContains(response, 'ביטול עסקה')
+
+    def test_cancellation_form_saves_the_request_even_if_email_fails(self):
+        with override_settings(RESEND_API_KEY='test-key'), mock.patch(
+            'store.views.resend.Emails.send', side_effect=RuntimeError('mail down')
+        ):
+            response = self.client.post(reverse('cancel_order'), {
+                'full_name': 'דנה כהן',
+                'phone': '0501234567',
+                'email': 'dana@example.com',
+                'order_number': '18',
+                'note': 'מבקשת לבטל',
+            })
+        self.assertEqual(response.status_code, 302)
+        saved = CancellationRequest.objects.get()
+        self.assertEqual(saved.order_number, '18')
+        receipt = self.client.get(response.url)
+        self.assertContains(receipt, 'הודעת הביטול התקבלה')
+        self.assertContains(receipt, '14 ימים ממועד זה')
+
+    def test_cancellation_form_requires_an_order_number(self):
+        response = self.client.post(reverse('cancel_order'), {
+            'full_name': 'דנה כהן',
+            'phone': '0501234567',
+            'email': 'dana@example.com',
+            'order_number': '',
+            'note': '',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(CancellationRequest.objects.exists())
 
     def test_accessibility_statement_has_a_fixed_date(self):
         response = self.client.get(reverse('accessibility_statement'))

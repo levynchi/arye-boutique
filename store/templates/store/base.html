@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261123a">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261123b">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -403,6 +403,7 @@
                                 <li><a href="{% url 'laundry_instructions' %}">הוראות כביסה</a></li>
                                 <li><a href="{% url 'faq' %}">שאלות ותשובות</a></li>
                                 <li><a href="{% url 'shipping_and_returns' %}">משלוחים והחזרות</a></li>
+                                <li><a href="{% url 'cancel_order' %}">ביטול עסקה</a></li>
                                 <li><a href="{% url 'terms_of_service' %}">תקנון האתר</a></li>
                                 <li><a href="{% url 'terms_of_service' %}#privacy">מדיניות פרטיות</a></li>
                                 <li><a href="{% url 'accessibility_statement' %}">הצהרת נגישות</a></li>
@@ -449,6 +450,7 @@
         <div class="footer-bottom">
             <div class="container">
                 <div class="footer-bottom-content">
+                    <p class="footer-cancel"><a href="{% url 'cancel_order' %}" class="footer-cancel-link">ביטול עסקה</a></p>
                     <p class="footer-copyright"><span class="footer-business">אריה בוטיק · עוסק מורשה 052064219 · רחוב הקישון 6, תל אביב</span><br><span class="arye-text">ARYE BOUTIQUE</span> <span class="site-by">SITE BY</span> <a href="https://www.instagram.com/hadarlevy_design/" target="_blank" rel="noopener noreferrer" class="hadar-levy-link"><span class="hadar-levy">HADAR LEVY</span></a></p>
                 </div>
             </div>

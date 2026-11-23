@@ -1188,8 +1188,22 @@ ul {
 
 .footer-bottom-content {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 8px;
+    text-align: center;
+}
+
+.footer-cancel {
+    margin: 0;
+}
+
+.footer-cancel-link {
+    color: var(--text-color);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: underline;
 }
 
 .footer-copyright {
@@ -3143,6 +3157,35 @@ ul {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+.cancel-order {
+    max-width: 640px;
+}
+
+.cancel-receipt {
+    background-color: #f7f7f7;
+    border: 1px solid #e0e0e0;
+    padding: 16px 18px;
+    margin: 0 0 28px;
+    line-height: 1.6;
+}
+
+.cancel-receipt h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.cancel-receipt p {
+    margin: 0 0 8px;
+}
+
+.cancel-other-channels {
+    margin-top: 28px;
+    font-size: 15px;
+    line-height: 1.6;
 }
 
 .form-group {

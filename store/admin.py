@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from .models import (
     SiteSettings, Category, Subcategory, Product, ProductImage, 
-    Order, OrderItem, Cart, CartItem, ContactMessage, WishlistItem, 
+    Order, OrderItem, Cart, CartItem, ContactMessage, CancellationRequest, WishlistItem, 
     BelowBestsellersGallery, RetailerStore, InstagramGallery, AboutPageSettings,
     GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ, BlogPost, BlogSection,
     MaterialCareInfo, NewsletterSubscriber, Coupon
@@ -623,6 +623,27 @@ class ContactMessageAdmin(admin.ModelAdmin):
         }),
         ('הודעה', {
             'fields': ('inquiry',)
+        }),
+        ('סטטוס', {
+            'fields': ('is_read', 'created_at')
+        }),
+    )
+
+
+@admin.register(CancellationRequest)
+class CancellationRequestAdmin(admin.ModelAdmin):
+    """
+    ניהול בקשות ביטול עסקה שהתקבלו מהאתר
+    """
+    list_display = ['order_number', 'full_name', 'email', 'phone', 'created_at', 'is_read']
+    list_filter = ['is_read', 'created_at']
+    search_fields = ['full_name', 'email', 'phone', 'order_number']
+    list_editable = ['is_read']
+    readonly_fields = ['created_at']
+
+    fieldsets = (
+        ('פרטי הבקשה', {
+            'fields': ('full_name', 'phone', 'email', 'order_number', 'note')
         }),
         ('סטטוס', {
             'fields': ('is_read', 'created_at')

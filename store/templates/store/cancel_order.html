@@ -1,0 +1,65 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}ביטול עסקה - בוטיק אריה{% endblock %}
+
+{% block content %}
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="{% url 'home' %}">דף הבית</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">ביטול עסקה</span>
+        </nav>
+    </div>
+</section>
+
+<section class="contact-section">
+    <div class="container cancel-order">
+        <h1 class="contact-title">ביטול עסקה</h1>
+        <p class="contact-intro">שליחת הטופס היא הודעת ביטול העסקה. את המוצר מחזירים בנפרד, לפי <a href="{% url 'shipping_and_returns' %}">מדיניות ההחזרות</a>.</p>
+
+        {% if receipt %}
+        <div class="cancel-receipt" role="status">
+            <h2>הודעת הביטול התקבלה</h2>
+            <p>הודעת הביטול התקבלה ב-{{ receipt.created_at|date:"d.m.Y" }} בשעה {{ receipt.created_at|date:"H:i" }}.</p>
+            <p>הזיכוי יבוצע בתוך 14 ימים ממועד זה, ובכפוף לקבלת המוצר חזרה, לכרטיס האשראי שחויב.</p>
+            <p>מספר הזמנה: {{ receipt.order_number }}</p>
+        </div>
+        {% endif %}
+
+        <form method="POST" class="contact-form cancel-form">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.full_name.label_tag }}
+                {{ form.full_name }}
+                {% if form.full_name.errors %}<div class="form-error">{{ form.full_name.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.phone.label_tag }}
+                {{ form.phone }}
+                {% if form.phone.errors %}<div class="form-error">{{ form.phone.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.email.label_tag }}
+                {{ form.email }}
+                {% if form.email.errors %}<div class="form-error">{{ form.email.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.order_number.label_tag }}
+                {{ form.order_number }}
+                {% if form.order_number.errors %}<div class="form-error">{{ form.order_number.errors }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.note.label_tag }}
+                {{ form.note }}
+                {% if form.note.errors %}<div class="form-error">{{ form.note.errors }}</div>{% endif %}
+            </div>
+            <button type="submit" class="contact-submit-btn">שליחת הודעת ביטול</button>
+            <p class="required-fields-note">שדות חובה*</p>
+        </form>
+
+        <p class="cancel-other-channels">אפשר גם לשלוח הודעת ביטול אל <a href="mailto:info@arye-boutique.co.il">info@arye-boutique.co.il</a>, בוואטסאפ 053-3694264, או בדואר אל אריה בוטיק, רחוב הקישון 6, תל אביב, מיקוד 6609306.</p>
+    </div>
+</section>
+{% endblock %}

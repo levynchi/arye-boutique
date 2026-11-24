@@ -54,8 +54,9 @@ class RegisterForm(UserCreationForm):
         """
         בדיקה שהמייל לא קיים כבר במערכת
         """
-        email = self.cleaned_data.get('email')
-        if CustomUser.objects.filter(email=email).exists():
+        # כתובת מייל נשמרת באותיות קטנות, כדי שלא ייפתחו שני חשבונות לאותה כתובת
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        if CustomUser.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError('כתובת המייל הזו כבר רשומה במערכת. אנא השתמש במייל אחר או התחבר לחשבון הקיים.')
         return email
     
@@ -258,7 +259,7 @@ class ProfileEditForm(forms.ModelForm):
         """
         בדיקה שהמייל לא קיים כבר במערכת (אלא אם זה המייל של המשתמש הנוכחי)
         """
-        email = self.cleaned_data.get('email')
-        if self.user and CustomUser.objects.filter(email=email).exclude(id=self.user.id).exists():
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        if self.user and CustomUser.objects.filter(email__iexact=email).exclude(id=self.user.id).exists():
             raise forms.ValidationError('כתובת המייל הזו כבר רשומה במערכת.')
         return email

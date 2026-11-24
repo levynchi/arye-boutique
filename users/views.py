@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
@@ -77,9 +78,10 @@ def login_view(request):
     return render(request, 'users/login.html', {'form': form})
 
 
+@require_POST
 def logout_view(request):
     """
-    התנתקות משתמש
+    התנתקות משתמש (POST בלבד, כדי שקישור מאתר אחר לא ינתק את הגולש)
     """
     logout(request)
     messages.success(request, 'התנתקת בהצלחה.')

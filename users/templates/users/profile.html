@@ -84,9 +84,10 @@
                         
                         <div class="profile-actions">
                             <button type="submit" class="contact-submit-btn">שמור שינויים</button>
-                            <a href="{% url 'users:logout' %}" class="logout-btn">התנתק</a>
+                            <button type="submit" form="profile-logout-form" class="logout-btn">התנתק</button>
                         </div>
                     </form>
+                    <form id="profile-logout-form" method="post" action="{% url 'users:logout' %}">{% csrf_token %}</form>
                 </div>
             </div>
             

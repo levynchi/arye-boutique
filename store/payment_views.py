@@ -177,7 +177,6 @@ def payment_failure(request):
     דף כישלון תשלום
     """
     context = {
-        'error_message': request.GET.get('ErrorMessage', ''),
         'categories': Category.objects.filter(is_active=True),
     }
 

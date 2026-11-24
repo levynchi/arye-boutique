@@ -245,9 +245,10 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ variants_data|json_script:"variants-data" }}
 <script>
     // Variants data from server
-    const variantsData = {{ variants_json|safe }};
+    const variantsData = JSON.parse(document.getElementById('variants-data').textContent);
     const hasVariants = {{ has_variants|yesno:"true,false" }};
     const showFabricSelector = {{ show_fabric_selector|yesno:"true,false" }};
     const baseProductPrice = '{{ price_display_initial }}';

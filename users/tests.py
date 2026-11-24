@@ -73,10 +73,11 @@ class LogoutTests(TestCase):
         self.assertRedirects(response, reverse('home'), fetch_redirect_response=False)
         self.assertNotIn('_auth_user_id', self.client.session)
 
+    def test_logout_link_from_another_site_does_nothing(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse('users:logout'))
-        self.assertRedirects(response, reverse('home'), fetch_redirect_response=False)
-        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertEqual(response.status_code, 405)
+        self.assertIn('_auth_user_id', self.client.session)
 
 
 class PasswordResetTests(TestCase):
@@ -147,3 +148,25 @@ class LoginRateLimitTests(TestCase):
         for _ in range(5):
             self.assertEqual(self.client.post(url, {'email': 'nobody@example.com'}).status_code, 302)
         self.assertEqual(self.client.post(url, {'email': 'nobody@example.com'}).status_code, 429)
+
+
+class RegisterTests(TestCase):
+    DATA = {
+        'first_name': 'דנה', 'last_name': 'לוי', 'email': 'Dana@Example.com',
+        'password1': 'a-long-test-password-1!', 'password2': 'a-long-test-password-1!',
+    }
+
+    def test_terms_must_be_accepted(self):
+        response = self.client.post(reverse('users:register'), self.DATA)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(CustomUser.objects.exists())
+
+    def test_email_is_stored_lowercase_and_unique_ignoring_case(self):
+        data = dict(self.DATA, accept_terms='on')
+        self.assertEqual(self.client.post(reverse('users:register'), data).status_code, 302)
+        self.assertEqual(CustomUser.objects.get().email, 'dana@example.com')
+
+        self.client.logout()
+        response = self.client.post(reverse('users:register'), dict(data, email='DANA@example.com'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(CustomUser.objects.count(), 1)

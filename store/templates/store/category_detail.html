@@ -50,7 +50,6 @@
         <!-- Filters Section -->
         <div class="category-filters">
             <form method="GET" action="{% url 'category_detail' category.slug %}" class="filter-form" id="filter-form">
-                {% csrf_token %}
                 <div class="filter-group">
                     <select name="price" id="price-filter" class="filter-select">
                         <option value="" {% if not current_price_sort %}selected{% endif %}>כל המחירים</option>
@@ -157,6 +156,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Auto-submit form on filter change
         const filterSelects = document.querySelectorAll('.filter-select');
+{% csrf_token %}
         filterSelects.forEach(select => {
             select.addEventListener('change', function() {
                 document.getElementById('filter-form').submit();

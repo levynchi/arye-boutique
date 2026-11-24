@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils.html import escape
+from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
 import secrets
@@ -156,9 +157,6 @@ def product_detail(request, slug):
         elif variant.fabric_type_id is None and 'no_fabric' in variants_data:
             variants_data['no_fabric']['sizes'].append(size_payload)
     
-    # המרה ל-JSON עבור JavaScript
-    variants_json = json.dumps(variants_data)
-    
     # האם למוצר יש וריאנטים
     has_variants = bool(variants_data)
     
@@ -199,7 +197,7 @@ def product_detail(request, slug):
         'primary_image': primary_image,
         'additional_images': additional_images,
         'fabric_types': fabric_types,
-        'variants_json': variants_json,
+        'variants_data': variants_data,
         'has_variants': has_variants,
         'show_fabric_selector': show_fabric_selector,
         'price_display_initial': price_display_initial,
@@ -928,6 +926,9 @@ def generate_coupon_code():
             return code
 
 
+NEWSLETTER_THANKS = 'תודה שהצטרפת! אם הכתובת עדיין לא רשומה אצלנו, מייל עם קוד קופון בדרך אליך'
+
+
 def newsletter_subscribe(request):
     """
     הרשמה לניוזלטר - יוצר קוד קופון ייחודי ושולח למייל
@@ -953,13 +954,9 @@ def newsletter_subscribe(request):
         return JsonResponse({'success': False, 'message': 'נא להזין כתובת אימייל תקינה'})
     
     # בדיקה אם המייל כבר רשום
-    existing = NewsletterSubscriber.objects.filter(email=email).first()
-    if existing:
-        return JsonResponse({
-            'success': False, 
-            'already_exists': True,
-            'message': 'כתובת האימייל הזו כבר רשומה במערכת'
-        })
+    # אותה תשובה גם לכתובת שכבר רשומה, כדי לא לחשוף מי רשום לניוזלטר
+    if NewsletterSubscriber.objects.filter(email__iexact=email).exists():
+        return JsonResponse({'success': True, 'message': NEWSLETTER_THANKS})
 
     if not settings.RESEND_API_KEY:
         logger.error('Newsletter subscribe skipped: RESEND_API_KEY is not configured')
@@ -1005,11 +1002,11 @@ def newsletter_subscribe(request):
             </p>
             
             <p style="font-size: 14px; color: #555; text-align: center; margin-top: 25px;">
-                נשמח לראות אותך באתר שלנו: <a href="https://arye-boutique.co.il" style="color: #7594b1;">www.arye-boutique.co.il</a>
+                נשמח לראות אותך באתר שלנו: <a href="{settings.SITE_URL}" style="color: #7594b1;">www.arye-boutique.co.il</a>
             </p>
             
             <p style="font-size: 13px; color: #555; text-align: center; margin-top: 30px;">
-                קיבלת מייל זה כי נרשמת לניוזלטר. לביטול ההרשמה <a href="https://arye-boutique.co.il/newsletter/unsubscribe/{unsubscribe_token}" style="color: #7594b1;">לחצו כאן</a>.
+                קיבלת מייל זה כי נרשמת לניוזלטר. לביטול ההרשמה <a href="{settings.SITE_URL}/newsletter/unsubscribe/{unsubscribe_token}" style="color: #7594b1;">לחצו כאן</a>.
             </p>
         </div>
         '''
@@ -1028,35 +1025,41 @@ def newsletter_subscribe(request):
             'message': 'לא הצלחנו לשלוח את המייל עם קוד הקופון. נסו שוב בעוד כמה דקות'
         })
     
-    return JsonResponse({
-        'success': True,
-        'message': 'תודה שהצטרפת למשפחה! מייל עם קוד קופון נשלח אליך'
-    })
+    return JsonResponse({'success': True, 'message': NEWSLETTER_THANKS})
 
 
+@csrf_exempt
 def newsletter_unsubscribe(request, token):
     """
-    ביטול הרשמה לניוזלטר
+    ביטול הרשמה לניוזלטר. הקישור מהמייל פותח דף אישור, והביטול עצמו נעשה
+    בלחיצה על הכפתור (POST) - כך סורקי מייל שפותחים קישורים לא מבטלים הרשמה.
+    אין כאן CSRF: הטוקן שבכתובת הוא ההרשאה.
     """
-    try:
-        subscriber = NewsletterSubscriber.objects.filter(unsubscribe_token=token).first()
-        
-        if subscriber:
-            subscriber.is_active = False
-            subscriber.save()
-            title = '✓ ההרשמה בוטלה בהצלחה'
-            message = 'לא תקבל יותר מיילים מאיתנו. תודה!'
-            color = '#4CAF50'
-        else:
-            title = '✗ קישור לא תקין'
-            message = 'הקישור לא תקין או שההרשמה כבר בוטלה.'
-            color = '#f44336'
-    except Exception:
-        logger.exception('Error in newsletter_unsubscribe')
-        title = '✗ שגיאה'
-        message = 'אירעה שגיאה. נסה שוב מאוחר יותר.'
+    button = ''
+    subscriber = NewsletterSubscriber.objects.filter(unsubscribe_token=token).first()
+
+    if not subscriber:
+        title = '✗ קישור לא תקין'
+        message = 'הקישור לא תקין.'
         color = '#f44336'
-    
+    elif request.method == 'POST' or not subscriber.is_active:
+        if subscriber.is_active:
+            subscriber.is_active = False
+            subscriber.save(update_fields=['is_active'])
+        title = '✓ ההרשמה בוטלה בהצלחה'
+        message = 'לא תקבל יותר מיילים מאיתנו. תודה!'
+        color = '#4CAF50'
+    else:
+        title = 'ביטול הרשמה לניוזלטר'
+        message = 'לביטול ההרשמה לניוזלטר של Arye Boutique לחצו על הכפתור.'
+        color = '#333'
+        button = (
+            '<form method="post" style="margin-top: 20px;">'
+            '<button type="submit" style="padding: 12px 30px; background-color: #7594b1; color: white; '
+            'border: none; border-radius: 6px; font-size: 16px; cursor: pointer;">ביטול ההרשמה</button>'
+            '</form>'
+        )
+
     html = f'''<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -1068,7 +1071,8 @@ def newsletter_unsubscribe(request, token):
     <div style="max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <h1 style="color: {color}; margin-bottom: 20px;">{title}</h1>
         <p style="color: #555; font-size: 16px;">{message}</p>
-        <a href="https://arye-boutique.co.il" style="display: inline-block; margin-top: 20px; padding: 12px 30px; background-color: #7594b1; color: white; text-decoration: none; border-radius: 6px;">חזרה לאתר</a>
+        {button}
+        <a href="{settings.SITE_URL}" style="display: inline-block; margin-top: 20px; padding: 12px 30px; background-color: #7594b1; color: white; text-decoration: none; border-radius: 6px;">חזרה לאתר</a>
     </div>
 </body>
 </html>'''

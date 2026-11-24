@@ -26,7 +26,6 @@
         <!-- Filters Section -->
         <div class="category-filters">
             <form method="GET" action="{% url 'subcategory_detail' category.slug subcategory.slug %}" class="filter-form" id="filter-form">
-                {% csrf_token %}
                 <div class="filter-group">
                     <label for="price-filter" class="filter-label">מחיר</label>
                     <select name="price" id="price-filter" class="filter-select">
@@ -130,6 +129,7 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+{% csrf_token %}
         // Auto-submit form on filter change
         const filterSelects = document.querySelectorAll('.filter-select');
         filterSelects.forEach(select => {

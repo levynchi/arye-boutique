@@ -9,7 +9,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let debounceTimer;
     let selectedIndex = -1;
-    
+
+    // Escape text before placing it inside innerHTML
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     // Debounce function - מונע קריאות API רבות מדי
     function debounce(func, delay) {
         return function(...args) {
@@ -45,21 +55,21 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedIndex = -1;
         
         const html = results.map((product, index) => `
-            <a href="/product/${product.slug}/" class="search-dropdown-item" data-index="${index}">
+            <a href="/product/${encodeURIComponent(product.slug)}/" class="search-dropdown-item" data-index="${index}">
                 <div class="search-item-image">
-                    ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '<div class="search-item-no-image"></div>'}
+                    ${product.image ? `<img src="${escapeHtml(product.image)}" alt="">`: '<div class="search-item-no-image"></div>'}
                 </div>
                 <div class="search-item-info">
                     <span class="search-item-name">${highlightMatch(product.name, query)}</span>
-                    ${product.subtitle ? `<span class="search-item-subtitle">${product.subtitle}</span>` : ''}
-                    <span class="search-item-price">${product.price} ש"ח</span>
+                    ${product.subtitle ? `<span class="search-item-subtitle">${escapeHtml(product.subtitle)}</span>` : ''}
+                    <span class="search-item-price">${escapeHtml(product.price)} ש"ח</span>
                 </div>
             </a>
         `).join('');
         
         searchDropdown.innerHTML = html + `
             <a href="/search/?q=${encodeURIComponent(query)}" class="search-dropdown-all">
-                הצג את כל התוצאות עבור "${query}"
+                הצג את כל התוצאות עבור "${escapeHtml(query)}"
             </a>
         `;
         
@@ -68,8 +78,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // הדגשת הטקסט התואם
     function highlightMatch(text, query) {
+        // מפצלים לפי ההתאמות ומבצעים escape לכל חלק בנפרד
         const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
-        return text.replace(regex, '<strong>$1</strong>');
+        return String(text).split(regex).map((part, index) => (
+            index % 2 === 1 ? `<strong>${escapeHtml(part)}</strong>` : escapeHtml(part)
+        )).join('');
     }
     
     // Escape special regex characters
@@ -82,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedIndex = -1;
         searchDropdown.innerHTML = `
             <div class="search-dropdown-empty">
-                לא נמצאו תוצאות עבור "${query}"
+                לא נמצאו תוצאות עבור "${escapeHtml(query)}"
             </div>
             <a href="/search/?q=${encodeURIComponent(query)}" class="search-dropdown-all">
                 חפש בכל האתר

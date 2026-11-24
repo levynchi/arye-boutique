@@ -5714,11 +5714,15 @@ ul {
    Quick Add to Cart Button on Product Cards
    ========================================================================== */
 
+/* The bar sits under the photo square and is always visible, on every screen size */
+.product-image-wrapper:has(> .product-card-frame) {
+    aspect-ratio: auto;
+}
+
 .product-card-quick-add {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    position: static;
+    display: block;
+    width: 100%;
     background-color: rgb(117, 148, 177);
     border: none;
     padding: 12px 20px;
@@ -5729,13 +5733,6 @@ ul {
     transition: opacity 0.3s ease, background-color 0.3s ease;
     z-index: 15;
     font-family: 'Heebo', sans-serif;
-    opacity: 0;
-    visibility: hidden;
-}
-
-.product-card:hover .product-card-quick-add {
-    opacity: 1;
-    visibility: visible;
 }
 
 .product-card-quick-add:hover {

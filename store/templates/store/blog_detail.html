@@ -7,11 +7,11 @@
 <!-- Breadcrumb Navigation -->
 <section class="breadcrumb-section">
     <div class="container">
-        <nav class="breadcrumb-nav">
+        <nav class="breadcrumb-nav" aria-label="מיקום באתר">
             <a href="{% url 'home' %}">דף הבית</a>
-            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-separator" aria-hidden="true">></span>
             <a href="{% url 'blog_list' %}">בלוג</a>
-            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-separator" aria-hidden="true">></span>
             <span class="breadcrumb-current">{{ post.title }}</span>
         </nav>
     </div>

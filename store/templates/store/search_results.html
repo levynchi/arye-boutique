@@ -7,9 +7,9 @@
 <!-- Breadcrumb Navigation -->
 <section class="breadcrumb-section">
     <div class="container">
-        <nav class="breadcrumb-nav">
+        <nav class="breadcrumb-nav" aria-label="מיקום באתר">
             <a href="{% url 'home' %}">דף הבית</a>
-            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-separator" aria-hidden="true">></span>
             <span class="breadcrumb-current">תוצאות חיפוש</span>
         </nav>
     </div>
@@ -30,7 +30,7 @@
         <!-- Search Form -->
         <div class="search-page-form">
             <form action="{% url 'search' %}" method="get" class="search-inline-form">
-                <input type="text" name="q" value="{{ query }}" placeholder="חיפוש מוצרים..." class="search-page-input">
+                <input type="text" name="q" value="{{ query }}" placeholder="חיפוש מוצרים..." class="search-page-input" aria-label="חיפוש מוצרים">
                 <button type="submit" class="search-page-button">חיפוש</button>
             </form>
         </div>
@@ -41,19 +41,19 @@
             {% for product in products %}
             <div class="product-card" data-product-id="{{ product.id }}">
                 <!-- Heart Icon -->
-                <button type="button" class="product-heart-btn {% if product.id in wishlist_product_ids %}active{% endif %}" data-product-id="{{ product.id }}" aria-label="הוסף לרשימת משאלות">
+                <button type="button" class="product-heart-btn {% if product.id in wishlist_product_ids %}active{% endif %}" data-product-id="{{ product.id }}" aria-label="רשימת משאלות: {{ product.name }}" aria-pressed="{% if product.id in wishlist_product_ids %}true{% else %}false{% endif %}">
                     {% if product.id in wishlist_product_ids %}
-                        <img src="{% static 'images/hert icon fill.svg' %}" alt="לב" class="product-heart-icon">
+                        <img src="{% static 'images/hert icon fill.svg' %}" alt="" class="product-heart-icon">
                     {% else %}
-                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="לב" class="product-heart-icon">
+                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="" class="product-heart-icon">
                     {% endif %}
                 </button>
                 
-                <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
-                    <div class="product-image-wrapper"
+                <div class="product-image-wrapper"
                          data-images='[{% if product.image %}"{{ product.image.url }}"{% endif %}{% for img in product.card_gallery_images %}{% if product.image or not forloop.first %},{% endif %}"{{ img.image.url }}"{% endfor %}]'
                          data-current-index="0">
                         <div class="product-card-frame">
+                        <a href="{% url 'product_detail' product.slug %}" class="product-card-image-link" tabindex="-1" aria-hidden="true">
                         <!-- Product Image -->
                         {% if product.image %}
                             <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-image">
@@ -65,6 +65,7 @@
                         <img src="{{ hover_image.image.url }}" alt="{{ product.name }} תקריב" class="product-card-print" loading="lazy">
                         {% endif %}
                         {% endwith %}
+                        </a>
                         
                         <!-- Gallery Arrows (shown only if multiple images) -->
                         {% if product.card_gallery_images %}
@@ -96,6 +97,7 @@
                         </button>
                     </div>
                     
+                    <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
                     <div class="product-card-info">
                         {% if product.subcategory %}
                             <p class="product-card-subcategory">{{ product.subcategory.name }}</p>
@@ -162,9 +164,11 @@
                         const heartIcon = this.querySelector('.product-heart-icon');
                         if (data.action === 'added') {
                             this.classList.add('active');
+                            this.setAttribute('aria-pressed', 'true');
                             heartIcon.src = '/static/images/hert icon fill.svg';
                         } else {
                             this.classList.remove('active');
+                            this.setAttribute('aria-pressed', 'false');
                             heartIcon.src = '/static/images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg';
                         }
                         

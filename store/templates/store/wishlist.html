@@ -7,9 +7,9 @@
 <!-- Breadcrumb Navigation -->
 <section class="breadcrumb-section">
     <div class="container">
-        <nav class="breadcrumb-nav">
+        <nav class="breadcrumb-nav" aria-label="מיקום באתר">
             <a href="{% url 'home' %}">דף הבית</a>
-            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-separator" aria-hidden="true">></span>
             <span class="breadcrumb-current">רשימת המשאלות שלי</span>
         </nav>
     </div>
@@ -42,11 +42,11 @@
                         &times;
                     </button>
                     
-                    <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
-                        <div class="product-image-wrapper"
+                    <div class="product-image-wrapper"
                              data-images='[{% if product.image %}"{{ product.image.url }}"{% endif %}{% for img in product.card_gallery_images %}{% if product.image or not forloop.first %},{% endif %}"{{ img.image.url }}"{% endfor %}]'
                              data-current-index="0">
                             <div class="product-card-frame">
+                            <a href="{% url 'product_detail' product.slug %}" class="product-card-image-link" tabindex="-1" aria-hidden="true">
                             <!-- Product Image -->
                             {% if product.image %}
                                 <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-image">
@@ -58,6 +58,7 @@
                             <img src="{{ hover_image.image.url }}" alt="{{ product.name }} תקריב" class="product-card-print" loading="lazy">
                             {% endif %}
                             {% endwith %}
+                            </a>
                             
                             <!-- Gallery Arrows (shown only if multiple images) -->
                             {% if product.card_gallery_images %}
@@ -89,6 +90,7 @@
                             </button>
                         </div>
                         
+                        <a href="{% url 'product_detail' product.slug %}" class="product-card-link">
                         <div class="product-card-info">
                             {% if product.subcategory %}
                                 <p class="product-card-subcategory">{{ product.subcategory.name }}</p>

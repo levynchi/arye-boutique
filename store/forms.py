@@ -28,16 +28,20 @@ class ContactForm(HoneypotMixin, forms.ModelForm):
             'full_name': forms.TextInput(attrs={
                 'class': 'form-input',
                 'placeholder': 'שם מלא',
+                'autocomplete': 'name',
                 'required': True,
             }),
             'phone': forms.TextInput(attrs={
                 'class': 'form-input',
                 'placeholder': 'טלפון',
+                'autocomplete': 'tel',
+                'type': 'tel',
                 'required': True,
             }),
             'email': forms.EmailInput(attrs={
                 'class': 'form-input',
                 'placeholder': 'כתובת אימייל',
+                'autocomplete': 'email',
                 'required': True,
             }),
             'order_number': forms.TextInput(attrs={
@@ -78,7 +82,7 @@ class CancellationForm(forms.ModelForm):
         fields = ['full_name', 'phone', 'email', 'order_number', 'note']
         widgets = {
             'full_name': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'name'}),
-            'phone': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'tel'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input', 'autocomplete': 'tel', 'type': 'tel'}),
             'email': forms.EmailInput(attrs={'class': 'form-input', 'autocomplete': 'email'}),
             'order_number': forms.TextInput(attrs={'class': 'form-input'}),
             'note': forms.Textarea(attrs={'class': 'form-textarea', 'rows': 4}),
@@ -114,6 +118,7 @@ class CheckoutForm(forms.Form):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'שם פרטי',
+            'autocomplete': 'given-name',
         })
     )
     last_name = forms.CharField(
@@ -123,6 +128,7 @@ class CheckoutForm(forms.Form):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'שם משפחה',
+            'autocomplete': 'family-name',
         })
     )
     guest_phone = forms.CharField(
@@ -132,6 +138,8 @@ class CheckoutForm(forms.Form):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'טלפון',
+            'autocomplete': 'tel',
+            'type': 'tel',
         })
     )
     guest_email = forms.EmailField(
@@ -140,6 +148,7 @@ class CheckoutForm(forms.Form):
         widget=forms.EmailInput(attrs={
             'class': 'form-input',
             'placeholder': 'דוא״ל',
+            'autocomplete': 'email',
         })
     )
     shipping_method = forms.ChoiceField(
@@ -156,6 +165,7 @@ class CheckoutForm(forms.Form):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'רחוב ומספר בית',
+            'autocomplete': 'street-address',
         })
     )
     guest_city = forms.CharField(
@@ -165,6 +175,7 @@ class CheckoutForm(forms.Form):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'עיר',
+            'autocomplete': 'address-level2',
         })
     )
     notes = forms.CharField(

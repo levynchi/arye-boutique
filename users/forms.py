@@ -16,6 +16,7 @@ class RegisterForm(UserCreationForm):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'שם פרטי',
+            'autocomplete': 'given-name',
         }),
         label='שם פרטי*'
     )
@@ -26,6 +27,7 @@ class RegisterForm(UserCreationForm):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'שם משפחה',
+            'autocomplete': 'family-name',
         }),
         label='שם משפחה*'
     )
@@ -35,13 +37,11 @@ class RegisterForm(UserCreationForm):
         widget=forms.EmailInput(attrs={
             'class': 'form-input',
             'placeholder': 'כתובת מייל',
+            'autocomplete': 'email',
         }),
         label='כתובת מייל*'
     )
     
-    class Meta:
-        model = CustomUser
-        fields = ['first_name', 'last_name', 'email', 'password1', 'password2']
     accept_terms = forms.BooleanField(
         required=True,
         label='אישור תקנון ומדיניות פרטיות',
@@ -49,7 +49,10 @@ class RegisterForm(UserCreationForm):
         widget=forms.CheckboxInput(attrs={'class': 'legal-consent-input'}),
     )
 
-    
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'password1', 'password2']
+
     def clean_email(self):
         """
         בדיקה שהמייל לא קיים כבר במערכת
@@ -74,6 +77,7 @@ class RegisterForm(UserCreationForm):
         self.fields['password2'].widget.attrs.update({
             'class': 'form-input',
             'placeholder': 'אימות סיסמה',
+            'autocomplete': 'new-password',
         })
         self.fields['password2'].label = 'אימות סיסמה*'
         self.fields['password2'].help_text = None
@@ -114,6 +118,7 @@ class LoginForm(AuthenticationForm):
         widget=forms.PasswordInput(attrs={
             'class': 'form-input',
             'placeholder': 'סיסמה',
+            'autocomplete': 'current-password',
         }),
         label='סיסמה*'
     )
@@ -140,6 +145,7 @@ class PasswordResetRequestForm(PasswordResetForm):
         widget=forms.EmailInput(attrs={
             'class': 'form-input',
             'placeholder': 'כתובת מייל',
+            'autocomplete': 'email',
         }),
         label='כתובת מייל*'
     )
@@ -164,6 +170,7 @@ class CustomSetPasswordForm(SetPasswordForm):
         widget=forms.PasswordInput(attrs={
             'class': 'form-input',
             'placeholder': 'סיסמה חדשה',
+            'autocomplete': 'new-password',
         }),
         label='סיסמה חדשה*'
     )
@@ -173,6 +180,7 @@ class CustomSetPasswordForm(SetPasswordForm):
         widget=forms.PasswordInput(attrs={
             'class': 'form-input',
             'placeholder': 'אימות סיסמה',
+            'autocomplete': 'new-password',
         }),
         label='אימות סיסמה*'
     )
@@ -194,6 +202,7 @@ class ProfileEditForm(forms.ModelForm):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'שם פרטי',
+            'autocomplete': 'given-name',
         }),
         label='שם פרטי'
     )
@@ -204,6 +213,7 @@ class ProfileEditForm(forms.ModelForm):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'שם משפחה',
+            'autocomplete': 'family-name',
         }),
         label='שם משפחה'
     )
@@ -213,6 +223,7 @@ class ProfileEditForm(forms.ModelForm):
         widget=forms.EmailInput(attrs={
             'class': 'form-input',
             'placeholder': 'כתובת מייל',
+            'autocomplete': 'email',
         }),
         label='כתובת מייל*'
     )
@@ -223,6 +234,7 @@ class ProfileEditForm(forms.ModelForm):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'מספר טלפון',
+            'autocomplete': 'tel', 'type': 'tel',
         }),
         label='מספר טלפון'
     )
@@ -233,6 +245,7 @@ class ProfileEditForm(forms.ModelForm):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'כתובת',
+            'autocomplete': 'street-address',
         }),
         label='כתובת'
     )
@@ -243,6 +256,7 @@ class ProfileEditForm(forms.ModelForm):
         widget=forms.TextInput(attrs={
             'class': 'form-input',
             'placeholder': 'עיר',
+            'autocomplete': 'address-level2',
         }),
         label='עיר'
     )

@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261123c">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261124a">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -99,16 +99,16 @@
                 </div>
                 <div class="social-links">
                     <a href="https://wa.me/972533694264" class="social-link" aria-label="WhatsApp" target="_blank" rel="noopener">
-                        <img src="{% static 'images/WATSAPP WHITE.svg' %}" alt="WhatsApp" class="social-icon-svg">
+                        <img src="{% static 'images/WATSAPP WHITE.svg' %}" alt="" class="social-icon-svg">
                     </a>
                     <a href="mailto:info@arye-boutique.co.il" class="social-link" aria-label="מייל">
-                        <img src="{% static 'images/MAILL WHITE.svg' %}" alt="מייל" class="social-icon-svg">
+                        <img src="{% static 'images/MAILL WHITE.svg' %}" alt="" class="social-icon-svg">
                     </a>
                     <a href="https://www.instagram.com/arye_boutique/" class="social-link" aria-label="Instagram" target="_blank" rel="noopener">
-                        <img src="{% static 'images/INSTEGRAM WHITE.svg' %}" alt="Instagram" class="social-icon-svg">
+                        <img src="{% static 'images/INSTEGRAM WHITE.svg' %}" alt="" class="social-icon-svg">
                     </a>
                     <a href="https://www.facebook.com/people/Arye-boutique/61584148260575/" class="social-link" aria-label="פייסבוק" target="_blank" rel="noopener">
-                        <img src="{% static 'images/FACEBOOK WHITE.svg' %}" alt="פייסבוק" class="social-icon-svg">
+                        <img src="{% static 'images/FACEBOOK WHITE.svg' %}" alt="" class="social-icon-svg">
                     </a>
                 </div>
             </div>
@@ -131,14 +131,14 @@
                     {% if user.is_authenticated %}
                         <a href="{% url 'wishlist' %}" class="icon-link" title="רשימת המשאלות" aria-label="פתח רשימת משאלות" id="header-wishlist-link">
                             {% if wishlist_count > 0 %}
-                                <img src="{% static 'images/hert icon fill.svg' %}" alt="Wishlist" class="header-icon-svg" id="header-wishlist-icon">
+                                <img src="{% static 'images/hert icon fill.svg' %}" alt="" class="header-icon-svg" id="header-wishlist-icon">
                             {% else %}
-                                <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg" id="header-wishlist-icon">
+                                <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="" class="header-icon-svg" id="header-wishlist-icon">
                             {% endif %}
                         </a>
                     {% else %}
                         <a href="{% url 'users:login' %}?next=/wishlist/" class="icon-link" title="רשימת המשאלות" aria-label="פתח רשימת משאלות" id="header-wishlist-link">
-                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="Wishlist" class="header-icon-svg" id="header-wishlist-icon">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="" class="header-icon-svg" id="header-wishlist-icon">
                         </a>
                     {% endif %}
                     {% if user.is_authenticated %}
@@ -153,11 +153,11 @@
                         </div>
                     {% else %}
                         <a href="{% url 'users:login' %}" class="icon-link" title="התחבר" aria-label="התחברות למערכת">
-                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="Account" class="header-icon-svg">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_ACCOUNT copy.svg' %}" alt="" class="header-icon-svg">
                         </a>
                     {% endif %}
                     <button type="button" id="cart-trigger" class="icon-link cart-link" aria-haspopup="dialog" aria-expanded="false" aria-controls="cart-sidebar" aria-label="פתח עגלת הקניות">
-                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_CART copy 2.svg' %}" alt="Cart" class="header-icon-svg">
+                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_CART copy 2.svg' %}" alt="" class="header-icon-svg">
                         <span class="cart-count" id="cart-count">{{ cart_count }}</span>
                     </button>
                 </div>
@@ -175,7 +175,7 @@
                         <label for="header-search" class="visually-hidden">חיפוש מוצרים</label>
                         <input type="text" id="header-search" class="search-input" placeholder="חיפוש..." name="q" autocomplete="off">
                         <button type="submit" class="search-button" aria-label="בצע חיפוש">
-                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_SEARCH.svg' %}" alt="Search" class="search-icon-svg">
+                            <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_SEARCH.svg' %}" alt="" class="search-icon-svg">
                         </button>
                     </form>
                     <div id="search-results-dropdown" class="search-dropdown"></div>
@@ -214,7 +214,7 @@
 
     <!-- Mobile Navigation -->
     <div class="mobile-nav-overlay" data-mobile-nav-overlay></div>
-    <aside class="mobile-nav-drawer" aria-hidden="true" aria-labelledby="mobile-nav-title" role="dialog" data-mobile-nav>
+    <aside class="mobile-nav-drawer" aria-hidden="true" aria-modal="true" aria-labelledby="mobile-nav-title" role="dialog" data-mobile-nav>
         <div class="mobile-nav-header">
             <h2 id="mobile-nav-title">תפריט</h2>
             <button type="button" class="mobile-nav-close" aria-label="סגור תפריט" data-mobile-nav-close>&times;</button>
@@ -240,8 +240,8 @@
                 {% empty %}
                 <li class="nav-item"><a href="#" class="nav-link" data-mobile-nav-link>חיתולי בד / טטרה</a></li>
                 <li class="nav-item"><a href="#" class="nav-link" data-mobile-nav-link>לחדר השינה</a></li>
-                <li class="nav-item"><a href="#" class="nav-link" data-mobile-nav-link">סינר פליטה לתינוק</a></li>
-                <li class="nav-item"><a href="#" class="nav-link" data-mobile-nav-link">מגבות לתינוק</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-mobile-nav-link>סינר פליטה לתינוק</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-mobile-nav-link>מגבות לתינוק</a></li>
                 {% endfor %}
             </ul>
         </nav>
@@ -305,16 +305,16 @@
             
             <!-- Fabric Selection (if multiple fabrics) -->
             <div id="product-options-fabric-section" class="product-options-section" style="display: none;">
-                <label class="product-options-label">סוג בד</label>
-                <div id="product-options-fabrics" class="product-options-buttons">
+                <span class="product-options-label" id="product-options-fabric-label">סוג בד</span>
+                <div id="product-options-fabrics" class="product-options-buttons" role="group" aria-labelledby="product-options-fabric-label">
                     <!-- Fabric buttons will be populated by JavaScript -->
                 </div>
             </div>
             
             <!-- Size Selection -->
             <div id="product-options-size-section" class="product-options-section">
-                <label class="product-options-label">מידה</label>
-                <div id="product-options-sizes" class="product-options-buttons">
+                <span class="product-options-label" id="product-options-size-label">מידה</span>
+                <div id="product-options-sizes" class="product-options-buttons" role="group" aria-labelledby="product-options-size-label">
                     <!-- Size buttons will be populated by JavaScript -->
                 </div>
             </div>
@@ -326,11 +326,11 @@
             
             <!-- Quantity Section -->
             <div class="product-options-section">
-                <label class="product-options-label">כמות</label>
+                <label class="product-options-label" for="product-options-qty-input">כמות</label>
                 <div class="product-options-quantity">
-                    <button type="button" id="product-options-qty-minus" class="product-options-qty-btn product-options-qty-decrease">-</button>
+                    <button type="button" id="product-options-qty-minus" class="product-options-qty-btn product-options-qty-decrease" aria-label="הקטן כמות">-</button>
                     <input type="number" id="product-options-qty-input" class="product-options-qty-input" value="1" min="1" readonly>
-                    <button type="button" id="product-options-qty-plus" class="product-options-qty-btn">+</button>
+                    <button type="button" id="product-options-qty-plus" class="product-options-qty-btn" aria-label="הגדל כמות">+</button>
                 </div>
             </div>
         </div>
@@ -445,7 +445,7 @@
                                 <li>אנחנו נמצאים ברחוב הקישון 6 תל אביב.</li>
                                 <li>שירות לקוחות וואטסאפ בלבד >> <img src="{% static 'images/WATSAPP WHITE.svg' %}" alt="WhatsApp" class="footer-whatsapp-icon"><br>בטלפון 053-3694264</li>
                                 <li>זמני פעילות שירות הלקוחות<br>ימים א' - ה' בין השעות 9:00 - 15:00</li>
-                                <li>מוזמנים לפנות אלינו למייל<br>info@arye-boutique.co.il</li>
+                                <li>מוזמנים לפנות אלינו למייל<br><a href="mailto:info@arye-boutique.co.il">info@arye-boutique.co.il</a></li>
                             </ul>
                         </div>
                     </div>
@@ -514,9 +514,12 @@
                 });
             });
             
-            // סגירה אוטומטית אחרי 5 שניות
+            // סגירה אוטומטית רק להודעות הצלחה ומידע. שגיאות ואזהרות נשארות עד שסוגרים אותן
             const messages = document.querySelectorAll('.message');
             messages.forEach(message => {
+                if (message.classList.contains('message-error') || message.classList.contains('message-warning')) {
+                    return;
+                }
                 setTimeout(() => {
                     message.style.transition = 'opacity 0.3s ease';
                     message.style.opacity = '0';
@@ -578,10 +581,13 @@
                     messageDiv.style.display = 'block';
                     messageDiv.className = 'newsletter-message ' + (isSuccess ? 'success' : 'error');
                     
-                    // Auto hide after 5 seconds
-                    setTimeout(() => {
-                        messageDiv.style.display = 'none';
-                    }, 5000);
+                    // הודעת הצלחה נעלמת לבד; שגיאה נשארת עד הניסיון הבא
+                    clearTimeout(showNewsletterMessage.timer);
+                    if (isSuccess) {
+                        showNewsletterMessage.timer = setTimeout(() => {
+                            messageDiv.style.display = 'none';
+                        }, 8000);
+                    }
                 }
             }
         });

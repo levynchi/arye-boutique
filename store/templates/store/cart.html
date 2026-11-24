@@ -33,9 +33,9 @@
                     </div>
                     
                     <div class="cart-item-quantity">
-                        <button class="quantity-btn quantity-decrease" data-item-id="{{ item.id }}">-</button>
-                        <input type="number" class="quantity-input" value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}" data-item-id="{{ item.id }}" readonly>
-                        <button class="quantity-btn quantity-increase" data-item-id="{{ item.id }}">+</button>
+                        <button class="quantity-btn quantity-decrease" data-item-id="{{ item.id }}" aria-label="הקטן כמות עבור {{ item.product.name }}">-</button>
+                        <input type="number" class="quantity-input" value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}" data-item-id="{{ item.id }}" readonly aria-label="כמות עבור {{ item.product.name }}">
+                        <button class="quantity-btn quantity-increase" data-item-id="{{ item.id }}" aria-label="הגדל כמות עבור {{ item.product.name }}">+</button>
                     </div>
                     
                     <div class="cart-item-price">

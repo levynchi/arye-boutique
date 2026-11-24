@@ -130,11 +130,11 @@
             {% for product in bestseller_products %}
             <div class="product-card">
                 <!-- Heart Icon -->
-                <button type="button" class="product-heart-btn {% if product.id in wishlist_product_ids %}active{% endif %}" data-product-id="{{ product.id }}" aria-label="הוסף לרשימת משאלות">
+                <button type="button" class="product-heart-btn {% if product.id in wishlist_product_ids %}active{% endif %}" data-product-id="{{ product.id }}" aria-label="רשימת משאלות: {{ product.name }}" aria-pressed="{% if product.id in wishlist_product_ids %}true{% else %}false{% endif %}">
                     {% if product.id in wishlist_product_ids %}
-                        <img src="{% static 'images/hert icon fill.svg' %}" alt="לב" class="product-heart-icon">
+                        <img src="{% static 'images/hert icon fill.svg' %}" alt="" class="product-heart-icon">
                     {% else %}
-                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="לב" class="product-heart-icon">
+                        <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg' %}" alt="" class="product-heart-icon">
                     {% endif %}
                 </button>
                 
@@ -287,9 +287,11 @@
                         const heartIcon = this.querySelector('.product-heart-icon');
                         if (data.action === 'added') {
                             this.classList.add('active');
+                            this.setAttribute('aria-pressed', 'true');
                             heartIcon.src = '/static/images/hert icon fill.svg';
                         } else {
                             this.classList.remove('active');
+                            this.setAttribute('aria-pressed', 'false');
                             heartIcon.src = '/static/images/ALL_PHOTOS SERCH HAMBURGER_HEART copy.svg';
                         }
                         

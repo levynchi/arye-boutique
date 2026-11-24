@@ -1,4 +1,5 @@
 import json
+import re
 import tempfile
 from datetime import timedelta
 from decimal import Decimal
@@ -1168,3 +1169,54 @@ class ProductPagePrivacyTests(TestCase):
     def test_newsletter_coupon_code_is_long(self):
         from .views import generate_coupon_code
         self.assertEqual(len(generate_coupon_code()), len('ARYE-') + 8)
+
+
+class NewsletterPrivacyTests(TestCase):
+    def setUp(self):
+        self.subscriber = NewsletterSubscriber.objects.create(
+            email='a@example.com', coupon_code='ARYE-ABCDEFGH', unsubscribe_token='t' * 32,
+        )
+        self.url = reverse('newsletter_unsubscribe', args=[self.subscriber.unsubscribe_token])
+
+    def test_opening_the_unsubscribe_link_only_asks_for_confirmation(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, '<form method="post"')
+        self.subscriber.refresh_from_db()
+        self.assertTrue(self.subscriber.is_active)
+
+    def test_confirming_unsubscribes(self):
+        response = self.client.post(self.url)
+        self.assertContains(response, 'ההרשמה בוטלה')
+        self.subscriber.refresh_from_db()
+        self.assertFalse(self.subscriber.is_active)
+        self.assertNotContains(self.client.get(self.url), '<form method="post"')
+
+    def test_unknown_token(self):
+        response = self.client.post(reverse('newsletter_unsubscribe', args=['nope']))
+        self.assertContains(response, 'קישור לא תקין')
+
+    def test_signup_does_not_reveal_existing_subscribers(self):
+        response = self.client.post(
+            reverse('newsletter_subscribe'), json.dumps({'email': 'A@example.com'}), content_type='application/json',
+        )
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertNotIn('already_exists', data)
+        self.assertEqual(NewsletterSubscriber.objects.count(), 1)
+
+
+class PageHardeningTests(TestCase):
+    def test_payment_failure_page_ignores_text_from_the_url(self):
+        response = self.client.get(reverse('payment_failure'), {'ErrorMessage': 'call-this-number-now'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'call-this-number-now')
+
+    def test_category_page_has_no_buttons_inside_links_and_no_token_in_filter_form(self):
+        category = Category.objects.create(name='ניובורן', slug='newborn-test')
+        make_product(category=category)
+        html = self.client.get(reverse('category_detail', args=[category.slug])).content.decode()
+        for link in re.findall(r"<a [^>]*>.*?</a>", html, flags=re.S):
+            self.assertNotIn('<button', link)
+        filter_form = re.search(r'<form[^>]*id="filter-form".*?</form>', html, flags=re.S).group(0)
+        self.assertNotIn('csrfmiddlewaretoken', filter_form)
+        self.assertIn('csrfmiddlewaretoken', html)

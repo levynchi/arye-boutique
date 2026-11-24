@@ -83,6 +83,16 @@
                         <div class="form-error">{{ form.non_field_errors }}</div>
                     {% endif %}
                     
+                    <div class="form-group legal-consent">
+                        <label class="legal-consent-label" for="{{ form.accept_terms.id_for_label }}">
+                            {{ form.accept_terms }}
+                            <span>קראתי את <a href="{% url 'terms_of_service' %}">התקנון</a> ואת <a href="{% url 'terms_of_service' %}#privacy">מדיניות הפרטיות</a>, ואני מאשר/ת אותם.</span>
+                        </label>
+                        {% if form.accept_terms.errors %}
+                            <div class="form-error">{{ form.accept_terms.errors }}</div>
+                        {% endif %}
+                    </div>
+
                     <button type="submit" class="contact-submit-btn">הרשם</button>
                     
                     <p class="auth-link-text">

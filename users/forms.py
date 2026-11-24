@@ -42,6 +42,13 @@ class RegisterForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ['first_name', 'last_name', 'email', 'password1', 'password2']
+    accept_terms = forms.BooleanField(
+        required=True,
+        label='אישור תקנון ומדיניות פרטיות',
+        error_messages={'required': 'יש לאשר את התקנון ואת מדיניות הפרטיות כדי להירשם'},
+        widget=forms.CheckboxInput(attrs={'class': 'legal-consent-input'}),
+    )
+
     
     def clean_email(self):
         """

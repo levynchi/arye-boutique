@@ -374,7 +374,8 @@
                         <input type="email" class="newsletter-input" id="newsletter-email" placeholder="אימייל" required>
                         <button type="submit" class="newsletter-button" id="newsletter-submit">הצטרפו עכשיו</button>
                     </form>
-                    <div id="newsletter-message" class="newsletter-message" style="display: none;"></div>
+                    <p class="newsletter-consent">בהרשמה אני מאשר/ת לקבל דיוור ועדכונים במייל, לפי <a href="{% url 'terms_of_service' %}#privacy">מדיניות הפרטיות</a>. אפשר להסיר את ההרשמה בכל עת.</p>
+                    <div id="newsletter-message" class="newsletter-message" role="status" aria-live="polite" style="display: none;"></div>
                     <div class="footer-social">
                         <a href="https://www.facebook.com/people/Arye-boutique/61584148260575/" class="footer-social-link" target="_blank" rel="noopener">
                             <img src="{% static 'images/FACEBOOK WHITE.svg' %}" alt="Facebook" class="footer-social-icon">

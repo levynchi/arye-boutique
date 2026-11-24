@@ -55,6 +55,7 @@
                 {{ form.note }}
                 {% if form.note.errors %}<div class="form-error">{{ form.note.errors }}</div>{% endif %}
             </div>
+            <p class="form-privacy-note">הפרטים ישמשו לטיפול בפנייה בלבד, לפי <a href="{% url 'terms_of_service' %}#privacy">מדיניות הפרטיות</a>.</p>
             <button type="submit" class="contact-submit-btn">שליחת הודעת ביטול</button>
             <p class="required-fields-note">שדות חובה*</p>
         </form>

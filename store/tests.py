@@ -1041,3 +1041,59 @@ class AddProductFromFolderTests(TestCase):
         self.assertIn('kimono_train', gallery[0].image.name)
         self.assertIn('kimono_airplane', gallery[1].image.name)
         self.assertEqual(Product.objects.count(), 2)
+
+
+class RecommendedProductsTests(TestCase):
+    """סקשן "מוצרים מומלצים" בתחתית דף המוצר."""
+
+    def setUp(self):
+        self.product = make_product(name='מוצר ראשי')
+
+    def recommended_on_page(self, product=None):
+        response = self.client.get(reverse('product_detail', args=[(product or self.product).slug]))
+        self.assertEqual(response.status_code, 200)
+        return response.context['recommended_products']
+
+    def test_shows_products_chosen_in_admin(self):
+        chosen = [make_product(name=f'נבחר {i}') for i in range(3)]
+        make_product(name='הכי נמכר', is_bestseller=True)
+        self.product.recommended_products.set(chosen)
+        self.assertEqual(set(self.recommended_on_page()), set(chosen))
+
+    def test_skips_inactive_chosen_products(self):
+        active = make_product(name='פעיל')
+        inactive = make_product(name='לא פעיל', is_active=False)
+        self.product.recommended_products.set([active, inactive])
+        self.assertEqual(self.recommended_on_page(), [active])
+
+    def test_falls_back_to_home_page_bestsellers(self):
+        bestsellers = [make_product(name=f'נמכר {i}', is_bestseller=True) for i in range(5)]
+        make_product(name='רגיל')
+        recommended = self.recommended_on_page()
+        self.assertEqual(len(recommended), 4)
+        self.assertTrue(set(recommended) <= set(bestsellers))
+
+    def test_fallback_never_shows_the_product_itself(self):
+        self.product.is_bestseller = True
+        self.product.save()
+        other = make_product(name='נמכר אחר', is_bestseller=True)
+        self.assertEqual(self.recommended_on_page(), [other])
+
+    def test_section_is_hidden_when_nothing_to_show(self):
+        response = self.client.get(reverse('product_detail', args=[self.product.slug]))
+        self.assertNotContains(response, 'recommended-products-section')
+
+    def test_admin_allows_at_most_four(self):
+        from .admin import ProductRecommendationsForm
+        others = [make_product(name=f'אחר {i}') for i in range(5)]
+        form = ProductRecommendationsForm(instance=self.product)
+        data = {**form.initial, 'recommended_products': [p.pk for p in others]}
+        data = {k: v for k, v in data.items() if v is not None}
+        form = ProductRecommendationsForm(data=data, files={'image': None}, instance=self.product)
+        form.is_valid()
+        self.assertIn('recommended_products', form.errors)
+
+        data['recommended_products'] = [p.pk for p in others[:4]]
+        form = ProductRecommendationsForm(data=data, instance=self.product)
+        form.is_valid()
+        self.assertNotIn('recommended_products', form.errors)

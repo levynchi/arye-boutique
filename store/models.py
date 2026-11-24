@@ -267,6 +267,14 @@ class Product(models.Model):
         related_name='products',
         verbose_name='הרכב חומרים וטיפול'
     )
+    recommended_products = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        blank=True,
+        related_name='recommended_by',
+        verbose_name='מוצרים מומלצים',
+        help_text='עד 4 מוצרים שיוצגו בדף המוצר. בלי בחירה יוצגו "הכי נמכרים" מהדף הראשי'
+    )
     size_label = models.CharField(
         max_length=50,
         default='מידה',

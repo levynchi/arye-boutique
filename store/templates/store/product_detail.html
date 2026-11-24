@@ -210,6 +210,38 @@
         </div>
     </div>
 </section>
+
+{% if recommended_products %}
+<section class="bestsellers-section recommended-products-section">
+    <div class="container">
+        <h2 class="bestsellers-title">מוצרים מומלצים</h2>
+
+        <div class="products-gallery">
+            {% for item in recommended_products %}
+            <div class="product-card">
+                <a href="{% url 'product_detail' item.slug %}" class="product-card-link">
+                    <div class="product-image-wrapper">
+                        {% if item.image %}
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}" class="product-card-image" loading="lazy">
+                        {% else %}
+                            <div class="product-card-placeholder">אין תמונה</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="product-card-info">
+                        <p class="product-card-name">{{ item.name }}</p>
+                        {% if item.subtitle %}
+                            <p class="product-card-subtitle">{{ item.subtitle }}</p>
+                        {% endif %}
+                        <p class="product-card-price">{{ item.get_display_price }} ש"ח</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}

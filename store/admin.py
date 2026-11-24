@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.urls import path, reverse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -12,6 +13,8 @@ from .models import (
     MaterialCareInfo, NewsletterSubscriber, Coupon
 )
 from .forms import BulkVariantCreationForm, ProductAdminForm
+
+MAX_RECOMMENDED_PRODUCTS = 4
 
 
 @admin.register(SiteSettings)
@@ -293,11 +296,31 @@ class ProductVariantInline(admin.TabularInline):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
+class ProductRecommendationsForm(forms.ModelForm):
+    """טופס המוצר באדמין, עם הגבלה על מספר המוצרים המומלצים"""
+
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+    def clean_recommended_products(self):
+        recommended = self.cleaned_data.get('recommended_products')
+        if recommended is None:
+            return recommended
+        if self.instance.pk and recommended.filter(pk=self.instance.pk).exists():
+            raise forms.ValidationError('אי אפשר להמליץ על המוצר עצמו')
+        if recommended.count() > MAX_RECOMMENDED_PRODUCTS:
+            raise forms.ValidationError(f'אפשר לבחור עד {MAX_RECOMMENDED_PRODUCTS} מוצרים מומלצים')
+        return recommended
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     """
     ניהול מוצרים
     """
+    form = ProductRecommendationsForm
+    filter_horizontal = ['recommended_products']
     list_display = ['image_preview', 'name', 'is_active', 'category', 'subcategory', 'gender', 'price', 'stock_quantity', 'order', 'is_featured', 'is_bestseller', 'created_at']
     list_display_links = ['image_preview', 'name']
     
@@ -353,6 +376,10 @@ class ProductAdmin(admin.ModelAdmin):
         ('הגדרות', {
             'fields': ('is_active', 'is_featured', 'is_bestseller', 'order', 'size_label'),
             'description': 'מספר נמוך יותר = יופיע קודם בתצוגה. תווית מידה: "מידה" לבגדים, "סוג" לסדינים'
+        }),
+        ('מוצרים מומלצים', {
+            'fields': ('recommended_products',),
+            'description': 'עד 4 מוצרים שיוצגו בתחתית דף המוצר. אם לא נבחר אף מוצר, יוצגו "הכי נמכרים" מהדף הראשי'
         }),
         ('הרכב חומרים וטיפול', {
             'fields': ('material_care_info',),

@@ -181,11 +181,21 @@ def product_detail(request, slug):
     fabric_key_count = sum(1 for k in variants_data if k != 'no_fabric') + (1 if 'no_fabric' in variants_data else 0)
     show_fabric_selector = fabric_key_count > 1
     
+    # מוצרים מומלצים: אלה שנבחרו למוצר באדמין, ואם אין - "הכי נמכרים" מהדף הראשי
+    recommended_products = list(
+        product.recommended_products.filter(is_active=True).exclude(pk=product.pk)[:4]
+    )
+    if not recommended_products:
+        recommended_products = list(
+            Product.objects.filter(is_active=True, is_bestseller=True).exclude(pk=product.pk)[:4]
+        )
+
     # קבלת קטגוריות לניווט
     categories = Category.objects.filter(is_active=True)
     
     context = {
         'product': product,
+        'recommended_products': recommended_products,
         'primary_image': primary_image,
         'additional_images': additional_images,
         'fabric_types': fabric_types,

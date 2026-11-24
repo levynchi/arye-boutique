@@ -67,6 +67,10 @@
             <div class="contact-form-wrapper">
                 <form method="POST" class="contact-form">
                     {% csrf_token %}
+                    <div class="visually-hidden" aria-hidden="true">
+                        {{ form.extra_details.label_tag }}
+                        {{ form.extra_details }}
+                    </div>
                     
                     <div class="form-fields-container">
                         <div class="form-fields-right">

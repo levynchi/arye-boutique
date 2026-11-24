@@ -16,8 +16,8 @@ from PIL import Image
 
 from .email_backend import ResendEmailBackend
 from .models import (
-    CancellationRequest, Category, Coupon, NewsletterSubscriber, Order, OrderItem, OrderPayment, Product, ProductImage,
-    SiteSettings, Size, Subcategory,
+    CancellationRequest, Category, ContactMessage, Coupon, NewsletterSubscriber, Order, OrderItem, OrderPayment,
+    Product, ProductImage, ProductVariant, SiteSettings, Size, Subcategory,
 )
 from .services import icredit
 from .services.orders import confirm_order_payment, finalize_paid_order
@@ -1097,3 +1097,74 @@ class RecommendedProductsTests(TestCase):
         form = ProductRecommendationsForm(data=data, instance=self.product)
         form.is_valid()
         self.assertNotIn('recommended_products', form.errors)
+
+
+class RateLimitTests(TestCase):
+    """הגבלת קצב על טפסים ונקודות קצה ציבוריות."""
+
+    def test_newsletter_is_limited_per_visitor(self):
+        url = reverse('newsletter_subscribe')
+        for _ in range(5):
+            response = self.client.post(url, json.dumps({'email': 'not-an-email'}), content_type='application/json')
+            self.assertEqual(response.status_code, 200)
+        response = self.client.post(url, json.dumps({'email': 'not-an-email'}), content_type='application/json')
+        self.assertEqual(response.status_code, 429)
+
+    def test_limit_is_counted_separately_per_visitor(self):
+        url = reverse('newsletter_subscribe')
+        for _ in range(6):
+            self.client.post(url, json.dumps({'email': 'x'}), content_type='application/json', REMOTE_ADDR='10.0.0.1')
+        response = self.client.post(
+            url, json.dumps({'email': 'x'}), content_type='application/json', REMOTE_ADDR='10.0.0.2',
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_coupon_guessing_is_limited(self):
+        product = make_product()
+        self.client.post(reverse('add_to_cart', args=[product.id]), {'quantity': 1})
+        url = reverse('apply_coupon')
+        for _ in range(15):
+            response = self.client.post(url, json.dumps({'coupon_code': 'NOPE'}), content_type='application/json')
+            self.assertEqual(response.status_code, 200)
+        response = self.client.post(url, json.dumps({'coupon_code': 'NOPE'}), content_type='application/json')
+        self.assertEqual(response.status_code, 429)
+
+    def test_contact_form_is_limited(self):
+        data = {'full_name': 'דנה', 'phone': '0501234567', 'email': 'd@example.com', 'inquiry': 'שלום'}
+        for _ in range(5):
+            self.client.post(reverse('contact'), data)
+        self.assertEqual(ContactMessage.objects.count(), 5)
+        self.client.post(reverse('contact'), data)
+        self.assertEqual(ContactMessage.objects.count(), 5)
+
+    def test_contact_honeypot_drops_bot_messages(self):
+        data = {
+            'full_name': 'bot', 'phone': '1', 'email': 'b@example.com', 'inquiry': 'spam',
+            'extra_details': 'http://spam.example',
+        }
+        response = self.client.post(reverse('contact'), data)
+        self.assertRedirects(response, reverse('contact'))
+        self.assertEqual(ContactMessage.objects.count(), 0)
+
+    def test_admin_login_is_limited_per_account(self):
+        url = reverse('admin:login')
+        for _ in range(10):
+            response = self.client.post(url, {'username': 'owner', 'password': 'wrong'})
+            self.assertEqual(response.status_code, 200)
+        response = self.client.post(url, {'username': 'owner', 'password': 'wrong'}, REMOTE_ADDR='10.9.9.9')
+        self.assertEqual(response.status_code, 429)
+
+
+class ProductPagePrivacyTests(TestCase):
+    def test_warehouse_location_is_not_exposed(self):
+        product = make_product()
+        size, _ = Size.objects.get_or_create(name='0-3')
+        ProductVariant.objects.create(product=product, size=size, warehouse_location='SECRET-SHELF-7')
+        response = self.client.get(reverse('product_detail', args=[product.slug]))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'SECRET-SHELF-7')
+        self.assertNotContains(response, 'warehouse_location')
+
+    def test_newsletter_coupon_code_is_long(self):
+        from .views import generate_coupon_code
+        self.assertEqual(len(generate_coupon_code()), len('ARYE-') + 8)

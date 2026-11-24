@@ -21,6 +21,7 @@ from .models import (
 )
 import string
 from .forms import ContactForm, CancellationForm
+from .ratelimit import is_rate_limited
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +150,6 @@ def product_detail(request, slug):
             'id': variant.id,
             'size': str(variant.size),
             'price': str(variant.effective_price),
-            'warehouse_location': variant.warehouse_location
         }
         if variant.fabric_type_id is not None and variant.fabric_type_id in variants_data:
             variants_data[variant.fabric_type_id]['sizes'].append(size_payload)
@@ -440,7 +440,13 @@ def contact(request):
     
     if request.method == 'POST':
         form = ContactForm(request.POST)
-        if form.is_valid():
+        if is_rate_limited(request, 'contact', limit=5, window=60 * 60):
+            messages.error(request, 'נשלחו יותר מדי פניות בזמן קצר. אנא נסו שוב מאוחר יותר או פנו אלינו בוואטסאפ.')
+        elif form.is_valid() and form.is_spam():
+            # בוט שמילא את שדה המלכודת: מציגים הצלחה ולא שומרים דבר
+            messages.success(request, 'הודעתך נשלחה בהצלחה! נחזור אליך תוך 2 ימי עסקים.')
+            return redirect('contact')
+        elif form.is_valid():
             contact_message = form.save()
             
             # שליחת מייל לבעל האתר דרך Resend API
@@ -500,6 +506,13 @@ def cancel_order(request):
 
     if request.method == 'POST':
         form = CancellationForm(request.POST)
+        if is_rate_limited(request, 'cancel', limit=5, window=60 * 60):
+            messages.error(request, 'נשלחו יותר מדי בקשות בזמן קצר. אנא נסו שוב מאוחר יותר, או שלחו הודעת ביטול למייל או לוואטסאפ.')
+            return render(request, 'store/cancel_order.html', {
+                'form': form,
+                'categories': categories,
+                'receipt': receipt,
+            })
         if form.is_valid():
             cancellation = form.save()
             try:
@@ -907,10 +920,10 @@ def blog_detail(request, slug):
 
 def generate_coupon_code():
     """
-    יצירת קוד קופון ייחודי בפורמט ARYE-XXXXX
+    יצירת קוד קופון ייחודי בפורמט ARYE-XXXXXXXX
     """
     while True:
-        code = 'ARYE-' + ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(5))
+        code = 'ARYE-' + ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8))
         if not NewsletterSubscriber.objects.filter(coupon_code=code).exists():
             return code
 
@@ -921,6 +934,9 @@ def newsletter_subscribe(request):
     """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'שיטת בקשה לא חוקית'}, status=405)
+
+    if is_rate_limited(request, 'newsletter', limit=5, window=60 * 60):
+        return JsonResponse({'success': False, 'message': 'יותר מדי ניסיונות. נסו שוב מאוחר יותר'}, status=429)
     
     try:
         data = json.loads(request.body)

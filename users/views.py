@@ -8,6 +8,10 @@ from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmVie
 from django.urls import reverse_lazy
 from .forms import RegisterForm, LoginForm, PasswordResetRequestForm, CustomSetPasswordForm, ProfileEditForm
 from store.models import Order
+from store.ratelimit import is_rate_limited
+
+LOGIN_WINDOW = 15 * 60
+TOO_MANY_ATTEMPTS = 'יותר מדי ניסיונות. אנא נסו שוב בעוד כמה דקות.'
 
 
 def register_view(request):
@@ -40,6 +44,15 @@ def login_view(request):
         return redirect('home')
     
     if request.method == 'POST':
+        # מגבלה גם לפי כתובת הגולש וגם לפי החשבון שמנסים להיכנס אליו
+        limited = is_rate_limited(request, 'login-ip', limit=20, window=LOGIN_WINDOW)
+        username = request.POST.get('username', '')
+        if username:
+            limited = is_rate_limited(request, 'login-user', limit=10, window=LOGIN_WINDOW, identity=username) or limited
+        if limited:
+            messages.error(request, TOO_MANY_ATTEMPTS)
+            return render(request, 'users/login.html', {'form': LoginForm()}, status=429)
+
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             # הטופס כבר אימת את שם המשתמש והסיסמה
@@ -83,6 +96,12 @@ class CustomPasswordResetView(PasswordResetView):
     email_template_name = 'users/password_reset_email.html'
     subject_template_name = 'users/password_reset_subject.txt'
     success_url = reverse_lazy('users:password_reset_done')
+
+    def post(self, request, *args, **kwargs):
+        if is_rate_limited(request, 'password-reset', limit=5, window=60 * 60):
+            messages.error(request, TOO_MANY_ATTEMPTS)
+            return self.render_to_response(self.get_context_data(), status=429)
+        return super().post(request, *args, **kwargs)
     
     def form_valid(self, form):
         result = super().form_valid(form)

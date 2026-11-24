@@ -3,7 +3,21 @@ from .models import ContactMessage, CancellationRequest, Order, Size, SizeGroup,
 from .services.shipping import SHIPPING_DELIVERY, SHIPPING_METHOD_CHOICES
 
 
-class ContactForm(forms.ModelForm):
+class HoneypotMixin(forms.Form):
+    """
+    שדה מלכודת לבוטים: מוסתר מגולשים, ובוטים שממלאים כל שדה ממלאים גם אותו.
+    """
+    extra_details = forms.CharField(
+        required=False,
+        label='אין למלא שדה זה',
+        widget=forms.TextInput(attrs={'tabindex': '-1', 'autocomplete': 'off'}),
+    )
+
+    def is_spam(self):
+        return bool((self.cleaned_data.get('extra_details') or '').strip())
+
+
+class ContactForm(HoneypotMixin, forms.ModelForm):
     """
     טופס צור קשר
     """

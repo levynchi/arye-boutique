@@ -1,6 +1,7 @@
 import re
 from unittest import mock
 
+from django.contrib.auth import get_user_model
 from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
@@ -116,3 +117,33 @@ class PasswordResetTests(TestCase):
         with mock.patch('django.core.mail.message.EmailMessage.send', side_effect=RuntimeError('mail server down')):
             response = self.request_reset('dana@example.com')
         self.assertRedirects(response, reverse('users:password_reset_done'), fetch_redirect_response=False)
+
+
+class LoginRateLimitTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username='dana', email='dana@example.com', password='a-long-test-password-1!',
+        )
+
+    def test_password_guessing_is_blocked_per_account(self):
+        url = reverse('users:login')
+        for i in range(10):
+            response = self.client.post(url, {'username': 'dana', 'password': 'wrong'}, REMOTE_ADDR=f'10.0.0.{i}')
+            self.assertEqual(response.status_code, 200)
+        # גם הסיסמה הנכונה נחסמת אחרי יותר מדי ניסיונות, ומכתובת אחרת
+        response = self.client.post(
+            url, {'username': 'dana', 'password': 'a-long-test-password-1!'}, REMOTE_ADDR='10.0.1.1',
+        )
+        self.assertEqual(response.status_code, 429)
+
+    def test_normal_login_still_works(self):
+        response = self.client.post(
+            reverse('users:login'), {'username': 'dana', 'password': 'a-long-test-password-1!'},
+        )
+        self.assertEqual(response.status_code, 302)
+
+    def test_password_reset_requests_are_limited(self):
+        url = reverse('users:password_reset')
+        for _ in range(5):
+            self.assertEqual(self.client.post(url, {'email': 'nobody@example.com'}).status_code, 302)
+        self.assertEqual(self.client.post(url, {'email': 'nobody@example.com'}).status_code, 429)

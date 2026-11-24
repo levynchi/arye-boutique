@@ -18,6 +18,30 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import HttpResponse
+
+from store.ratelimit import is_rate_limited
+
+
+def _rate_limited_admin_login(view):
+    def wrapped(request, *args, **kwargs):
+        if request.method == 'POST':
+            limited = is_rate_limited(request, 'admin-login-ip', limit=20, window=15 * 60)
+            username = request.POST.get('username', '')
+            if username:
+                limited = is_rate_limited(
+                    request, 'admin-login-user', limit=10, window=15 * 60, identity=username
+                ) or limited
+            if limited:
+                return HttpResponse(
+                    'יותר מדי ניסיונות התחברות. נסו שוב בעוד כמה דקות.',
+                    status=429, content_type='text/plain; charset=utf-8',
+                )
+        return view(request, *args, **kwargs)
+    return wrapped
+
+
+admin.site.login = _rate_limited_admin_login(admin.site.login)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

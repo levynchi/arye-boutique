@@ -207,6 +207,16 @@ STORAGES = {
 }
 
 
+# Cache במסד הנתונים - משותף לכל תהליכי השרת. משמש להגבלת קצב (store/ratelimit.py).
+# הטבלה נוצרת במיגרציה store.0042_cache_table.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'django_cache',
+        'OPTIONS': {'MAX_ENTRIES': 5000},
+    }
+}
+
 # Custom User Model
 AUTH_USER_MODEL = 'users.CustomUser'
 
@@ -236,7 +246,12 @@ SITE_URL = os.environ.get('SITE_URL', 'https://arye-boutique.co.il').rstrip('/')
 
 # iCredit Payment Gateway Configuration
 # סביבת טסט כברירת מחדל; פרודקשן רק כש-ICREDIT_TEST_MODE=False מוגדר במפורש
-ICREDIT_TEST_MODE = os.environ.get('ICREDIT_TEST_MODE', 'True').lower() == 'true'
+# בשרת חובה להגדיר את המשתנה במפורש: ברירת מחדל של מצב טסט בשרת חי פירושה
+# שהזמנה "משולמת" בכרטיס טסט ומסומנת כשולמה.
+_ICREDIT_TEST_MODE_RAW = os.environ.get('ICREDIT_TEST_MODE', '').strip().lower()
+if ON_RAILWAY and _ICREDIT_TEST_MODE_RAW not in ('true', 'false'):
+    raise ImproperlyConfigured('ICREDIT_TEST_MODE must be set explicitly to True or False on the server')
+ICREDIT_TEST_MODE = (_ICREDIT_TEST_MODE_RAW or 'true') == 'true'
 
 # Public test tokens from the rivhit-api.readme.io documentation.
 # They only work against the test environment.

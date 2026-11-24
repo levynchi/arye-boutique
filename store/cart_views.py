@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CheckoutForm
 from .models import CartItem, Category, Order, OrderItem
+from .ratelimit import is_rate_limited
 from .services.pricing import calculate_totals, evaluate_coupon
 from .services.shipping import FREE_SHIPPING_FROM, PICKUP_ADDRESS, SHIPPING_DELIVERY, SHIPPING_PICKUP
 from .views import get_or_create_cart
@@ -335,6 +336,9 @@ def apply_coupon(request):
     """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'שיטה לא חוקית'}, status=405)
+
+    if is_rate_limited(request, 'coupon', limit=15, window=10 * 60):
+        return JsonResponse({'success': False, 'message': 'יותר מדי ניסיונות. נסו שוב בעוד כמה דקות'}, status=429)
 
     data = _json_body(request)
     if data is None:

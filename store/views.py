@@ -541,9 +541,12 @@ def about_us(request):
     except AboutPageSettings.DoesNotExist:
         about_settings = None
     
+    newborn_category = categories.filter(slug__in=('newborn', 'new_born')).first()
+
     context = {
         'categories': categories,
         'about_settings': about_settings,
+        'newborn_category': newborn_category,
     }
     return render(request, 'store/about_us.html', context)
 

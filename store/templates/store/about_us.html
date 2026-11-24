@@ -152,7 +152,7 @@
             <p class="about-cta-text">
                 גלו את הקולקציה החדשה שלנו והכניסו לביתכם את המגע הרך של Arye Boutique
             </p>
-            <a href="#" class="about-cta-button">היכנסו עכשיו</a>
+            <a href="{% if newborn_category %}{% url 'category_detail' newborn_category.slug %}{% else %}{% url 'home' %}{% endif %}" class="about-cta-button">היכנסו עכשיו</a>
         </div>
     </div>
 </section>

@@ -11,7 +11,7 @@ class SiteSettings(models.Model):
     """
     גלריה ראשית - באנר ראשי של דף הבית
     """
-    site_name = models.CharField(max_length=200, default='בוטיק אריה', verbose_name='שם האתר')
+    site_name = models.CharField(max_length=200, default='אריה בוטיק', verbose_name='שם האתר')
     hero_banner = models.ImageField(upload_to='banners/', verbose_name='באנר ראשי')
     hero_title = models.CharField(max_length=200, blank=True, verbose_name='כותרת באנר')
     hero_subtitle = models.TextField(blank=True, verbose_name='תת-כותרת באנר')

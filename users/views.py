@@ -33,7 +33,7 @@ def register_view(request):
             
             # התחבר אוטומטית לאחר הרישום
             login(request, user)
-            messages.success(request, 'הרישום בוצע בהצלחה! ברוך הבא לבוטיק אריה.')
+            messages.success(request, 'הרישום בוצע בהצלחה! ברוך הבא לאריה בוטיק.')
             return redirect('home')
     else:
         form = RegisterForm()

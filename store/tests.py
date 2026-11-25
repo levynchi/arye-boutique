@@ -818,7 +818,7 @@ class LegalPagesTests(TestCase):
 
     def test_accessibility_statement_has_a_fixed_date(self):
         response = self.client.get(reverse('accessibility_statement'))
-        self.assertContains(response, '23.11.2026')
+        self.assertContains(response, '25.11.2026')
         self.assertNotContains(response, 'NVDA')
 
 

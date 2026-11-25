@@ -582,7 +582,7 @@ def accessibility_statement(request):
         'categories': categories,
         'accessibility_officer_name': 'ליאור לוי',
         'accessibility_officer_phone': '052-8086466',
-        'accessibility_officer_email': 'arye.boutique@gmail.com',
+        'accessibility_officer_email': 'info@arye-boutique.co.il',
     }
 
     return render(request, 'store/accessibility.html', context)

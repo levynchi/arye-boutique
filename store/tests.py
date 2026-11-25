@@ -1311,11 +1311,13 @@ class RateLimitTests(TestCase):
 
     def test_contact_form_is_limited(self):
         data = {'full_name': 'דנה', 'phone': '0501234567', 'email': 'd@example.com', 'inquiry': 'שלום'}
-        for _ in range(5):
+        with mock.patch('store.views.resend.Emails.send') as send:
+            for _ in range(5):
+                self.client.post(reverse('contact'), data)
+            self.assertEqual(ContactMessage.objects.count(), 5)
             self.client.post(reverse('contact'), data)
         self.assertEqual(ContactMessage.objects.count(), 5)
-        self.client.post(reverse('contact'), data)
-        self.assertEqual(ContactMessage.objects.count(), 5)
+        self.assertEqual(send.call_count, 5)
 
     def test_contact_honeypot_drops_bot_messages(self):
         data = {

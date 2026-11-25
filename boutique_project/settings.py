@@ -257,6 +257,9 @@ if RESEND_API_KEY:
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# The test suite must never send a real email, even when .env holds a real key
+TEST_RUNNER = 'boutique_project.test_runner.NoRealEmailTestRunner'
+
 # Public address of the site, used for links inside emails
 SITE_URL = os.environ.get('SITE_URL', 'https://arye-boutique.co.il').rstrip('/')
 

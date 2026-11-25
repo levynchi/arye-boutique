@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchProductData(productId);
         
         // Show panel
+        panel.inert = false;
         panel.classList.add('active');
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         panel.setAttribute('aria-hidden', 'true');
         overlay.setAttribute('aria-hidden', 'true');
         panel.removeEventListener('keydown', trapFocus);
+        panel.inert = true;
         
         if (lastFocusedElement) {
             lastFocusedElement.focus();

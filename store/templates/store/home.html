@@ -21,13 +21,6 @@
         {% endif %}
     </div>
 </section>
-{% else %}
-<!-- Default banner if no settings configured -->
-<section class="hero-banner">
-    <div class="hero-image">
-        <img src="{% static 'images/hero-banner.jpg' %}" alt="מוצרי תינוקות איכותיים">
-    </div>
-</section>
 {% endif %}
 
 <!-- Categories Gallery -->
@@ -40,7 +33,7 @@
                     {% if category.image %}
                         <img src="{{ category.image.url }}" alt="{{ category.name }}">
                     {% else %}
-                        <img src="https://via.placeholder.com/600x400/E8D5C4/333333?text={{ category.name|urlencode }}" alt="{{ category.name }}">
+                        <div class="category-image-placeholder"></div>
                     {% endif %}
                     <div class="category-overlay">
                         <h2 class="category-title">{{ category.name }}</h2>
@@ -111,7 +104,7 @@
         </div>
         
         <!-- Mobile carousel pagination dots -->
-        <div class="story-carousel-dots">
+        <div class="story-carousel-dots" aria-hidden="true">
             <span class="story-dot active" data-index="0"></span>
             <span class="story-dot" data-index="1"></span>
             <span class="story-dot" data-index="2"></span>

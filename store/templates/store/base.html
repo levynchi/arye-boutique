@@ -120,7 +120,7 @@
         <div class="container">
             <div class="header-content">
                 <!-- Mobile Menu Toggle -->
-                <button type="button" class="menu-toggle" aria-label="פתח תפריט ניווט" data-menu-toggle>
+                <button type="button" class="menu-toggle" aria-label="פתח תפריט ניווט" aria-expanded="false" aria-controls="mobile-nav-drawer" data-menu-toggle>
                     <span class="menu-toggle-bar"></span>
                     <span class="menu-toggle-bar"></span>
                     <span class="menu-toggle-bar"></span>
@@ -214,11 +214,18 @@
 
     <!-- Mobile Navigation -->
     <div class="mobile-nav-overlay" data-mobile-nav-overlay></div>
-    <aside class="mobile-nav-drawer" aria-hidden="true" aria-modal="true" aria-labelledby="mobile-nav-title" role="dialog" data-mobile-nav>
+    <aside id="mobile-nav-drawer" class="mobile-nav-drawer" aria-hidden="true" aria-modal="true" aria-labelledby="mobile-nav-title" role="dialog" tabindex="-1" inert data-mobile-nav>
         <div class="mobile-nav-header">
             <h2 id="mobile-nav-title">תפריט</h2>
             <button type="button" class="mobile-nav-close" aria-label="סגור תפריט" data-mobile-nav-close>&times;</button>
         </div>
+        <form action="{% url 'search' %}" method="get" class="mobile-nav-search" role="search">
+            <label for="mobile-search" class="visually-hidden">חיפוש מוצרים</label>
+            <input type="search" id="mobile-search" class="mobile-nav-search-input" placeholder="חיפוש..." name="q" autocomplete="off">
+            <button type="submit" class="mobile-nav-search-button" aria-label="בצע חיפוש">
+                <img src="{% static 'images/ALL_PHOTOS SERCH HAMBURGER_SEARCH.svg' %}" alt="">
+            </button>
+        </form>
         <nav class="mobile-nav-content" aria-label="תפריט ראשי נייד">
             <ul class="nav-menu mobile-nav-menu">
                 {% if user.is_authenticated %}
@@ -249,7 +256,7 @@
 
     <!-- Cart Sidebar -->
     <div id="cart-sidebar-overlay" class="cart-sidebar-overlay" aria-hidden="true"></div>
-    <div id="cart-sidebar" class="cart-sidebar" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="cart-sidebar-title" tabindex="-1">
+    <div id="cart-sidebar" class="cart-sidebar" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="cart-sidebar-title" tabindex="-1" inert>
         <div class="cart-sidebar-header">
             <h2 id="cart-sidebar-title">עגלת קניות (<span id="sidebar-cart-count">0</span>)</h2>
             <button id="cart-sidebar-close" class="cart-sidebar-close" aria-label="סגור עגלת הקניות">&times;</button>
@@ -284,7 +291,7 @@
 
     <!-- Product Options Panel (Quick Add to Cart) -->
     <div id="product-options-overlay" class="product-options-overlay" aria-hidden="true"></div>
-    <div id="product-options-panel" class="product-options-panel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="product-options-title" tabindex="-1">
+    <div id="product-options-panel" class="product-options-panel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="product-options-title" tabindex="-1" inert>
         <div class="product-options-header">
             <h2 id="product-options-title">בחר אפשרויות</h2>
             <button id="product-options-close" class="product-options-close" aria-label="סגור">&times;</button>
@@ -477,6 +484,7 @@
 
     <!-- Accessibility Toolbar JavaScript -->
     <script src="{% static 'js/accessibility-toolbar.js' %}"></script>
+    <script src="{% static 'js/a11y.js' %}"></script>
 
     <!-- Cart Sidebar JavaScript -->
     <script src="{% static 'js/cart-sidebar.js' %}?v=20261115a"></script>

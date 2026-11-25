@@ -9,16 +9,20 @@ from django.utils import timezone
 
 from ..models import Coupon, NewsletterSubscriber, Order, OrderPayment, Product
 from . import icredit
-from .emails import send_new_order_notification, send_order_confirmation_email
+from .emails import send_new_order_notification, send_order_confirmation_email, send_owner_alert
 
 logger = logging.getLogger(__name__)
 
 # סטטוסים של הזמנה שהתשלום עליה כבר אושר
-PAID_STATUSES = ('paid', 'confirmed', 'shipped', 'delivered')
+PAID_STATUSES = ('paid', 'confirmed', 'ready_for_pickup', 'shipped', 'delivered')
 
 
 def _normalize_sale_id(sale_id):
     return str(sale_id or '').strip().lower()
+
+
+def _append_note(existing, note):
+    return f'{existing}\n{note}' if existing else note
 
 
 def _mark_paid(order_id, sale_id):
@@ -38,9 +42,9 @@ def _mark_paid(order_id, sale_id):
             # sale_id ייחודי במסד הנתונים: אם אותה עסקה כבר שולמה על הזמנה אחרת,
             # השורה הזו נכשלת וכל הפעולה מתבטלת
             OrderPayment.objects.create(order=order, sale_id=sale_id, amount=order.total_price)
-        order.save(update_fields=['status', 'paid_at', 'payment_transaction_id', 'updated_at'])
 
         # הורדת מלאי - רק עכשיו, כשהתשלום אושר
+        oversold = []
         for item in order.items.all():
             product = Product.objects.select_for_update().get(pk=item.product_id)
             if product.stock_quantity < item.quantity:
@@ -48,8 +52,22 @@ def _mark_paid(order_id, sale_id):
                     'Order %s: product %s oversold (stock %s, ordered %s)',
                     order.id, product.id, product.stock_quantity, item.quantity,
                 )
+                oversold.append(
+                    f'"{product.name}": הוזמנו {item.quantity}, במלאי היו {product.stock_quantity}'
+                )
             product.stock_quantity = max(0, product.stock_quantity - item.quantity)
             product.save(update_fields=['stock_quantity', 'updated_at'])
+
+        # המלאי לא שמור בזמן התשלום, ולכן שני לקוחות יכולים לשלם על הפריט האחרון.
+        # ההזמנה כבר שולמה - מסמנים אותה כדי שבעל האתר יטפל (אספקה או זיכוי).
+        if oversold:
+            order.needs_attention = True
+            order.attention_note = _append_note(
+                order.attention_note, 'נמכר מעבר למלאי - ' + '; '.join(oversold)
+            )
+        order.save(update_fields=[
+            'status', 'paid_at', 'payment_transaction_id', 'needs_attention', 'attention_note', 'updated_at',
+        ])
 
         # רישום שימוש בקופון
         if order.coupon_code:
@@ -97,6 +115,42 @@ def _sale_already_used(sale_id, order):
     )
 
 
+def _record_extra_payment(order, sale_id):
+    """
+    תשלום שהגיע על הזמנה שכבר שולמה או בוטלה (למשל שני דפי תשלום פתוחים).
+    ההזמנה לא משתנה, אבל אם iCredit מאשר שהעסקה שולמה - רושמים אותה כתשלום
+    כפול ומתריעים לבעל האתר כדי שיזכה את הלקוח.
+    """
+    if not icredit.is_valid_sale_id(sale_id):
+        return False
+    sale_id = _normalize_sale_id(sale_id)
+    if sale_id == _normalize_sale_id(order.payment_transaction_id):
+        return False
+    if OrderPayment.objects.filter(sale_id=sale_id).exists():
+        return False
+    if not icredit.verify_payment(sale_id, order.total_price):
+        return False
+
+    note = f'תשלום נוסף על הזמנה סגורה - עסקה {sale_id} על סך {order.total_price} ₪. יש לזכות את הלקוח ב-iCredit.'
+    try:
+        with transaction.atomic():
+            locked = Order.objects.select_for_update().get(pk=order.pk)
+            OrderPayment.objects.create(order=locked, sale_id=sale_id, amount=locked.total_price, is_duplicate=True)
+            locked.needs_attention = True
+            locked.attention_note = _append_note(locked.attention_note, note)
+            locked.save(update_fields=['needs_attention', 'attention_note', 'updated_at'])
+    except IntegrityError:
+        # אותה עסקה כבר נרשמה בבקשה מקבילה
+        return False
+
+    logger.warning('Order %s: extra payment %s on a closed order', order.id, sale_id)
+    try:
+        send_owner_alert(locked, 'תשלום כפול', note)
+    except Exception:
+        logger.exception('Order %s: duplicate payment alert failed', order.id)
+    return True
+
+
 def confirm_order_payment(order, sale_id):
     """
     אישור תשלום להזמנה לפי SaleId שהתקבל מ-iCredit.
@@ -105,10 +159,10 @@ def confirm_order_payment(order, sale_id):
 
     מחזיר True אם ההזמנה שולמה (עכשיו או קודם).
     """
-    if order.status in PAID_STATUSES:
-        return True
     if order.status != 'pending':
-        return False
+        # ההזמנה כבר סגורה (שולמה או בוטלה). אם זו עסקה אחרת - הלקוח חויב שוב
+        _record_extra_payment(order, sale_id)
+        return order.status in PAID_STATUSES
 
     if not icredit.is_valid_sale_id(sale_id):
         logger.warning('Order %s: payment confirmation with an invalid sale id', order.id)

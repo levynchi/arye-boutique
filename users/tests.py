@@ -150,6 +150,15 @@ class LoginRateLimitTests(TestCase):
         self.assertEqual(self.client.post(url, {'email': 'nobody@example.com'}).status_code, 429)
 
 
+class RegisterRateLimitTests(TestCase):
+    def test_registration_attempts_are_limited_per_visitor(self):
+        url = reverse('users:register')
+        for _ in range(10):
+            self.assertEqual(self.client.post(url, {'username': ''}).status_code, 200)
+        self.assertEqual(self.client.post(url, {'username': ''}).status_code, 429)
+        self.assertEqual(self.client.get(url).status_code, 200)
+
+
 class RegisterTests(TestCase):
     DATA = {
         'first_name': 'דנה', 'last_name': 'לוי', 'email': 'Dana@Example.com',

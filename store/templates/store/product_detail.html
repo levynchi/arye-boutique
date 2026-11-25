@@ -66,18 +66,18 @@
                 <div class="product-thumbnails">
                     <!-- Primary/Main Image Thumbnail -->
                     {% if primary_image %}
-                    <div class="thumbnail-item active" data-image-url="{{ primary_image.url }}">
+                    <div class="thumbnail-item active" data-image-url="{{ primary_image.url }}" role="button" tabindex="0" aria-label="הצגת התמונה הראשית">
                         <img src="{{ primary_image.url }}" alt="{{ product.name }}">
                     </div>
                     {% elif product.image %}
-                    <div class="thumbnail-item active" data-image-url="{{ product.image.url }}">
+                    <div class="thumbnail-item active" data-image-url="{{ product.image.url }}" role="button" tabindex="0" aria-label="הצגת התמונה הראשית">
                         <img src="{{ product.image.url }}" alt="{{ product.name }}">
                     </div>
                     {% endif %}
                     <!-- Additional Images Thumbnails -->
                     {% for img in additional_images %}
                     {% if not img.is_primary %}
-                    <div class="thumbnail-item" data-image-url="{{ img.image.url }}">
+                    <div class="thumbnail-item" data-image-url="{{ img.image.url }}" role="button" tabindex="0" aria-label="הצגת תמונה נוספת {{ forloop.counter }}">
                         <img src="{{ img.image.url }}" alt="{{ product.name }}">
                     </div>
                     {% endif %}
@@ -112,8 +112,8 @@
                     {% if show_fabric_selector %}
                     <!-- Fabric Type Selection (only when 2+ fabric groups) -->
                     <div class="fabric-selection">
-                        <label class="selection-label">בחר סוג בד:</label>
-                        <div class="fabric-options" id="fabric-options">
+                        <span class="selection-label" id="fabric-options-label">בחר סוג בד:</span>
+                        <div class="fabric-options" id="fabric-options" role="group" aria-labelledby="fabric-options-label">
                             {% for fabric in fabric_types %}
                             <button type="button" class="fabric-option" data-fabric-id="{{ fabric.id }}">
                                 {{ fabric.name }}
@@ -125,8 +125,8 @@
                     
                     <!-- Size Selection -->
                     <div class="size-selection" id="size-selection" {% if show_fabric_selector %}style="display: none;"{% endif %}>
-                        <label class="selection-label">בחר {{ product.size_label }}:</label>
-                        <div class="size-options" id="size-options">
+                        <span class="selection-label" id="size-options-label">בחר {{ product.size_label }}:</span>
+                        <div class="size-options" id="size-options" role="group" aria-labelledby="size-options-label">
                             <!-- Sizes will be populated by JavaScript -->
                         </div>
                         {% if show_fabric_selector %}
@@ -169,10 +169,10 @@
                 <!-- Expandable Information Sections -->
                 <div class="product-info-sections">
                     <div class="info-section">
-                        <div class="info-section-header">
-                            <span class="info-icon"><i class="fas fa-info-circle"></i></span>
+                        <div class="info-section-header" role="button" tabindex="0" aria-expanded="false">
+                            <span class="info-icon" aria-hidden="true"><i class="fas fa-info-circle"></i></span>
                             <h3 class="info-title">תיאור מוצר</h3>
-                            <span class="info-toggle">+</span>
+                            <span class="info-toggle" aria-hidden="true">+</span>
                         </div>
                         <div class="info-section-content" style="display: none;">
                             <p>{{ product.description }}</p>
@@ -181,10 +181,10 @@
                     
                     {% if product.material_care_info %}
                     <div class="info-section">
-                        <div class="info-section-header">
-                            <span class="info-icon"><i class="fas fa-tshirt"></i></span>
+                        <div class="info-section-header" role="button" tabindex="0" aria-expanded="false">
+                            <span class="info-icon" aria-hidden="true"><i class="fas fa-tshirt"></i></span>
                             <h3 class="info-title">הרכב חומרים וטיפול</h3>
-                            <span class="info-toggle">+</span>
+                            <span class="info-toggle" aria-hidden="true">+</span>
                         </div>
                         <div class="info-section-content" style="display: none;">
                             <p>{{ product.material_care_info.description }}</p>
@@ -193,10 +193,10 @@
                     {% endif %}
                     
                     <div class="info-section">
-                        <div class="info-section-header">
-                            <span class="info-icon"><i class="fas fa-truck"></i></span>
+                        <div class="info-section-header" role="button" tabindex="0" aria-expanded="false">
+                            <span class="info-icon" aria-hidden="true"><i class="fas fa-truck"></i></span>
                             <h3 class="info-title">משלוחים והחזרות</h3>
-                            <span class="info-toggle">+</span>
+                            <span class="info-toggle" aria-hidden="true">+</span>
                         </div>
                         <div class="info-section-content" style="display: none;">
                             <p>משלוח עד הבית תוך 2–5 ימי עסקים: 39 ₪ בקנייה עד 99 ₪, 25 ₪ בקנייה של 100–299 ₪, וחינם בקנייה מעל 299 ₪.</p>
@@ -606,6 +606,7 @@
                     content.style.display = 'block';
                     toggle.textContent = '−';
                 }
+                this.setAttribute('aria-expanded', String(!isOpen));
             });
         });
         

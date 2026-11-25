@@ -43,7 +43,6 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(','
 RAILWAY_PUBLIC_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
 if RAILWAY_PUBLIC_DOMAIN:
     ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
-    ALLOWED_HOSTS.append('.up.railway.app')
 
 # CSRF trusted origins for Railway
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost,http://127.0.0.1').split(',')
@@ -184,6 +183,15 @@ else:
 # Use Cloudinary in production, local storage in development
 MEDIA_STORAGE_BACKEND = 'django.core.files.storage.FileSystemStorage'
 
+# On the server the local disk is wiped on every deploy and media is not served at all,
+# so running without Cloudinary would silently lose every uploaded image.
+if ON_RAILWAY and not all(
+    os.environ.get(name) for name in ('CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET')
+):
+    raise ImproperlyConfigured(
+        'CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET must be set on the server'
+    )
+
 if os.environ.get('CLOUDINARY_CLOUD_NAME'):
     # Production: Use Cloudinary
     MEDIA_STORAGE_BACKEND = 'cloudinary_storage.storage.MediaCloudinaryStorage'
@@ -232,6 +240,15 @@ PASSWORD_RESET_TIMEOUT = 60 * 60 * 24
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'info@arye-boutique.co.il')
 CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'arye.boutique@gmail.com')
+
+# Without the key every email (order confirmation, password reset) is dropped silently,
+# so the server refuses to start without it.
+if ON_RAILWAY and not RESEND_API_KEY:
+    raise ImproperlyConfigured('RESEND_API_KEY must be set on the server')
+
+# Unhandled errors on the server are emailed to the site owner (see LOGGING below)
+ADMINS = [('Arye Boutique', CONTACT_EMAIL)] if CONTACT_EMAIL else []
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Django's own emails (password reset etc.) go through Resend as well.
 # Without an API key (local development) they are printed to the console.
@@ -306,8 +323,8 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').lower() == 'true'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # HSTS starts short (1 hour) so a mistake is easy to undo; raise via the environment once stable
-    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '3600'))
+    # One year by default; can be lowered via the environment if HTTPS ever has to be rolled back
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', str(60 * 60 * 24 * 365)))
     SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 
@@ -322,10 +339,21 @@ LOGGING = {
             'style': '{',
         },
     },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
+        },
+        # Emails ADMINS about every unhandled error (a 500 page) on the live server
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
         },
     },
     'root': {
@@ -334,7 +362,7 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
+            'handlers': ['console', 'mail_admins'],
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': False,
         },

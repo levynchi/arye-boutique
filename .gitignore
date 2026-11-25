@@ -56,3 +56,6 @@ coverage.xml
 *.bak
 *.tmp
 
+
+# Source product photos (already uploaded to media storage)
+/products/

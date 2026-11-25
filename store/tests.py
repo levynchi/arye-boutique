@@ -629,7 +629,67 @@ class PaymentConfirmationTests(StoreFlowTestCase):
         fake = FakeICredit(verified=True)
         with patch_icredit(fake):
             self.assertFalse(confirm_order_payment(order, SALE_ID))
-        self.assertEqual(fake.calls, [])
+        order.refresh_from_db()
+        self.product.refresh_from_db()
+        self.assertEqual(order.status, 'cancelled')
+        self.assertEqual(self.product.stock_quantity, 10)
+        # הכסף נגבה למרות הביטול - נרשם כתשלום לזיכוי ומסומן לטיפול
+        self.assertTrue(order.needs_attention)
+        self.assertTrue(OrderPayment.objects.get(order=order).is_duplicate)
+
+    def test_unverified_payment_on_a_closed_order_changes_nothing(self):
+        order = self.pending_order()
+        finalize_paid_order(order.id, SALE_ID)
+        order.refresh_from_db()
+        with patch_icredit(FakeICredit(verified=False)):
+            self.assertTrue(confirm_order_payment(order, OTHER_SALE_ID))
+        order.refresh_from_db()
+        self.assertFalse(order.needs_attention)
+        self.assertEqual(OrderPayment.objects.count(), 1)
+
+    @override_settings(RESEND_API_KEY='test-key', CONTACT_EMAIL='owner@example.com')
+    def test_second_payment_on_a_paid_order_is_recorded_and_reported(self):
+        order = self.pending_order()
+        with mock.patch('store.services.emails.resend.Emails.send') as send:
+            finalize_paid_order(order.id, SALE_ID)
+            send.reset_mock()
+            with patch_icredit(FakeICredit(verified=True)):
+                # אותה עסקה שוב (IPN כפול) - לא תשלום נוסף
+                self.assertEqual(self.post_ipn(order.id).status_code, 200)
+                self.assertEqual(send.call_count, 0)
+                # עסקה אחרת על אותה הזמנה - הלקוח שילם פעמיים
+                self.assertEqual(self.post_ipn(order.id, sale_id=OTHER_SALE_ID).status_code, 200)
+                self.assertEqual(self.post_ipn(order.id, sale_id=OTHER_SALE_ID).status_code, 200)
+        self.assert_paid_once(order)
+        self.assertTrue(order.needs_attention)
+        self.assertIn(OTHER_SALE_ID, order.attention_note)
+        duplicate = OrderPayment.objects.get(sale_id=OTHER_SALE_ID)
+        self.assertTrue(duplicate.is_duplicate)
+        self.assertFalse(OrderPayment.objects.get(sale_id=SALE_ID).is_duplicate)
+        self.assertEqual(send.call_count, 1)
+        alert = send.call_args.args[0]
+        self.assertEqual(alert['to'], ['owner@example.com'])
+        self.assertIn('תשלום כפול', alert['subject'])
+
+    @override_settings(RESEND_API_KEY='test-key', CONTACT_EMAIL='owner@example.com')
+    def test_oversold_order_is_flagged_for_the_owner(self):
+        order = self.pending_order()
+        Product.objects.filter(pk=self.product.pk).update(stock_quantity=1)
+        with mock.patch('store.services.emails.resend.Emails.send') as send:
+            finalize_paid_order(order.id, SALE_ID)
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'paid')
+        self.assertTrue(order.needs_attention)
+        self.assertIn('נמכר מעבר למלאי', order.attention_note)
+        owner = send.call_args_list[1].args[0]
+        self.assertTrue(owner['subject'].startswith('דורש טיפול'))
+        self.assertIn('נמכר מעבר למלאי', owner['html'])
+
+    def test_order_within_stock_is_not_flagged(self):
+        order = self.pending_order()
+        finalize_paid_order(order.id, SALE_ID)
+        order.refresh_from_db()
+        self.assertFalse(order.needs_attention)
 
     def test_gateway_error_during_verify_keeps_order_pending(self):
         order = self.pending_order()
@@ -822,6 +882,125 @@ class AdminPagesTests(StoreFlowTestCase):
                     # 403 = דף שאין בו הרשאת הוספה; מה שאסור הוא קריסה
                     self.assertIn(self.client.get(url).status_code, (200, 302, 403))
         self.assertTrue(Order.objects.filter(pk=order.pk).exists())
+
+
+class OrderAdminStatusTests(StoreFlowTestCase):
+    """שינוי סטטוס ידני בניהול: בלי לעקוף תשלום, עם מלאי ומיילים."""
+
+    def setUp(self):
+        super().setUp()
+        from django.contrib.auth import get_user_model
+        self.admin_user = get_user_model().objects.create_superuser(
+            username='owner', email='owner@example.com', password='not-a-real-password-1!',
+        )
+
+    def set_status(self, order, status):
+        """שינוי סטטוס מרשימת ההזמנות, כמו שבעל האתר עושה."""
+        self.client.force_login(self.admin_user)
+        return self.client.post(reverse('admin:store_order_changelist'), {
+            'form-TOTAL_FORMS': '1',
+            'form-INITIAL_FORMS': '1',
+            'form-MIN_NUM_FORMS': '0',
+            'form-MAX_NUM_FORMS': '1000',
+            'form-0-id': str(order.pk),
+            'form-0-status': status,
+            '_save': 'שמירה',
+        }, follow=True)
+
+    def paid_order(self, **overrides):
+        order = self.pending_order(**overrides)
+        finalize_paid_order(order.id, SALE_ID)
+        order.refresh_from_db()
+        return order
+
+    def test_pending_order_cannot_be_marked_paid_by_hand(self):
+        order = self.pending_order()
+        response = self.set_status(order, 'paid')
+        order.refresh_from_db()
+        self.product.refresh_from_db()
+        self.assertEqual(order.status, 'pending')
+        self.assertEqual(self.product.stock_quantity, 10)
+        self.assertContains(response, 'הסטטוס לא שונה')
+
+    def test_pending_order_can_be_cancelled(self):
+        order = self.pending_order()
+        self.set_status(order, 'cancelled')
+        order.refresh_from_db()
+        self.product.refresh_from_db()
+        self.assertEqual(order.status, 'cancelled')
+        # המלאי לא ירד מעולם, ולכן גם לא מוחזר
+        self.assertEqual(self.product.stock_quantity, 10)
+
+    def test_cancelling_a_paid_order_returns_the_stock_once(self):
+        order = self.paid_order()
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock_quantity, 8)
+        self.set_status(order, 'cancelled')
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock_quantity, 10)
+
+        # הזמנה שבוטלה נשארת מבוטלת, והמלאי לא מוחזר שוב
+        self.set_status(order, 'paid')
+        self.set_status(order, 'cancelled')
+        order.refresh_from_db()
+        self.product.refresh_from_db()
+        self.assertEqual(order.status, 'cancelled')
+        self.assertEqual(self.product.stock_quantity, 10)
+
+    def test_paid_order_cannot_go_back_to_pending(self):
+        order = self.paid_order()
+        self.set_status(order, 'pending')
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'paid')
+
+    @override_settings(RESEND_API_KEY='test-key', DEFAULT_FROM_EMAIL='shop@example.com')
+    def test_ready_for_pickup_emails_the_customer(self):
+        order = self.paid_order(shipping_method='pickup')
+        with mock.patch('store.services.emails.resend.Emails.send') as send:
+            response = self.set_status(order, 'ready_for_pickup')
+            # שמירה חוזרת בלי שינוי סטטוס לא שולחת שוב
+            self.set_status(order, 'ready_for_pickup')
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'ready_for_pickup')
+        self.assertEqual(send.call_count, 1)
+        email = send.call_args.args[0]
+        self.assertEqual(email['to'], ['dana@example.com'])
+        self.assertIn('מוכנה לאיסוף', email['subject'])
+        self.assertIn(f'#{order.id}', email['html'])
+        self.assertContains(response, 'נשלח מייל עדכון ללקוח')
+
+    @override_settings(RESEND_API_KEY='test-key')
+    def test_shipped_emails_the_customer(self):
+        order = self.paid_order()
+        with mock.patch('store.services.emails.resend.Emails.send') as send:
+            self.set_status(order, 'shipped')
+        self.assertEqual(send.call_count, 1)
+        self.assertIn('נשלחה', send.call_args.args[0]['subject'])
+
+    @override_settings(RESEND_API_KEY='test-key')
+    def test_status_email_failure_keeps_the_status_and_warns(self):
+        order = self.paid_order()
+        with mock.patch('store.services.emails.resend.Emails.send', side_effect=RuntimeError('mail down')):
+            response = self.set_status(order, 'shipped')
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'shipped')
+        self.assertContains(response, 'לא נשלח')
+
+    def test_order_total_and_lines_are_read_only(self):
+        order = self.paid_order()
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('admin:store_order_change', args=[order.pk]))
+        self.assertNotContains(response, 'name="total_price"')
+        self.assertNotContains(response, 'name="items-0-price"')
+        self.assertNotContains(response, 'name="items-0-quantity"')
+        self.assertEqual(self.client.get(reverse('admin:store_order_add')).status_code, 403)
+
+    def test_ready_for_pickup_counts_as_paid_on_the_success_page(self):
+        order = self.paid_order(shipping_method='pickup')
+        Order.objects.filter(pk=order.pk).update(status='ready_for_pickup')
+        order.refresh_from_db()
+        with patch_icredit(FakeICredit(verified=False)):
+            self.assertTrue(confirm_order_payment(order, SALE_ID))
 
 
 class ProductCardHoverTests(TestCase):

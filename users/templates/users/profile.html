@@ -109,6 +109,7 @@
                                         {% if order.status == 'pending' %}ממתין לתשלום
                                         {% elif order.status == 'paid' %}שולם
                                         {% elif order.status == 'confirmed' %}אושר
+                                        {% elif order.status == 'ready_for_pickup' %}מוכן לאיסוף
                                         {% elif order.status == 'shipped' %}נשלח
                                         {% elif order.status == 'delivered' %}נמסר
                                         {% elif order.status == 'cancelled' %}בוטל
@@ -282,6 +283,7 @@
     color: #0c5460;
 }
 
+.order-status-ready_for_pickup,
 .order-status-shipped {
     background-color: #cce5ff;
     color: #004085;

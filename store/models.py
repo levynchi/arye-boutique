@@ -367,6 +367,7 @@ class Order(models.Model):
         ('pending', 'ממתין לתשלום'),
         ('paid', 'שולם'),
         ('confirmed', 'אושר'),
+        ('ready_for_pickup', 'מוכן לאיסוף'),
         ('shipped', 'נשלח'),
         ('delivered', 'נמסר'),
         ('cancelled', 'בוטל'),
@@ -414,6 +415,9 @@ class Order(models.Model):
     paid_at = models.DateTimeField(null=True, blank=True, verbose_name='תאריך תשלום')
     
     notes = models.TextField(blank=True, verbose_name='הערות')
+    # הזמנה שדורשת בדיקה ידנית: מכירה מעבר למלאי, תשלום כפול וכדומה
+    needs_attention = models.BooleanField(default=False, verbose_name='דורש טיפול')
+    attention_note = models.TextField(blank=True, verbose_name='סיבת הטיפול')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך יצירה')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='תאריך עדכון')
     
@@ -466,12 +470,14 @@ class OrderItem(models.Model):
 class OrderPayment(models.Model):
     """
     תשלום שאושר מול חברת הסליקה.
-    מזהה העסקה ייחודי, כך שעסקה אחת לעולם לא תוכל לשלם על שתי הזמנות,
-    ולכל הזמנה יש לכל היותר תשלום אחד.
+    מזהה העסקה ייחודי, כך שעסקה אחת לעולם לא תוכל לשלם על שתי הזמנות.
+    להזמנה יש תשלום אחד; תשלום נוסף על אותה הזמנה (הלקוח שילם פעמיים)
+    נרשם כ"כפול" כדי שבעל האתר יזכה אותו.
     """
-    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment', verbose_name='הזמנה')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='payments', verbose_name='הזמנה')
     sale_id = models.CharField(max_length=64, unique=True, verbose_name='מזהה עסקה')
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='סכום')
+    is_duplicate = models.BooleanField(default=False, verbose_name='תשלום כפול (לזיכוי)')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='תאריך אישור')
     
     class Meta:

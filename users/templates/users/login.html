@@ -20,16 +20,6 @@
     <div class="container">
         <h1 class="contact-title">התחברות</h1>
         
-        {% if messages %}
-            <div class="messages-container" role="status" aria-live="polite" aria-atomic="true">
-                {% for message in messages %}
-                    <div class="message message-{{ message.tags }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-        
         <div class="contact-content">
             <!-- Login Form -->
             <div class="auth-form-wrapper">

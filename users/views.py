@@ -23,6 +23,10 @@ def register_view(request):
         return redirect('home')
     
     if request.method == 'POST':
+        if is_rate_limited(request, 'register', limit=10, window=60 * 60):
+            messages.error(request, TOO_MANY_ATTEMPTS)
+            return render(request, 'users/register.html', {'form': RegisterForm()}, status=429)
+
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()

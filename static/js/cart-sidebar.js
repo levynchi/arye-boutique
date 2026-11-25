@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Open cart sidebar
     function openCartSidebar() {
         lastFocusedElement = document.activeElement;
+        cartSidebar.inert = false;
         cartSidebar.classList.add('active');
         cartOverlay.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
         cartOverlay.setAttribute('aria-hidden', 'true');
         cartTrigger.setAttribute('aria-expanded', 'false');
         cartSidebar.removeEventListener('keydown', trapFocus);
+        cartSidebar.inert = true;
         if (lastFocusedElement) {
             lastFocusedElement.focus();
             lastFocusedElement = null;

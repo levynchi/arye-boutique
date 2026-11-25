@@ -1,5 +1,5 @@
 """
-מיילים של הזמנות - אישור ללקוח והתראה לבעל האתר (דרך Resend API).
+מיילים של הזמנות - אישור ועדכוני סטטוס ללקוח, והתראות לבעל האתר (דרך Resend API).
 """
 import logging
 
@@ -96,6 +96,105 @@ def _order_table(order):
     """
 
 
+def _attention_block(text):
+    lines = '<br>'.join(escape(line) for line in str(text).splitlines() if line.strip())
+    return f"""
+            <div style="background: #fdecea; border: 2px solid #c62828; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <p style="margin: 0; color: #c62828;"><strong>דורש טיפול:</strong> {lines}</p>
+            </div>
+    """
+
+
+def _customer_email(order, heading, body_html):
+    return f"""
+    <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #7594b1; padding: 20px; text-align: center;">
+            <h1 style="color: white; margin: 0;">Arye Boutique</h1>
+        </div>
+        <div style="padding: 30px; background-color: #f9f9f9;">
+            <h2 style="color: #333;">{heading}</h2>
+            <p style="color: #555;">שלום {escape(order.guest_name)},</p>
+            {body_html}
+            {_order_table(order)}
+        </div>
+        <div style="background-color: #333; padding: 20px; text-align: center;">
+            <p style="color: #999; margin: 0; font-size: 12px;">Arye Boutique | בוטיק לתינוקות</p>
+        </div>
+    </div>
+    """
+
+
+def send_ready_for_pickup_email(order):
+    """
+    מייל ללקוח: ההזמנה מוכנה לאיסוף עצמי.
+    """
+    if not settings.RESEND_API_KEY or not order.guest_email:
+        return False
+
+    resend.api_key = settings.RESEND_API_KEY
+    body = f"""
+            <p style="color: #555;">הזמנה #{order.id} מוכנה ומחכה לך.</p>
+            <p style="color: #555;">כתובת האיסוף: {escape(PICKUP_ADDRESS)}, ימים א'-ה' בין 09:00 ל-15:00.</p>
+            <p style="color: #555;">יש להציג את מספר ההזמנה בעת האיסוף.</p>
+    """
+    resend.Emails.send({
+        'from': settings.DEFAULT_FROM_EMAIL,
+        'to': [order.guest_email],
+        'subject': f'הזמנה #{order.id} מוכנה לאיסוף - Arye Boutique',
+        'html': _customer_email(order, 'ההזמנה שלך מוכנה לאיסוף', body),
+    })
+    return True
+
+
+def send_order_shipped_email(order):
+    """
+    מייל ללקוח: ההזמנה נשלחה.
+    """
+    if not settings.RESEND_API_KEY or not order.guest_email:
+        return False
+
+    resend.api_key = settings.RESEND_API_KEY
+    body = f"""
+            <p style="color: #555;">הזמנה #{order.id} יצאה לדרך ותגיע לכתובת שמסרת.</p>
+            <p style="color: #555;">לשאלות אפשר להשיב למייל הזה או לפנות אלינו בוואטסאפ 053-3694264.</p>
+    """
+    resend.Emails.send({
+        'from': settings.DEFAULT_FROM_EMAIL,
+        'to': [order.guest_email],
+        'subject': f'הזמנה #{order.id} נשלחה - Arye Boutique',
+        'html': _customer_email(order, 'ההזמנה שלך בדרך אליך', body),
+    })
+    return True
+
+
+def send_owner_alert(order, title, message):
+    """
+    התראה לבעל האתר על הזמנה שדורשת טיפול ידני (למשל תשלום כפול).
+    """
+    if not settings.RESEND_API_KEY or not settings.CONTACT_EMAIL:
+        return False
+
+    resend.api_key = settings.RESEND_API_KEY
+    admin_url = f'{settings.SITE_URL}/admin/store/order/{order.id}/change/'
+    html_content = f"""
+    <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="padding: 30px; background-color: #f9f9f9;">
+            <h2 style="color: #333;">{escape(title)} - הזמנה #{order.id}</h2>
+            {_attention_block(message)}
+            <p><strong>לקוח:</strong> {escape(order.guest_name)} | {escape(order.guest_phone)} | {escape(order.guest_email)}</p>
+            <p style="margin-top: 20px;"><a href="{admin_url}" style="color: #7594b1;">פתיחת ההזמנה בפאנל הניהול</a></p>
+        </div>
+    </div>
+    """
+    resend.Emails.send({
+        'from': settings.DEFAULT_FROM_EMAIL,
+        'to': [settings.CONTACT_EMAIL],
+        'subject': f'דורש טיפול: {title} - הזמנה #{order.id}',
+        'html': html_content,
+    })
+    return True
+
+
 def send_order_confirmation_email(order):
     """
     מייל אישור הזמנה ללקוח.
@@ -150,11 +249,14 @@ def send_new_order_notification(order):
 
     admin_url = f'{settings.SITE_URL}/admin/store/order/{order.id}/change/'
     notes = f'<p><strong>הערות הלקוח:</strong> {escape(order.notes)}</p>' if order.notes else ''
+    attention = _attention_block(order.attention_note) if order.needs_attention else ''
+    subject_prefix = 'דורש טיפול: ' if order.needs_attention else ''
 
     html_content = f"""
     <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="padding: 30px; background-color: #f9f9f9;">
             <h2 style="color: #333;">הזמנה חדשה #{order.id} שולמה</h2>
+            {attention}
             <p><strong>לקוח:</strong> {escape(order.guest_name)}</p>
             <p><strong>טלפון:</strong> {escape(order.guest_phone)}</p>
             <p><strong>אימייל:</strong> {escape(order.guest_email)}</p>
@@ -169,7 +271,7 @@ def send_new_order_notification(order):
     params = {
         'from': settings.DEFAULT_FROM_EMAIL,
         'to': [settings.CONTACT_EMAIL],
-        'subject': f'הזמנה חדשה #{order.id} - {order.total_price} ₪',
+        'subject': f'{subject_prefix}הזמנה חדשה #{order.id} - {order.total_price} ₪',
         'html': html_content,
     }
     if order.guest_email:

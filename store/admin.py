@@ -1,8 +1,12 @@
+import logging
+
 from django import forms
 from django.contrib import admin
 from django.urls import path, reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.db import transaction
+from django.db.models import F
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from .models import (
@@ -10,9 +14,13 @@ from .models import (
     Order, OrderItem, Cart, CartItem, ContactMessage, CancellationRequest, WishlistItem, 
     BelowBestsellersGallery, RetailerStore, InstagramGallery, AboutPageSettings,
     GalleriesHub, Size, SizeGroup, FabricType, ProductVariant, FAQ, BlogPost, BlogSection,
-    MaterialCareInfo, NewsletterSubscriber, Coupon
+    MaterialCareInfo, NewsletterSubscriber, Coupon, OrderPayment
 )
 from .forms import BulkVariantCreationForm, ProductAdminForm
+from .services.emails import send_order_shipped_email, send_ready_for_pickup_email
+from .services.orders import PAID_STATUSES
+
+logger = logging.getLogger(__name__)
 
 MAX_RECOMMENDED_PRODUCTS = 4
 
@@ -212,9 +220,14 @@ class OrderItemInline(admin.TabularInline):
     """
     model = OrderItem
     extra = 0
-    readonly_fields = ['subtotal', 'get_warehouse_location']
+    # שורות ההזמנה הן מה שהלקוח שילם עליו - לקריאה בלבד
+    readonly_fields = ['product', 'variant', 'quantity', 'price', 'subtotal', 'get_warehouse_location']
     fields = ['product', 'variant', 'quantity', 'price', 'subtotal', 'get_warehouse_location']
-    
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
     def get_warehouse_location(self, obj):
         """הצגת מיקום תא במחסן למלקט"""
         if obj.variant and obj.variant.warehouse_location:
@@ -494,24 +507,64 @@ class ProductAdmin(admin.ModelAdmin):
         return render(request, 'admin/store/create_variants.html', context)
 
 
+class OrderPaymentInline(admin.TabularInline):
+    """
+    התשלומים שאושרו להזמנה (לקריאה בלבד)
+    """
+    model = OrderPayment
+    extra = 0
+    fields = ['sale_id', 'amount', 'is_duplicate', 'created_at']
+    readonly_fields = fields
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(OrderPayment)
+class OrderPaymentAdmin(admin.ModelAdmin):
+    """
+    תשלומים שאושרו מול חברת הסליקה (לקריאה בלבד)
+    """
+    list_display = ['order', 'sale_id', 'amount', 'is_duplicate', 'created_at']
+    list_filter = ['is_duplicate', 'created_at']
+    search_fields = ['sale_id', 'order__id']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     """
     ניהול הזמנות
     """
-    list_display = ['id', 'get_customer_name', 'total_price', 'get_discount_display', 'get_shipping_display', 'status', 'created_at']
-    list_filter = ['status', 'shipping_method', 'created_at']
+    list_display = [
+        'id', 'get_customer_name', 'total_price', 'get_discount_display', 'get_shipping_display',
+        'status', 'needs_attention', 'created_at',
+    ]
+    list_filter = ['needs_attention', 'status', 'shipping_method', 'created_at']
     search_fields = ['id', 'user__username', 'guest_name', 'guest_email', 'guest_phone', 'coupon_code']
     list_editable = ['status']
     readonly_fields = [
-        'created_at', 'updated_at', 'coupon_code', 'discount_amount',
+        'created_at', 'updated_at', 'coupon_code', 'discount_amount', 'total_price',
         'shipping_method', 'shipping_fee', 'paid_at', 'payment_transaction_id',
     ]
-    inlines = [OrderItemInline]
-    
+    inlines = [OrderItemInline, OrderPaymentInline]
+
     fieldsets = (
         ('מידע הזמנה', {
             'fields': ('user', 'total_price', 'status', 'notes')
+        }),
+        ('דורש טיפול', {
+            'fields': ('needs_attention', 'attention_note'),
+            'description': 'מסומן אוטומטית כשנמכר פריט מעבר למלאי או כשהתקבל תשלום כפול. אחרי הטיפול אפשר להסיר את הסימון.',
         }),
         ('משלוח', {
             'fields': ('shipping_method', 'shipping_fee'),
@@ -534,13 +587,68 @@ class OrderAdmin(admin.ModelAdmin):
         }),
     )
     
+    def has_add_permission(self, request):
+        # הזמנות נוצרות רק באתר, דרך תשלום
+        return False
+
+    def save_model(self, request, obj, form, change):
+        """
+        שינוי סטטוס ידני: "שולם" נקבע רק בידי חברת הסליקה, הזמנה שבוטלה נשארת
+        מבוטלת, ביטול של הזמנה ששולמה מחזיר את המלאי, ו"מוכן לאיסוף" / "נשלח"
+        שולחים מייל ללקוח.
+        """
+        previous = Order.objects.filter(pk=obj.pk).values_list('status', flat=True).first() if change else None
+        new = obj.status
+
+        if previous is None or previous == new:
+            super().save_model(request, obj, form, change)
+            return
+
+        error = None
+        if previous == 'cancelled':
+            error = 'הזמנה שבוטלה אי אפשר לפתוח מחדש.'
+        elif previous == 'pending' and new != 'cancelled':
+            error = 'הזמנה שממתינה לתשלום מסומנת כ"שולם" רק אחרי אישור של חברת הסליקה. אפשר רק לבטל אותה.'
+        elif new == 'pending':
+            error = 'אי אפשר להחזיר הזמנה ששולמה ל"ממתין לתשלום".'
+        if error:
+            obj.status = previous
+            super().save_model(request, obj, form, change)
+            messages.error(request, f'הזמנה #{obj.pk}: {error} הסטטוס לא שונה.')
+            return
+
+        with transaction.atomic():
+            super().save_model(request, obj, form, change)
+            if new == 'cancelled' and previous in PAID_STATUSES:
+                # המלאי ירד כשההזמנה שולמה - מחזירים אותו
+                for item in obj.items.all():
+                    Product.objects.filter(pk=item.product_id).update(
+                        stock_quantity=F('stock_quantity') + item.quantity
+                    )
+                messages.warning(
+                    request,
+                    f'הזמנה #{obj.pk} בוטלה והמלאי הוחזר. את הזיכוי הכספי יש לבצע ב-iCredit.',
+                )
+
+        send = {'ready_for_pickup': send_ready_for_pickup_email, 'shipped': send_order_shipped_email}.get(new)
+        if send:
+            try:
+                sent = send(obj)
+            except Exception:
+                logger.exception('Order %s: status email failed', obj.pk)
+                sent = False
+            if sent:
+                messages.success(request, f'הזמנה #{obj.pk}: נשלח מייל עדכון ללקוח.')
+            else:
+                messages.warning(request, f'הזמנה #{obj.pk}: מייל העדכון ללקוח לא נשלח - יש לעדכן את הלקוח ידנית.')
+
     def get_customer_name(self, obj):
         """החזרת שם הלקוח"""
         if obj.user:
             return obj.user.get_full_name() or obj.user.username
         return obj.guest_name or obj.guest_email
     get_customer_name.short_description = 'לקוח'
-    
+
     def get_discount_display(self, obj):
         """הצגת הנחה"""
         if obj.discount_amount and obj.discount_amount > 0:
@@ -595,7 +703,17 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_filter = ['order__status', 'order__created_at']
     search_fields = ['product__name', 'order__id']
     readonly_fields = ['subtotal']
-    
+
+    # שורות ההזמנה הן מה שהלקוח שילם עליו - לצפייה בלבד
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     def get_variant_display(self, obj):
         """הצגת פרטי הוריאנט"""
         if obj.variant:

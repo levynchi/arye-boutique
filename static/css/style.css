@@ -1047,8 +1047,8 @@ ul {
    ========================================================================== */
 
 .main-footer {
-    background-color: var(--brand-blue);
-    color: var(--white);
+    background-color: #A9BCCE;
+    color: var(--text-color);
     padding: 50px 0 0;
     margin-top: 80px;
 }
@@ -1078,19 +1078,19 @@ ul {
     font-size: 20px;
     font-weight: 600;
     margin-bottom: 10px;
-    color: var(--white);
+    color: var(--focus-color);
 }
 
 .newsletter-subtitle {
     font-size: 14px;
     margin-bottom: 20px;
-    color: var(--white);
+    color: var(--focus-color);
     line-height: 1.6;
 }
 
 .newsletter-label {
     display: block;
-    color: var(--white);
+    color: var(--focus-color);
     font-size: 14px;
     margin-bottom: 8px;
     text-align: center;
@@ -1191,7 +1191,7 @@ ul {
     font-size: 18px;
     margin-bottom: 20px;
     font-weight: 600;
-    color: var(--white);
+    color: var(--focus-color);
 }
 
 .footer-links {
@@ -1203,7 +1203,7 @@ ul {
 }
 
 .footer-links a {
-    color: var(--white);
+    color: var(--focus-color);
     font-size: 16px;
     transition: opacity 0.3s ease;
 }
@@ -1218,7 +1218,7 @@ ul {
 
 .footer-contact li {
     margin-bottom: 8px;
-    color: var(--white);
+    color: var(--focus-color);
     font-size: 16px;
     line-height: 1.6;
 }
@@ -1322,7 +1322,7 @@ ul {
     font-size: 18px;
     margin-bottom: 20px;
     font-weight: 600;
-    color: var(--white);
+    color: var(--focus-color);
 }
 
 /* ==========================================================================
@@ -1527,7 +1527,7 @@ ul {
     .footer-accordion-toggle h4 {
         margin: 0;
         font-size: 18px;
-        color: var(--white);
+        color: var(--focus-color);
     }
 
     .footer-accordion-icon {
@@ -1541,7 +1541,7 @@ ul {
     .footer-accordion-icon::after {
         content: '';
         position: absolute;
-        background-color: var(--white);
+        background-color: var(--focus-color);
         transition: transform 0.3s ease;
     }
 
@@ -1774,7 +1774,7 @@ ul {
 
 /* First div: Blue-gray background */
 .story-top-bg {
-    background-color: var(--brand-blue);
+    background-color: #A9BCCE;
     padding: 85px 0 120px;
     text-align: center;
 }
@@ -1782,13 +1782,13 @@ ul {
 .story-title {
     font-size: 38px;
     font-weight: 600;
-    color: var(--white);
+    color: var(--focus-color);
     margin-bottom: 20px;
 }
 
 .story-description {
     font-size: 20px;
-    color: var(--white);
+    color: var(--focus-color);
     margin-bottom: 30px;
     line-height: 1.6;
 }
@@ -1797,8 +1797,8 @@ ul {
     display: inline-block;
     padding: 12px 100px;
     /* border: 2px solid #424242; */
-    background-color: var(--white);
-    color: var(--focus-color);
+    background-color: var(--brand-blue);
+    color: var(--white);
     font-size: 16px;
     font-weight: 500;
     border-radius: 0;
@@ -6421,7 +6421,7 @@ ul {
     margin: 8px 0 0;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--white);
+    color: var(--focus-color);
 }
 
 .newsletter-consent a {
@@ -6583,22 +6583,4 @@ ul {
     display: block;
     text-transform: none;
     letter-spacing: normal;
-}
-
-/* White text on the blue footer and story section: keep focus rings and form messages readable there */
-.main-footer :focus-visible,
-.story-top-bg :focus-visible {
-    outline-color: var(--white);
-}
-
-.main-footer .newsletter-message.success {
-    background-color: var(--white);
-    color: #1b5e20;
-    border-color: #1b5e20;
-}
-
-.main-footer .newsletter-message.error {
-    background-color: var(--white);
-    color: #b71c1c;
-    border-color: #b71c1c;
 }

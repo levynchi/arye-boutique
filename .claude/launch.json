@@ -6,6 +6,15 @@
       "runtimeExecutable": "venv/Scripts/python.exe",
       "runtimeArgs": ["manage.py", "runserver", "8000", "--noreload"],
       "port": 8000
+    },
+    {
+      "name": "django-tracking-test",
+      "runtimeExecutable": "venv/Scripts/python.exe",
+      "runtimeArgs": [
+        "-c",
+        "import os, sys, runpy; os.environ.update(GA4_MEASUREMENT_ID='G-TEST000000', META_PIXEL_ID='000000000000000', TIKTOK_PIXEL_ID='TESTPIXEL000', GOOGLE_SITE_VERIFICATION='test-token'); sys.argv = ['manage.py', 'runserver', '8001', '--noreload']; runpy.run_path('manage.py', run_name='__main__')"
+      ],
+      "port": 8001
     }
   ]
 }

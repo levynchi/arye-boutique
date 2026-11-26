@@ -1,7 +1,8 @@
 {% extends 'store/base.html' %}
-{% load static %}
+{% load static seo_tags %}
 
 {% block title %}בלוג - אריה בוטיק{% endblock %}
+{% block meta_description %}הבלוג של אריה בוטיק: טיפים להורים טריים, רעיונות למתנות ללידה ומאחורי הקלעים של ייצור בגדי תינוקות מכותנה.{% endblock %}
 
 {% block content %}
 <!-- Breadcrumb Navigation -->
@@ -18,7 +19,7 @@
 <!-- Blog Title -->
 <section class="blog-title-section">
     <div class="container">
-        <h1 class="blog-page-title">Arye Boutique - Blog</h1>
+        <h1 class="blog-page-title">הבלוג של אריה בוטיק</h1>
     </div>
 </section>
 
@@ -31,7 +32,7 @@
             <article class="blog-card">
                 <a href="{% url 'blog_detail' post.slug %}" class="blog-card-link">
                     <div class="blog-card-image">
-                        <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                        <img src="{{ post.image.url|cdn_image:800 }}" alt="{{ post.title }}" loading="lazy">
                     </div>
                     <div class="blog-card-content">
                         <h2 class="blog-card-title">{{ post.title }}</h2>

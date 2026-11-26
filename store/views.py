@@ -3,9 +3,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.db.models import Q
 from django.conf import settings
+from django.urls import reverse
 from django.http import HttpResponse
 from django.utils.html import escape
 from django.views.decorators.csrf import csrf_exempt
@@ -22,6 +23,7 @@ from .models import (
 )
 import string
 from .forms import ContactForm, CancellationForm
+from . import seo
 from .ratelimit import is_rate_limited
 
 logger = logging.getLogger(__name__)
@@ -40,6 +42,9 @@ def robots_txt(request):
         'Disallow: /users/',
         'Disallow: /wishlist/',
         'Disallow: /search/',
+        'Disallow: /coming-soon/',
+        '',
+        f'Sitemap: {settings.SITE_URL}/sitemap.xml',
     ]
     return HttpResponse('\n'.join(lines) + '\n', content_type='text/plain; charset=utf-8')
 
@@ -49,6 +54,21 @@ def coming_soon(request):
     עמוד "בקרוב" - מוצג למשתמשים שאינם סופר-אדמין
     """
     return render(request, 'store/coming_soon.html')
+
+
+def get_by_slug_or_404(queryset, slug):
+    """
+    חיפוש לפי סלאג בלי תלות באותיות גדולות/קטנות.
+    מחזיר (object, exact): כש-exact הוא False צריך להפנות לכתובת המדויקת,
+    כדי שלכל עמוד תהיה כתובת אחת בלבד.
+    """
+    obj = queryset.filter(slug=slug).first()
+    if obj:
+        return obj, True
+    obj = queryset.filter(slug__iexact=slug).first()
+    if obj is None:
+        raise Http404
+    return obj, False
 
 
 def home(request):
@@ -90,8 +110,13 @@ def home(request):
         'retailer_stores': retailer_stores,
         'instagram_gallery': instagram_gallery,
         'wishlist_product_ids': wishlist_product_ids,
+        'seo': {
+            'title': 'אריה בוטיק – בגדי ומוצרי תינוקות מכותנה בהדפסים ייחודיים',
+            'image': seo.image_url(site_settings.hero_banner) if site_settings else '',
+        },
+        'structured_data': [seo.store_schema(), seo.website_schema()],
     }
-    
+
     return render(request, 'store/home.html', context)
 
 
@@ -99,11 +124,18 @@ def product_detail(request, slug):
     """
     עמוד מוצר בודד
     """
-    product = get_object_or_404(
-        Product.objects.select_related('material_care_info'),
-        slug=slug,
-        is_active=True
+    product, exact = get_by_slug_or_404(
+        Product.objects.select_related('material_care_info', 'category', 'subcategory__category'),
+        slug,
     )
+    if not product.is_active:
+        # מוצר שהוסר מהאתר: מפנים לקטגוריה שלו במקום להציג שגיאה למי שהגיע מקישור ישן
+        category = product.category or (product.subcategory.category if product.subcategory else None)
+        if category and category.is_active:
+            return redirect(category.get_absolute_url())
+        raise Http404
+    if not exact:
+        return redirect('product_detail', slug=product.slug, permanent=True)
     
     # תמונות לגלריה בדף המוצר - בלי תקריב הריחוף (מוצג רק בכרטיס המוצר בדפי קטגוריה)
     additional_images = product.images.filter(show_on_hover=False)
@@ -190,8 +222,39 @@ def product_detail(request, slug):
 
     # קבלת קטגוריות לניווט
     categories = Category.objects.filter(is_active=True)
-    
+
+    # נתונים למנועי חיפוש, לשיתוף ברשתות ולפיקסלים
+    full_name = seo.product_full_name(product)
+    if price_min is None or price_max is None:
+        price_min = price_max = float(product.price)
+    gallery_urls = [seo.image_url(primary_image)] + [
+        seo.image_url(img.image) for img in additional_images if not img.is_primary
+    ]
+    gallery_urls = [url for url in gallery_urls if url]
+    category = product.category or (product.subcategory.category if product.subcategory else None)
+    crumbs = [(category.name, category.get_absolute_url())] if category else []
+    if product.subcategory:
+        crumbs.append((
+            product.subcategory.name,
+            reverse('subcategory_detail', args=[product.subcategory.category.slug, product.subcategory.slug]),
+        ))
+    crumbs.append((full_name, reverse('product_detail', args=[product.slug])))
+
     context = {
+        'full_name': full_name,
+        'seo': {
+            'title': f'{full_name} | אריה בוטיק',
+            'description': seo.summarize(f'{full_name}. {product.description}'),
+            'image': gallery_urls[0] if gallery_urls else '',
+            'type': 'product',
+            'price': f'{price_min:.2f}',
+            'availability': 'in stock' if product.is_in_stock else 'out of stock',
+        },
+        'structured_data': [
+            seo.product_schema(product, gallery_urls, price_min, price_max),
+            seo.breadcrumbs(*crumbs),
+        ],
+        'tracking_item': {'id': product.id, 'name': full_name, 'price': price_min},
         'product': product,
         'recommended_products': recommended_products,
         'primary_image': primary_image,
@@ -302,8 +365,22 @@ def category_detail(request, slug):
     """
     עמוד קטגוריה - הצגת תת-קטגוריות או מוצרים
     """
-    category = get_object_or_404(Category, slug=slug, is_active=True)
-    
+    category, exact = get_by_slug_or_404(Category.objects.filter(is_active=True), slug)
+    if not exact:
+        return redirect(category.get_absolute_url(), permanent=True)
+
+    seo_context = {
+        'seo': {
+            'title': f'{category.name} | אריה בוטיק',
+            'description': seo.summarize(category.description) or (
+                f'{category.name} של אריה בוטיק – מוצרי תינוקות מ-100% כותנה בהדפסים ייחודיים, '
+                'מיוצרים בישראל. משלוח עד הבית או איסוף עצמי בתל אביב.'
+            ),
+            'image': seo.image_url(category.image),
+        },
+        'structured_data': [seo.breadcrumbs((category.name, category.get_absolute_url()))],
+    }
+
     # קבלת תת-קטגוריות פעילות
     subcategories = category.subcategories.filter(is_active=True)
     has_subcategories = subcategories.exists()
@@ -318,6 +395,7 @@ def category_detail(request, slug):
             'subcategories': subcategories,
             'has_subcategories': True,
             'categories': categories,
+            **seo_context,
         }
         
         return render(request, 'store/category_detail.html', context)
@@ -366,6 +444,7 @@ def category_detail(request, slug):
         'current_price_sort': price_sort,
         'categories': categories,
         'wishlist_product_ids': wishlist_product_ids,
+        **seo_context,
     }
     
     return render(request, 'store/category_detail.html', context)
@@ -375,13 +454,13 @@ def subcategory_detail(request, category_slug, subcategory_slug):
     """
     עמוד תת-קטגוריה - הצגת מוצרים של תת-קטגוריה ספציפית
     """
-    category = get_object_or_404(Category, slug=category_slug, is_active=True)
-    subcategory = get_object_or_404(
-        Subcategory, 
-        slug=subcategory_slug, 
-        category=category,
-        is_active=True
+    category, category_exact = get_by_slug_or_404(Category.objects.filter(is_active=True), category_slug)
+    subcategory, subcategory_exact = get_by_slug_or_404(
+        Subcategory.objects.filter(category=category, is_active=True), subcategory_slug
     )
+    subcategory_url = reverse('subcategory_detail', args=[category.slug, subcategory.slug])
+    if not (category_exact and subcategory_exact):
+        return redirect(subcategory_url, permanent=True)
     
     # קבלת מוצרים של התת-קטגוריה
     products = Product.objects.filter(subcategory=subcategory, is_active=True).prefetch_related('images')
@@ -417,6 +496,18 @@ def subcategory_detail(request, category_slug, subcategory_slug):
     categories = Category.objects.filter(is_active=True)
     
     context = {
+        'seo': {
+            'title': f'{subcategory.name} – {category.name} | אריה בוטיק',
+            'description': seo.summarize(subcategory.description) or (
+                f'{subcategory.name} ({category.name}) של אריה בוטיק – מוצרי תינוקות מ-100% כותנה '
+                'בהדפסים ייחודיים, מיוצרים בישראל. משלוח עד הבית או איסוף עצמי בתל אביב.'
+            ),
+            'image': seo.image_url(subcategory.image),
+        },
+        'structured_data': [seo.breadcrumbs(
+            (category.name, category.get_absolute_url()),
+            (subcategory.name, subcategory_url),
+        )],
         'category': category,
         'subcategory': subcategory,
         'products': products,
@@ -620,6 +711,7 @@ def faq(request):
     context = {
         'categories': categories,
         'faqs': faqs,
+        'structured_data': [seo.faq_schema(faqs)] if faqs else [],
     }
     return render(request, 'store/faq.html', context)
 
@@ -902,12 +994,27 @@ def blog_detail(request, slug):
     """
     דף פוסט בודד בבלוג
     """
-    post = get_object_or_404(BlogPost, slug=slug, is_active=True)
-    
+    post, exact = get_by_slug_or_404(BlogPost.objects.filter(is_active=True), slug)
+    if not exact:
+        return redirect(post.get_absolute_url(), permanent=True)
+
     # פוסטים קשורים (3 האחרונים, לא כולל הנוכחי)
     related_posts = BlogPost.objects.filter(is_active=True).exclude(id=post.id)[:3]
-    
+
+    first_section = post.sections.first()
+    description = seo.summarize(first_section.content if first_section else '') or post.title
+
     context = {
+        'seo': {
+            'title': f'{post.title} | בלוג אריה בוטיק',
+            'description': description,
+            'image': seo.image_url(post.image),
+            'type': 'article',
+        },
+        'structured_data': [
+            seo.article_schema(post, description),
+            seo.breadcrumbs(('בלוג', reverse('blog_list')), (post.title, post.get_absolute_url())),
+        ],
         'post': post,
         'related_posts': related_posts,
         'categories': Category.objects.filter(is_active=True),

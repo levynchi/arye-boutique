@@ -1,7 +1,7 @@
 {% extends 'store/base.html' %}
-{% load static %}
+{% load static seo_tags %}
 
-{% block title %}{{ category.name }} - אריה בוטיק{% endblock %}
+{% block title %}{{ seo.title }}{% endblock %}
 
 {% block content %}
 <!-- Breadcrumb Navigation -->
@@ -20,6 +20,9 @@
     <div class="container">
         <!-- Category Title -->
         <h1 class="category-title">{{ category.name }}</h1>
+        {% if category.description %}
+        <div class="category-description">{{ category.description|linebreaks }}</div>
+        {% endif %}
         
         {% if has_subcategories %}
         <!-- Subcategories Gallery -->
@@ -29,7 +32,7 @@
                 <div class="product-image-wrapper">
                     <!-- Subcategory Image -->
                     {% if subcategory.image %}
-                        <img src="{{ subcategory.image.url }}" alt="{{ subcategory.name }}" class="product-card-image">
+                        <img src="{{ subcategory.image.url|cdn_image:600 }}" alt="{{ subcategory.name }}" class="product-card-image">
                     {% else %}
                         <div class="product-card-placeholder">אין תמונה</div>
                     {% endif %}
@@ -84,19 +87,19 @@
                 </button>
                 
                 <div class="product-image-wrapper"
-                         data-images='[{% if product.image %}"{{ product.image.url }}"{% endif %}{% for img in product.card_gallery_images %}{% if product.image or not forloop.first %},{% endif %}"{{ img.image.url }}"{% endfor %}]'
+                         data-images='[{% if product.image %}"{{ product.image.url|cdn_image:600 }}"{% endif %}{% for img in product.card_gallery_images %}{% if product.image or not forloop.first %},{% endif %}"{{ img.image.url|cdn_image:600 }}"{% endfor %}]'
                          data-current-index="0">
                         <div class="product-card-frame">
                         <a href="{% url 'product_detail' product.slug %}" class="product-card-image-link" tabindex="-1" aria-hidden="true">
                         <!-- Product Image -->
                         {% if product.image %}
-                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-image">
+                            <img src="{{ product.image.url|cdn_image:600 }}" alt="{{ product.name }}{% if product.subtitle %} – {{ product.subtitle }}{% endif %}" class="product-card-image"{% if forloop.counter > 4 %} loading="lazy"{% endif %}>
                         {% else %}
                             <div class="product-card-placeholder">אין תמונה</div>
                         {% endif %}
                         {% with hover_image=product.card_hover_image %}
                         {% if hover_image %}
-                        <img src="{{ hover_image.image.url }}" alt="{{ product.name }} תקריב" class="product-card-print" loading="lazy">
+                        <img src="{{ hover_image.image.url|cdn_image:600 }}" alt="" class="product-card-print" loading="lazy">
                         {% endif %}
                         {% endwith %}
                         </a>

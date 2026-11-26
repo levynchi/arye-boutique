@@ -1,14 +1,17 @@
 {% extends 'store/base.html' %}
-{% load static %}
+{% load static seo_tags %}
 
-{% block title %}אריה בוטיק - דף הבית{% endblock %}
+{% block title %}{{ seo.title }}{% endblock %}
 
 {% block content %}
+{% if not site_settings or not site_settings.hero_banner or not site_settings.hero_title %}
+<h1 class="visually-hidden">אריה בוטיק – בגדי ומוצרי תינוקות מכותנה בהדפסים ייחודיים</h1>
+{% endif %}
 <!-- Hero Banner -->
 {% if site_settings and site_settings.hero_banner %}
 <section class="hero-banner">
     <div class="hero-image">
-        <img src="{{ site_settings.hero_banner.url }}" alt="{{ site_settings.hero_title|default:'מוצרי תינוקות איכותיים' }}">
+        <img src="{{ site_settings.hero_banner.url|cdn_image:1920 }}" fetchpriority="high" alt="{{ site_settings.hero_title|default:'מוצרי תינוקות איכותיים' }}">
         {% if site_settings.hero_title or site_settings.hero_subtitle %}
         <div class="hero-content">
             {% if site_settings.hero_title %}
@@ -31,7 +34,7 @@
             <a href="{% url 'category_detail' category.slug %}" class="category-card">
                 <div class="category-image">
                     {% if category.image %}
-                        <img src="{{ category.image.url }}" alt="{{ category.name }}">
+                        <img src="{{ category.image.url|cdn_image:800 }}" alt="{{ category.name }}">
                     {% else %}
                         <div class="category-image-placeholder"></div>
                     {% endif %}
@@ -135,7 +138,7 @@
                     <div class="product-image-wrapper">
                         <!-- Product Image -->
                         {% if product.image %}
-                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-image">
+                            <img src="{{ product.image.url|cdn_image:600 }}" alt="{{ product.name }}{% if product.subtitle %} – {{ product.subtitle }}{% endif %}" class="product-card-image" loading="lazy">
                         {% else %}
                             <div class="product-card-placeholder">אין תמונה</div>
                         {% endif %}
@@ -161,10 +164,10 @@
 <section class="below-bestsellers-gallery">
     <div class="gallery-images">
         <div class="gallery-image-wrapper">
-            <img src="{{ below_bestsellers_gallery.right_image.url }}" alt="תמונה ימנית" class="gallery-image">
+            <img src="{{ below_bestsellers_gallery.right_image.url|cdn_image:1000 }}" alt="" class="gallery-image" loading="lazy">
         </div>
         <div class="gallery-image-wrapper">
-            <img src="{{ below_bestsellers_gallery.left_image.url }}" alt="תמונה שמאלית" class="gallery-image">
+            <img src="{{ below_bestsellers_gallery.left_image.url|cdn_image:1000 }}" alt="" class="gallery-image" loading="lazy">
         </div>
     </div>
 </section>
@@ -217,17 +220,17 @@
         
         <div class="instagram-gallery-grid">
             <a href="{{ instagram_gallery.instagram_url }}" target="_blank" rel="noopener noreferrer" class="instagram-gallery-item">
-                <img src="{{ instagram_gallery.image_1.url }}" alt="Instagram 1" class="instagram-gallery-image">
+                <img src="{{ instagram_gallery.image_1.url|cdn_image:600 }}" alt="אריה בוטיק באינסטגרם – תמונה 1" class="instagram-gallery-image" loading="lazy">
             </a>
             <a href="{{ instagram_gallery.instagram_url }}" target="_blank" rel="noopener noreferrer" class="instagram-gallery-item">
-                <img src="{{ instagram_gallery.image_2.url }}" alt="Instagram 2" class="instagram-gallery-image">
+                <img src="{{ instagram_gallery.image_2.url|cdn_image:600 }}" alt="אריה בוטיק באינסטגרם – תמונה 2" class="instagram-gallery-image" loading="lazy">
             </a>
             <a href="{{ instagram_gallery.instagram_url }}" target="_blank" rel="noopener noreferrer" class="instagram-gallery-item">
-                <img src="{{ instagram_gallery.image_3.url }}" alt="Instagram 3" class="instagram-gallery-image">
+                <img src="{{ instagram_gallery.image_3.url|cdn_image:600 }}" alt="אריה בוטיק באינסטגרם – תמונה 3" class="instagram-gallery-image" loading="lazy">
             </a>
             {% if instagram_gallery.image_4 %}
             <a href="{{ instagram_gallery.instagram_url }}" target="_blank" rel="noopener noreferrer" class="instagram-gallery-item">
-                <img src="{{ instagram_gallery.image_4.url }}" alt="Instagram 4" class="instagram-gallery-image">
+                <img src="{{ instagram_gallery.image_4.url|cdn_image:600 }}" alt="אריה בוטיק באינסטגרם – תמונה 4" class="instagram-gallery-image" loading="lazy">
             </a>
             {% endif %}
         </div>

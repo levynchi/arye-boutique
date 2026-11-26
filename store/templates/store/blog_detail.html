@@ -1,7 +1,7 @@
 {% extends 'store/base.html' %}
-{% load static %}
+{% load static seo_tags %}
 
-{% block title %}{{ post.title }} - בלוג אריה בוטיק{% endblock %}
+{% block title %}{{ seo.title }}{% endblock %}
 
 {% block content %}
 <!-- Breadcrumb Navigation -->
@@ -23,8 +23,9 @@
         <div class="blog-detail-container">
             <!-- Post Header with Banner -->
             <header class="blog-detail-header">
+                <h1 class="blog-detail-title">{{ post.title }}</h1>
                 <div class="blog-detail-image">
-                    <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                    <img src="{{ post.image.url|cdn_image:1400 }}" alt="{{ post.title }}" fetchpriority="high">
                 </div>
                 <div class="blog-detail-meta">
                     <time datetime="{{ post.created_at|date:'Y-m-d' }}">
@@ -42,7 +43,7 @@
                 </div>
                 {% if section.image %}
                 <div class="blog-section-image">
-                    <img src="{{ section.image.url }}" alt="{{ section.title }}">
+                    <img src="{{ section.image.url|cdn_image:1400 }}" alt="{{ section.title }}" loading="lazy">
                 </div>
                 {% endif %}
             </div>
@@ -69,7 +70,7 @@
                 <article class="blog-card blog-card-small">
                     <a href="{% url 'blog_detail' related.slug %}" class="blog-card-link">
                         <div class="blog-card-image">
-                            <img src="{{ related.image.url }}" alt="{{ related.title }}">
+                            <img src="{{ related.image.url|cdn_image:600 }}" alt="{{ related.title }}" loading="lazy">
                         </div>
                         <div class="blog-card-content">
                             <h3 class="blog-card-title">{{ related.title }}</h3>

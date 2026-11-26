@@ -1,4 +1,29 @@
+from django.conf import settings
+
 from .models import Cart, Category, WishlistItem
+
+
+def seo_and_tracking(request):
+    """
+    כתובת קנונית לכל עמוד ומזהי המדידה (GA4, מטא, טיקטוק).
+    במצב דמו המזהים ריקים, כדי שגלישת הדגמה לא תיספר כתנועה אמיתית.
+    """
+    tracking_ids = {}
+    if not request.session.get('demo_mode'):
+        tracking_ids = {
+            name: value for name, value in (
+                ('ga4', settings.GA4_MEASUREMENT_ID),
+                ('meta', settings.META_PIXEL_ID),
+                ('tiktok', settings.TIKTOK_PIXEL_ID),
+            ) if value
+        }
+    return {
+        'SITE_URL': settings.SITE_URL,
+        'canonical_url': settings.SITE_URL + request.path,
+        'tracking_ids': tracking_ids,
+        'google_site_verification': settings.GOOGLE_SITE_VERIFICATION,
+        'meta_domain_verification': settings.META_DOMAIN_VERIFICATION,
+    }
 
 
 def nav_categories(request):

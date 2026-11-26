@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .forms import CheckoutForm
 from .models import CartItem, Category, Order, OrderItem
 from .ratelimit import is_rate_limited
+from .seo import product_full_name
 from .services.pricing import calculate_totals, evaluate_coupon
 from .services.shipping import FREE_SHIPPING_FROM, PICKUP_ADDRESS, SHIPPING_DELIVERY, SHIPPING_PICKUP
 from .views import get_or_create_cart
@@ -171,6 +172,16 @@ def _order_lines(cart_items):
     return sorted(lines, key=lambda line: (line[0], line[1] or 0))
 
 
+def _tracking_item(cart_item):
+    price = cart_item.variant.effective_price if cart_item.variant else cart_item.product.price
+    return {
+        'id': cart_item.product_id,
+        'name': product_full_name(cart_item.product),
+        'price': float(price),
+        'quantity': cart_item.quantity,
+    }
+
+
 def _find_reusable_order(request, lines, totals):
     """
     הזמנה ממתינה מאותו סשן עם אותם פריטים ואותו סכום (למשל שליחה כפולה של
@@ -224,7 +235,11 @@ def _save_pending_order(request, form, cart_items, totals):
             order.save()
             return order
 
+        source = request.session.get('campaign_source') or {}
         order = Order.objects.create(
+            utm_source=source.get('utm_source', ''),
+            utm_medium=source.get('utm_medium', ''),
+            utm_campaign=source.get('utm_campaign', ''),
             total_price=totals.total,
             coupon_code=totals.coupon_code,
             discount_amount=totals.discount,
@@ -303,6 +318,11 @@ def checkout(request):
         totals = get_cart_totals(request, cart, SHIPPING_DELIVERY)
 
     context = {
+        # נתוני העגלה לפיקסלים (אירוע "כניסה לקופה")
+        'tracking_checkout': {
+            'value': float(totals.subtotal - totals.discount),
+            'items': [_tracking_item(cart_item) for cart_item in cart_items],
+        },
         'form': form,
         'cart': cart,
         'cart_items': cart_items,

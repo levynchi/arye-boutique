@@ -270,6 +270,22 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // מדידה: הוספה לסל (נשלח רק אם הגולש אישר עוגיות)
+                if (typeof window.aryeTrack === 'function' && currentProductData && currentProductData.product) {
+                    const product = currentProductData.product;
+                    const activeSize = sizesContainer.querySelector('.product-options-btn.active');
+                    const unitPrice = Number(activeSize && activeSize.dataset.price) || product.price;
+                    window.aryeTrack('add_to_cart', {
+                        items: [{
+                            id: currentProductId,
+                            name: product.subtitle ? product.name + ' – ' + product.subtitle : product.name,
+                            price: unitPrice,
+                            quantity: quantity
+                        }],
+                        value: unitPrice * quantity
+                    });
+                }
+
                 // Close panel
                 closePanel();
                 

@@ -7,6 +7,14 @@ from django.utils.text import slugify
 import uuid
 
 
+def url_slug(name, prefix):
+    """
+    סלאג לכתובת העמוד. הכתובות באתר מקבלות אותיות לטיניות בלבד, ולכן שם
+    בעברית (שאין לו תעתיק) מקבל סלאג כללי במקום סלאג שהעמוד לא ייפתח איתו.
+    """
+    return slugify(name) or f'{prefix}-{uuid.uuid4().hex[:8]}'
+
+
 class SiteSettings(models.Model):
     """
     גלריה ראשית - באנר ראשי של דף הבית
@@ -166,7 +174,7 @@ class Category(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
+            self.slug = url_slug(self.name, 'category')
         super().save(*args, **kwargs)
 
 
@@ -198,7 +206,7 @@ class Subcategory(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
+            self.slug = url_slug(self.name, 'subcategory')
         super().save(*args, **kwargs)
 
 
@@ -294,7 +302,7 @@ class Product(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
+            self.slug = url_slug(self.name, 'product')
         super().save(*args, **kwargs)
     
     @property
@@ -414,6 +422,11 @@ class Order(models.Model):
     payment_transaction_id = models.CharField(max_length=100, blank=True, verbose_name='מזהה עסקה')
     paid_at = models.DateTimeField(null=True, blank=True, verbose_name='תאריך תשלום')
     
+    # מקור ההגעה של הלקוח (מהקישור שדרכו נכנס לאתר)
+    utm_source = models.CharField(max_length=100, blank=True, verbose_name='מקור (utm_source)')
+    utm_medium = models.CharField(max_length=100, blank=True, verbose_name='סוג תנועה (utm_medium)')
+    utm_campaign = models.CharField(max_length=100, blank=True, verbose_name='קמפיין (utm_campaign)')
+
     notes = models.TextField(blank=True, verbose_name='הערות')
     # הזמנה שדורשת בדיקה ידנית: מכירה מעבר למלאי, תשלום כפול וכדומה
     needs_attention = models.BooleanField(default=False, verbose_name='דורש טיפול')

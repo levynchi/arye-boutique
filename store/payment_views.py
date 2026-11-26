@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Category, Order
+from .seo import product_full_name
 from .services import icredit
 from .services.orders import (
     PAID_STATUSES,
@@ -159,7 +160,25 @@ def payment_success(request):
     if sale_id:
         refresh_url += f'&SaleId={sale_id}'
 
+    # נתוני הרכישה לפיקסלים (נשלחים מהדפדפן פעם אחת להזמנה, ורק אחרי אישור עוגיות)
+    tracking_purchase = None
+    if is_paid:
+        tracking_purchase = {
+            'order_id': order.id,
+            'value': float(order.total_price),
+            'items': [
+                {
+                    'id': item.product_id,
+                    'name': product_full_name(item.product),
+                    'price': float(item.price),
+                    'quantity': item.quantity,
+                }
+                for item in order.items.select_related('product')
+            ],
+        }
+
     context = {
+        'tracking_purchase': tracking_purchase,
         'order': order,
         'is_paid': is_paid,
         'payment_pending': order.status == 'pending',

@@ -549,12 +549,13 @@ class OrderAdmin(admin.ModelAdmin):
         'id', 'get_customer_name', 'total_price', 'get_discount_display', 'get_shipping_display',
         'status', 'needs_attention', 'created_at',
     ]
-    list_filter = ['needs_attention', 'status', 'shipping_method', 'created_at']
+    list_filter = ['needs_attention', 'status', 'shipping_method', 'utm_source', 'created_at']
     search_fields = ['id', 'user__username', 'guest_name', 'guest_email', 'guest_phone', 'coupon_code']
     list_editable = ['status']
     readonly_fields = [
         'created_at', 'updated_at', 'coupon_code', 'discount_amount', 'total_price',
         'shipping_method', 'shipping_fee', 'paid_at', 'payment_transaction_id',
+        'utm_source', 'utm_medium', 'utm_campaign',
     ]
     inlines = [OrderItemInline, OrderPaymentInline]
 
@@ -579,6 +580,11 @@ class OrderAdmin(admin.ModelAdmin):
         }),
         ('מידע אורח', {
             'fields': ('guest_name', 'guest_email', 'guest_phone', 'guest_address', 'guest_city'),
+            'classes': ('collapse',)
+        }),
+        ('מקור ההגעה', {
+            'fields': ('utm_source', 'utm_medium', 'utm_campaign'),
+            'description': 'מהקישור שדרכו הלקוח נכנס לאתר (למשל מודעה או סרטון). ריק כשהכניסה הייתה ישירה.',
             'classes': ('collapse',)
         }),
         ('תאריכים', {

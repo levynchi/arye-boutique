@@ -1,7 +1,7 @@
 {% extends 'store/base.html' %}
-{% load static %}
+{% load static seo_tags %}
 
-{% block title %}{{ product.name }} - אריה בוטיק{% endblock %}
+{% block title %}{{ seo.title }}{% endblock %}
 
 {% block content %}
 <!-- Breadcrumb Navigation -->
@@ -39,9 +39,9 @@
                     </button>
                     {% endif %}
                     {% if primary_image %}
-                        <img src="{{ primary_image.url }}" alt="{{ product.name }}" id="main-product-img">
+                        <img src="{{ primary_image.url|cdn_image:1200 }}" alt="{{ full_name }}" id="main-product-img" fetchpriority="high">
                     {% else %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" id="main-product-img">
+                        <img src="{{ product.image.url|cdn_image:1200 }}" alt="{{ full_name }}" id="main-product-img" fetchpriority="high">
                     {% endif %}
                     {% if additional_images %}
                     <button type="button" class="gallery-arrow gallery-arrow-left" id="gallery-next" aria-label="תמונה הבאה">
@@ -66,19 +66,19 @@
                 <div class="product-thumbnails">
                     <!-- Primary/Main Image Thumbnail -->
                     {% if primary_image %}
-                    <div class="thumbnail-item active" data-image-url="{{ primary_image.url }}" role="button" tabindex="0" aria-label="הצגת התמונה הראשית">
-                        <img src="{{ primary_image.url }}" alt="{{ product.name }}">
+                    <div class="thumbnail-item active" data-image-url="{{ primary_image.url|cdn_image:1200 }}" role="button" tabindex="0" aria-label="הצגת התמונה הראשית">
+                        <img src="{{ primary_image.url|cdn_image:200 }}" alt="">
                     </div>
                     {% elif product.image %}
-                    <div class="thumbnail-item active" data-image-url="{{ product.image.url }}" role="button" tabindex="0" aria-label="הצגת התמונה הראשית">
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    <div class="thumbnail-item active" data-image-url="{{ product.image.url|cdn_image:1200 }}" role="button" tabindex="0" aria-label="הצגת התמונה הראשית">
+                        <img src="{{ product.image.url|cdn_image:200 }}" alt="">
                     </div>
                     {% endif %}
                     <!-- Additional Images Thumbnails -->
                     {% for img in additional_images %}
                     {% if not img.is_primary %}
-                    <div class="thumbnail-item" data-image-url="{{ img.image.url }}" role="button" tabindex="0" aria-label="הצגת תמונה נוספת {{ forloop.counter }}">
-                        <img src="{{ img.image.url }}" alt="{{ product.name }}">
+                    <div class="thumbnail-item" data-image-url="{{ img.image.url|cdn_image:1200 }}" role="button" tabindex="0" aria-label="הצגת תמונה נוספת {{ forloop.counter }}">
+                        <img src="{{ img.image.url|cdn_image:200 }}" alt="" loading="lazy">
                     </div>
                     {% endif %}
                     {% endfor %}
@@ -89,11 +89,7 @@
             <!-- Left Side - Product Information -->
             <div class="product-info-column">
                 <div class="product-header-info">
-                    <h1 class="product-name">{{ product.name }}</h1>
-                    
-                    {% if product.subtitle %}
-                    <p class="product-subtitle">{{ product.subtitle }}</p>
-                    {% endif %}
+                    <h1 class="product-name">{{ product.name }}{% if product.subtitle %} <span class="product-subtitle">{{ product.subtitle }}</span>{% endif %}</h1>
                     
                     <p class="product-price" id="product-price-display">{{ price_display_initial }} ש"ח</p>
                     <p class="price-vat-note">המחיר כולל מע״מ</p>
@@ -175,7 +171,7 @@
                             <span class="info-toggle" aria-hidden="true">+</span>
                         </div>
                         <div class="info-section-content" style="display: none;">
-                            <p>{{ product.description }}</p>
+                            {{ product.description|linebreaks }}
                         </div>
                     </div>
                     
@@ -222,7 +218,7 @@
                 <a href="{% url 'product_detail' item.slug %}" class="product-card-link">
                     <div class="product-image-wrapper">
                         {% if item.image %}
-                            <img src="{{ item.image.url }}" alt="{{ item.name }}" class="product-card-image" loading="lazy">
+                            <img src="{{ item.image.url|cdn_image:600 }}" alt="{{ item.name }}{% if item.subtitle %} – {{ item.subtitle }}{% endif %}" class="product-card-image" loading="lazy">
                         {% else %}
                             <div class="product-card-placeholder">אין תמונה</div>
                         {% endif %}
@@ -246,7 +242,20 @@
 
 {% block extra_js %}
 {{ variants_data|json_script:"variants-data" }}
+{{ tracking_item|json_script:"tracking-item" }}
 <script>
+    // מדידה: צפייה במוצר (נשלח רק אם הגולש אישר עוגיות)
+    const trackingItem = JSON.parse(document.getElementById('tracking-item').textContent);
+    function trackProductEvent(eventName, quantity, price) {
+        if (typeof window.aryeTrack !== 'function') return;
+        const unitPrice = Number(price) || trackingItem.price;
+        window.aryeTrack(eventName, {
+            items: [{ id: trackingItem.id, name: trackingItem.name, price: unitPrice, quantity: quantity }],
+            value: unitPrice * quantity
+        });
+    }
+    trackProductEvent('view', 1);
+
     // Variants data from server
     const variantsData = JSON.parse(document.getElementById('variants-data').textContent);
     const hasVariants = {{ has_variants|yesno:"true,false" }};
@@ -649,6 +658,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        const selectedSize = document.querySelector('.size-option.active');
+                        trackProductEvent(
+                            'add_to_cart',
+                            parseInt(formData.get('quantity')) || 1,
+                            selectedSize ? selectedSize.getAttribute('data-price') : null
+                        );
                         // Open cart sidebar
                         if (typeof window.openCartSidebar === 'function') {
                             window.openCartSidebar();

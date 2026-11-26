@@ -1047,8 +1047,8 @@ ul {
    ========================================================================== */
 
 .main-footer {
-    background-color: #A9BCCE;
-    color: var(--text-color);
+    background-color: var(--brand-blue);
+    color: var(--white);
     padding: 50px 0 0;
     margin-top: 80px;
 }
@@ -1078,19 +1078,19 @@ ul {
     font-size: 20px;
     font-weight: 600;
     margin-bottom: 10px;
-    color: var(--focus-color);
+    color: var(--white);
 }
 
 .newsletter-subtitle {
     font-size: 14px;
     margin-bottom: 20px;
-    color: var(--focus-color);
+    color: var(--white);
     line-height: 1.6;
 }
 
 .newsletter-label {
     display: block;
-    color: var(--focus-color);
+    color: var(--white);
     font-size: 14px;
     margin-bottom: 8px;
     text-align: center;
@@ -1191,7 +1191,7 @@ ul {
     font-size: 18px;
     margin-bottom: 20px;
     font-weight: 600;
-    color: var(--focus-color);
+    color: var(--white);
 }
 
 .footer-links {
@@ -1203,7 +1203,7 @@ ul {
 }
 
 .footer-links a {
-    color: var(--focus-color);
+    color: var(--white);
     font-size: 16px;
     transition: opacity 0.3s ease;
 }
@@ -1218,7 +1218,7 @@ ul {
 
 .footer-contact li {
     margin-bottom: 8px;
-    color: var(--focus-color);
+    color: var(--white);
     font-size: 16px;
     line-height: 1.6;
 }
@@ -1322,7 +1322,7 @@ ul {
     font-size: 18px;
     margin-bottom: 20px;
     font-weight: 600;
-    color: var(--focus-color);
+    color: var(--white);
 }
 
 /* ==========================================================================
@@ -1527,7 +1527,7 @@ ul {
     .footer-accordion-toggle h4 {
         margin: 0;
         font-size: 18px;
-        color: var(--focus-color);
+        color: var(--white);
     }
 
     .footer-accordion-icon {
@@ -1541,7 +1541,7 @@ ul {
     .footer-accordion-icon::after {
         content: '';
         position: absolute;
-        background-color: var(--focus-color);
+        background-color: var(--white);
         transition: transform 0.3s ease;
     }
 
@@ -1774,7 +1774,7 @@ ul {
 
 /* First div: Blue-gray background */
 .story-top-bg {
-    background-color: #A9BCCE;
+    background-color: var(--brand-blue);
     padding: 85px 0 120px;
     text-align: center;
 }
@@ -1782,13 +1782,13 @@ ul {
 .story-title {
     font-size: 38px;
     font-weight: 600;
-    color: var(--focus-color);
+    color: var(--white);
     margin-bottom: 20px;
 }
 
 .story-description {
     font-size: 20px;
-    color: var(--focus-color);
+    color: var(--white);
     margin-bottom: 30px;
     line-height: 1.6;
 }
@@ -1797,8 +1797,8 @@ ul {
     display: inline-block;
     padding: 12px 100px;
     /* border: 2px solid #424242; */
-    background-color: var(--brand-blue);
-    color: var(--white);
+    background-color: var(--white);
+    color: var(--focus-color);
     font-size: 16px;
     font-weight: 500;
     border-radius: 0;
@@ -6421,7 +6421,7 @@ ul {
     margin: 8px 0 0;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--focus-color);
+    color: var(--white);
 }
 
 .newsletter-consent a {
@@ -6483,4 +6483,122 @@ ul {
 
 .info-section-header {
     cursor: pointer;
+}
+
+/* Cookie consent banner */
+.cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1090;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 24px 16px 76px; /* room for the accessibility button on the left */
+    background-color: var(--white);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.cookie-banner[hidden] {
+    display: none;
+}
+
+.cookie-banner-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    color: var(--text-color);
+}
+
+.cookie-banner-text p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.cookie-banner-text a {
+    color: var(--focus-color);
+    text-decoration: underline;
+}
+
+.cookie-banner-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.cookie-banner-btn {
+    min-width: 96px;
+    min-height: 44px;
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: 1px solid var(--primary-color);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* Both choices carry the same visual weight */
+.cookie-banner-accept,
+.cookie-banner-decline {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.cookie-banner-btn:hover {
+    background-color: var(--hover-color);
+}
+
+@media (max-width: 768px) {
+    .cookie-banner {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 14px 16px 14px 16px;
+    }
+
+    .cookie-banner-actions {
+        padding-left: 56px; /* keeps the buttons clear of the accessibility button */
+    }
+
+    .cookie-banner-btn {
+        flex: 1;
+    }
+}
+
+/* Category intro text under the title */
+.category-description {
+    max-width: 760px;
+    margin: -20px auto 30px;
+    text-align: center;
+    color: var(--text-light);
+    line-height: 1.7;
+}
+
+/* The print name sits inside the product h1 so the page heading is unique per product */
+.product-name .product-subtitle {
+    display: block;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+/* White text on the blue footer and story section: keep focus rings and form messages readable there */
+.main-footer :focus-visible,
+.story-top-bg :focus-visible {
+    outline-color: var(--white);
+}
+
+.main-footer .newsletter-message.success {
+    background-color: var(--white);
+    color: #1b5e20;
+    border-color: #1b5e20;
+}
+
+.main-footer .newsletter-message.error {
+    background-color: var(--white);
+    color: #b71c1c;
+    border-color: #b71c1c;
 }

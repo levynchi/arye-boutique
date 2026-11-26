@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
     # Cloudinary
     'cloudinary_storage',
     'cloudinary',
@@ -79,6 +80,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'store.middleware.ComingSoonMiddleware',  # Coming Soon page for non-superusers
+    'store.middleware.CampaignSourceMiddleware',  # remembers utm_* for the order
 ]
 
 ROOT_URLCONF = 'boutique_project.urls'
@@ -98,6 +100,7 @@ TEMPLATES = [
                 'store.context_processors.cart_items_count',
                 'store.context_processors.wishlist_count',
                 'store.context_processors.demo_mode',
+                'store.context_processors.seo_and_tracking',
             ],
         },
     },
@@ -262,6 +265,15 @@ TEST_RUNNER = 'boutique_project.test_runner.NoRealEmailTestRunner'
 
 # Public address of the site, used for links inside emails
 SITE_URL = os.environ.get('SITE_URL', 'https://arye-boutique.co.il').rstrip('/')
+
+# Analytics and ad pixels. Each one stays off until its id is set, and they are
+# only loaded in the browser after the visitor accepts the cookie banner.
+GA4_MEASUREMENT_ID = os.environ.get('GA4_MEASUREMENT_ID', '').strip()
+META_PIXEL_ID = os.environ.get('META_PIXEL_ID', '').strip()
+TIKTOK_PIXEL_ID = os.environ.get('TIKTOK_PIXEL_ID', '').strip()
+# Ownership verification tags (Google Search Console, Meta Business domain)
+GOOGLE_SITE_VERIFICATION = os.environ.get('GOOGLE_SITE_VERIFICATION', '').strip()
+META_DOMAIN_VERIFICATION = os.environ.get('META_DOMAIN_VERIFICATION', '').strip()
 
 
 # iCredit Payment Gateway Configuration

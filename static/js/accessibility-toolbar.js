@@ -131,7 +131,22 @@
             button.classList.toggle('is-active', isActive);
         }
 
+        // הפונט נטען רק למי שמפעיל אותו, כדי לא לעכב את טעינת העמוד לכל השאר
+        function loadDyslexiaFont() {
+            if (document.getElementById('dyslexia-font-css')) {
+                return;
+            }
+            const link = document.createElement('link');
+            link.id = 'dyslexia-font-css';
+            link.rel = 'stylesheet';
+            link.href = 'https://fonts.cdnfonts.com/css/opendyslexic';
+            document.head.appendChild(link);
+        }
+
         function applyToggleStates() {
+            if (toggles.dyslexiaFont) {
+                loadDyslexiaFont();
+            }
             Object.entries(TOGGLE_CONFIG).forEach(([key, config]) => {
                 if (toggles[key]) {
                     body.classList.add(config.className);

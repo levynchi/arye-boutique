@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}ביצוע הזמנה - אריה בוטיק{% endblock %}
+{% block meta_robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 
 {% block content %}
 <div class="checkout-page">
@@ -207,6 +208,13 @@
 
 {% block extra_js %}
 {{ totals_json|json_script:"checkout-totals" }}
+{{ tracking_checkout|json_script:"tracking-checkout" }}
+<script>
+// מדידה: כניסה לקופה (נשלח רק אם הגולש אישר עוגיות)
+if (typeof window.aryeTrack === 'function') {
+    window.aryeTrack('checkout', JSON.parse(document.getElementById('tracking-checkout').textContent));
+}
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const couponInput = document.getElementById('coupon-code');

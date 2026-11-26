@@ -24,6 +24,7 @@ from .services import icredit
 from .services.orders import confirm_order_payment, finalize_paid_order
 from .services.pricing import calculate_totals, evaluate_coupon
 from .services.shipping import amount_to_free_shipping, calculate_shipping_fee
+from .templatetags.seo_tags import cdn_image
 
 SALE_ID = '0f8fad5b-d9cb-469f-a165-70867728950e'
 OTHER_SALE_ID = '7c9e6679-7425-40de-944b-e07fc1f90ae7'
@@ -1401,3 +1402,224 @@ class PageHardeningTests(TestCase):
         filter_form = re.search(r'<form[^>]*id="filter-form".*?</form>', html, flags=re.S).group(0)
         self.assertNotIn('csrfmiddlewaretoken', filter_form)
         self.assertIn('csrfmiddlewaretoken', html)
+
+
+def json_ld_blocks(response):
+    """כל בלוקי ה-JSON-LD בעמוד, מפוענחים."""
+    html = response.content.decode()
+    return [
+        json.loads(block)
+        for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, flags=re.S)
+    ]
+
+
+def json_script(response, element_id):
+    """התוכן של תג json_script לפי המזהה שלו."""
+    match = re.search(
+        rf'<script id="{element_id}" type="application/json">(.*?)</script>', response.content.decode(), flags=re.S,
+    )
+    return json.loads(match.group(1))
+
+
+@override_settings(SITE_URL='https://shop.example')
+class SeoTests(TestCase):
+    def setUp(self):
+        self.category = Category.objects.create(name='ניובורן', slug='newborn', description='סטים רכים לימים הראשונים.')
+        self.product = make_product(
+            name='חיתול טטרה גדול', subtitle='תותים', slug='tetra-strawberries',
+            category=self.category, stock=2,
+        )
+
+    def test_robots_points_to_the_sitemap(self):
+        body = self.client.get('/robots.txt').content.decode()
+        self.assertIn('Sitemap: https://shop.example/sitemap.xml', body)
+        self.assertIn('Disallow: /checkout/', body)
+        self.assertIn('Disallow: /coming-soon/', body)
+
+    def test_sitemap_lists_active_pages_on_the_main_domain(self):
+        hidden = make_product(slug='hidden-product', is_active=False)
+        response = self.client.get('/sitemap.xml')
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        self.assertIn('<loc>https://shop.example/</loc>', body)
+        self.assertIn('<loc>https://shop.example/product/tetra-strawberries/</loc>', body)
+        self.assertIn('<loc>https://shop.example/category/newborn/</loc>', body)
+        self.assertNotIn(hidden.slug, body)
+        self.assertNotIn('/checkout/', body)
+
+    def test_product_page_head(self):
+        response = self.client.get(reverse('product_detail', args=[self.product.slug]))
+        self.assertContains(response, '<title>חיתול טטרה גדול – תותים | אריה בוטיק</title>', html=True)
+        self.assertContains(response, '<link rel="canonical" href="https://shop.example/product/tetra-strawberries/">')
+        self.assertContains(response, '<meta name="description" content="חיתול טטרה גדול – תותים. תיאור">')
+        self.assertContains(response, '<meta property="og:type" content="product">')
+        # כתובת מלאה: מהאתר עצמו בפיתוח, או מ-Cloudinary כשהוא מוגדר
+        self.assertRegex(
+            response.content.decode(), r'<meta property="og:image" content="https://[^"]+products/test\.jpg">',
+        )
+        self.assertContains(response, '<meta property="product:price:amount" content="80.00">')
+        self.assertEqual(response.content.decode().count('<h1'), 1)
+
+    def test_product_structured_data(self):
+        response = self.client.get(reverse('product_detail', args=[self.product.slug]))
+        blocks = {block['@type']: block for block in json_ld_blocks(response)}
+        product = blocks['Product']
+        self.assertEqual(product['name'], 'חיתול טטרה גדול – תותים')
+        self.assertEqual(product['offers']['price'], '80.00')
+        self.assertEqual(product['offers']['priceCurrency'], 'ILS')
+        self.assertEqual(product['offers']['availability'], 'https://schema.org/InStock')
+        self.assertEqual(product['offers']['url'], 'https://shop.example/product/tetra-strawberries/')
+        crumbs = [item['name'] for item in blocks['BreadcrumbList']['itemListElement']]
+        self.assertEqual(crumbs, ['דף הבית', 'ניובורן', 'חיתול טטרה גדול – תותים'])
+
+    def test_sold_out_product_is_marked_out_of_stock(self):
+        self.product.stock_quantity = 0
+        self.product.save()
+        response = self.client.get(reverse('product_detail', args=[self.product.slug]))
+        product = next(block for block in json_ld_blocks(response) if block['@type'] == 'Product')
+        self.assertEqual(product['offers']['availability'], 'https://schema.org/OutOfStock')
+
+    def test_structured_data_cannot_break_out_of_the_script_tag(self):
+        self.product.description = '</script><script>alert(1)</script>'
+        self.product.save()
+        response = self.client.get(reverse('product_detail', args=[self.product.slug]))
+        self.assertNotContains(response, '</script><script>alert(1)')
+        product = next(block for block in json_ld_blocks(response) if block['@type'] == 'Product')
+        self.assertIn('alert(1)', product['description'])
+
+    def test_canonical_ignores_filter_parameters(self):
+        response = self.client.get(reverse('category_detail', args=['newborn']), {'price': 'low_to_high'})
+        self.assertContains(response, '<link rel="canonical" href="https://shop.example/category/newborn/">')
+
+    def test_category_page_shows_its_description(self):
+        response = self.client.get(reverse('category_detail', args=['newborn']))
+        self.assertContains(response, '<p>סטים רכים לימים הראשונים.</p>')
+        self.assertContains(response, '<meta name="description" content="סטים רכים לימים הראשונים.">')
+
+    def test_slug_in_another_case_redirects_to_the_real_address(self):
+        response = self.client.get('/product/Tetra-Strawberries/')
+        self.assertRedirects(response, '/product/tetra-strawberries/', status_code=301)
+        response = self.client.get('/category/NEWBORN/')
+        self.assertRedirects(response, '/category/newborn/', status_code=301)
+
+    def test_removed_product_sends_visitors_to_its_category(self):
+        self.product.is_active = False
+        self.product.save()
+        response = self.client.get(reverse('product_detail', args=[self.product.slug]))
+        self.assertRedirects(response, '/category/newborn/', status_code=302)
+
+    def test_removed_product_without_a_category_is_not_found(self):
+        orphan = make_product(slug='orphan', is_active=False)
+        self.assertEqual(self.client.get(reverse('product_detail', args=[orphan.slug])).status_code, 404)
+
+    def test_home_page_has_one_heading_and_store_details(self):
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.content.decode().count('<h1'), 1)
+        types = {block['@type'] for block in json_ld_blocks(response)}
+        self.assertEqual(types, {'ClothingStore', 'WebSite'})
+
+    def test_private_pages_are_not_indexed(self):
+        for name in ('cart', 'search', 'users:login'):
+            response = self.client.get(reverse(name))
+            self.assertContains(response, '<meta name="robots" content="noindex, nofollow">', msg_prefix=name)
+        self.assertNotContains(self.client.get(reverse('home')), 'noindex')
+
+    def test_hebrew_names_get_a_latin_slug(self):
+        category = Category.objects.create(name='מגבות')
+        product = Product.objects.create(
+            name='מגבת', description='תיאור', price=Decimal('50'), image='products/test.jpg', category=category,
+        )
+        for slug in (category.slug, product.slug):
+            self.assertRegex(slug, r'^[a-z0-9-]+$')
+        self.assertEqual(self.client.get(reverse('product_detail', args=[product.slug])).status_code, 200)
+
+    def test_cloudinary_images_are_resized_and_other_urls_are_left_alone(self):
+        self.assertEqual(
+            cdn_image('https://res.cloudinary.com/demo/image/upload/v1/media/products/a.jpg', 600),
+            'https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,c_limit,w_600/v1/media/products/a.jpg',
+        )
+        self.assertEqual(cdn_image('/media/products/a.jpg', 600), '/media/products/a.jpg')
+
+
+@override_settings(GA4_MEASUREMENT_ID='', META_PIXEL_ID='', TIKTOK_PIXEL_ID='', GOOGLE_SITE_VERIFICATION='')
+class TrackingDisabledTests(TestCase):
+    def test_nothing_is_added_without_ids(self):
+        response = self.client.get(reverse('home'))
+        for marker in ('tracking.js', 'cookie-banner', 'tracking-ids', 'google-site-verification'):
+            self.assertNotContains(response, marker)
+
+
+@override_settings(
+    GA4_MEASUREMENT_ID='G-TEST123', META_PIXEL_ID='111222333', TIKTOK_PIXEL_ID='TT-TEST',
+    GOOGLE_SITE_VERIFICATION='google-token', META_DOMAIN_VERIFICATION='meta-token',
+)
+class TrackingTests(StoreFlowTestCase):
+    def test_ids_and_consent_banner_are_on_the_page(self):
+        response = self.client.get(reverse('home'))
+        self.assertEqual(
+            json_script(response, 'tracking-ids'), {'ga4': 'G-TEST123', 'meta': '111222333', 'tiktok': 'TT-TEST'},
+        )
+        self.assertContains(response, 'id="cookie-banner"')
+        self.assertContains(response, 'js/tracking.js')
+        self.assertContains(response, '<meta name="google-site-verification" content="google-token">')
+        self.assertContains(response, '<meta name="facebook-domain-verification" content="meta-token">')
+
+    def test_no_third_party_script_is_in_the_html_itself(self):
+        # הסקריפטים של גוגל, מטא וטיקטוק נטענים רק מתוך tracking.js אחרי אישור
+        html = self.client.get(reverse('home')).content.decode()
+        for host in ('googletagmanager.com', 'connect.facebook.net', 'analytics.tiktok.com'):
+            self.assertNotIn(host, html)
+
+    def test_demo_visits_are_not_tracked(self):
+        session = self.client.session
+        session['demo_mode'] = True
+        session.save()
+        self.assertNotContains(self.client.get(reverse('home')), 'tracking.js')
+
+    def test_product_page_carries_the_item_for_the_pixels(self):
+        product = make_product(name='סט ניובורן', subtitle='ג׳ירפות', price='85.00')
+        response = self.client.get(reverse('product_detail', args=[product.slug]))
+        self.assertEqual(
+            json_script(response, 'tracking-item'),
+            {'id': product.id, 'name': 'סט ניובורן – ג׳ירפות', 'price': 85.0},
+        )
+
+    def test_checkout_page_carries_the_cart(self):
+        self.add_to_cart(quantity=2)
+        response = self.client.get(reverse('checkout'))
+        data = json_script(response, 'tracking-checkout')
+        self.assertEqual(data['value'], 160.0)
+        self.assertEqual(data['items'], [
+            {'id': self.product.id, 'name': 'חליפת תינוק', 'price': 80.0, 'quantity': 2},
+        ])
+
+    def test_purchase_is_reported_only_for_a_paid_order(self):
+        order = self.pending_order()
+        with patch_icredit(FakeICredit()):
+            response = self.client.get(reverse('payment_success'))
+        self.assertNotContains(response, 'tracking-purchase')
+
+        finalize_paid_order(order.id, SALE_ID)
+        response = self.client.get(reverse('payment_success'))
+        purchase = json_script(response, 'tracking-purchase')
+        self.assertEqual(purchase['order_id'], order.id)
+        self.assertEqual(purchase['value'], float(order.total_price))
+        self.assertEqual(purchase['items'][0]['quantity'], 2)
+
+
+class CampaignSourceTests(StoreFlowTestCase):
+    def test_order_remembers_where_the_visitor_came_from(self):
+        self.client.get('/', {'utm_source': 'tiktok', 'utm_medium': 'video', 'utm_campaign': 'giraffe-drop'})
+        self.client.get(reverse('about_us'))
+        order = self.pending_order()
+        self.assertEqual(
+            (order.utm_source, order.utm_medium, order.utm_campaign), ('tiktok', 'video', 'giraffe-drop'),
+        )
+
+    def test_direct_visit_has_no_source(self):
+        order = self.pending_order()
+        self.assertEqual((order.utm_source, order.utm_medium, order.utm_campaign), ('', '', ''))
+
+    def test_long_values_are_trimmed(self):
+        self.client.get('/', {'utm_source': 'x' * 500})
+        self.assertEqual(len(self.pending_order().utm_source), 100)

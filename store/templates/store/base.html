@@ -1,17 +1,43 @@
-{% load static %}
+{% load static seo_tags %}
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}אריה בוטיק - מוצרי תינוקות איכותיים{% endblock %}</title>
-    
+    <meta name="description" content="{% block meta_description %}{{ seo.description|default:'אריה בוטיק – בגדי ומוצרי תינוקות מ-100% כותנה, בהדפסים ייחודיים שמיוצרים בישראל במפעל משפחתי: סטים לניובורן, חיתולי טטרה, שמיכות ומתנות ללידה.' }}{% endblock %}">
+    {% block meta_robots %}{% endblock %}
+    <link rel="canonical" href="{{ canonical_url }}">
+
+    <!-- שיתוף ברשתות חברתיות ובוואטסאפ -->
+    <meta property="og:site_name" content="אריה בוטיק">
+    <meta property="og:locale" content="he_IL">
+    <meta property="og:type" content="{{ seo.type|default:'website' }}">
+    <meta property="og:url" content="{{ canonical_url }}">
+    <meta property="og:title" content="{{ seo.title|default:'אריה בוטיק – בגדי ומוצרי תינוקות מכותנה בהדפסים ייחודיים' }}">
+    <meta property="og:description" content="{{ seo.description|default:'בגדי ומוצרי תינוקות מ-100% כותנה, בהדפסים ייחודיים שמיוצרים בישראל במפעל משפחתי.' }}">
+    {% if seo.image %}
+    <meta property="og:image" content="{{ seo.image }}">
+    {% else %}
+    <meta property="og:image" content="{{ SITE_URL }}{% static 'images/LOGO-21.png' %}">
+    {% endif %}
+    {% if seo.price %}
+    <meta property="product:price:amount" content="{{ seo.price }}">
+    <meta property="product:price:currency" content="ILS">
+    <meta property="product:availability" content="{{ seo.availability }}">
+    {% endif %}
+    <meta name="twitter:card" content="{% if seo.image %}summary_large_image{% else %}summary{% endif %}">
+    {% if google_site_verification %}<meta name="google-site-verification" content="{{ google_site_verification }}">{% endif %}
+    {% if meta_domain_verification %}<meta name="facebook-domain-verification" content="{{ meta_domain_verification }}">{% endif %}
+    {% for schema in structured_data %}
+    <script type="application/ld+json">{{ schema|jsonld }}</script>
+    {% endfor %}
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/opendyslexic">
-    
+
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
     
@@ -19,7 +45,7 @@
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261124a">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261126b">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -433,6 +459,9 @@
                                 <li><a href="{% url 'terms_of_service' %}">תקנון האתר</a></li>
                                 <li><a href="{% url 'terms_of_service' %}#privacy">מדיניות פרטיות</a></li>
                                 <li><a href="{% url 'accessibility_statement' %}">הצהרת נגישות</a></li>
+                                {% if tracking_ids %}
+                                <li><a href="#cookie-banner" data-cookie-settings hidden>הגדרות עוגיות</a></li>
+                                {% endif %}
                             </ul>
                         </div>
                     </div>
@@ -481,6 +510,22 @@
             </div>
         </div>
     </footer>
+
+    {% if tracking_ids %}
+    <!-- באנר הסכמה לעוגיות: תגי המדידה והפרסום נטענים רק אחרי אישור -->
+    <div class="cookie-banner" id="cookie-banner" role="region" aria-labelledby="cookie-banner-title" hidden>
+        <div class="cookie-banner-text">
+            <h2 class="cookie-banner-title" id="cookie-banner-title">עוגיות באתר</h2>
+            <p>האתר משתמש בעוגיות כדי לשפר את חוויית הגלישה. <a href="{% url 'terms_of_service' %}#privacy">למדיניות הפרטיות</a></p>
+        </div>
+        <div class="cookie-banner-actions">
+            <button type="button" class="cookie-banner-btn cookie-banner-accept" id="cookie-accept">אישור</button>
+            <button type="button" class="cookie-banner-btn cookie-banner-decline" id="cookie-decline">דחייה</button>
+        </div>
+    </div>
+    {{ tracking_ids|json_script:"tracking-ids" }}
+    <script src="{% static 'js/tracking.js' %}"></script>
+    {% endif %}
 
     <!-- Accessibility Toolbar JavaScript -->
     <script src="{% static 'js/accessibility-toolbar.js' %}"></script>

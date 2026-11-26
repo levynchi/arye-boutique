@@ -18,9 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.sitemaps.views import sitemap
 from django.http import HttpResponse
 
 from store.ratelimit import is_rate_limited
+from store.sitemaps import sitemaps
 
 
 def _rate_limited_admin_login(view):
@@ -44,6 +46,7 @@ def _rate_limited_admin_login(view):
 admin.site.login = _rate_limited_admin_login(admin.site.login)
 
 urlpatterns = [
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
     path('', include('store.urls')),

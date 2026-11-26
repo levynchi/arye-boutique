@@ -33,6 +33,7 @@ class ComingSoonMiddleware:
             '/newsletter/unsubscribe',  # ביטול הרשמה לניוזלטר
             '/payment/notify',  # IPN מ-iCredit - בקשה משרת לשרת, בלי התחברות
             '/robots.txt',
+            '/sitemap.xml',
         ]
 
         # בדיקה אם הנתיב מותר
@@ -65,5 +66,26 @@ class ComingSoonMiddleware:
 
         # כל השאר - הפניה לעמוד "בקרוב"
         return redirect('coming_soon')
+
+
+UTM_FIELDS = ('utm_source', 'utm_medium', 'utm_campaign')
+
+
+class CampaignSourceMiddleware:
+    """
+    שומר בסשן את מקור ההגעה (utm_source / utm_medium / utm_campaign) מהקישור
+    שדרכו הגולש נכנס, כדי שההזמנה תדע מאיזה סרטון או מודעה היא הגיעה.
+    כניסה חדשה עם utm מחליפה את הקודמת (המקור האחרון הוא שקובע).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.method == 'GET' and request.GET.get('utm_source'):
+            request.session['campaign_source'] = {
+                field: request.GET.get(field, '').strip()[:100] for field in UTM_FIELDS
+            }
+        return self.get_response(request)
 
 

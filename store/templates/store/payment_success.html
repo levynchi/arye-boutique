@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}תודה על ההזמנה - אריה בוטיק{% endblock %}
+{% block meta_robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -367,6 +368,15 @@
 {% endblock %}
 
 {% block extra_js %}
+{% if tracking_purchase %}
+{{ tracking_purchase|json_script:"tracking-purchase" }}
+<script>
+    // מדידה: רכישה. tracking.js שולח אותה פעם אחת בלבד לכל הזמנה, גם אם הדף נטען שוב
+    if (typeof window.aryeTrack === 'function') {
+        window.aryeTrack('purchase', JSON.parse(document.getElementById('tracking-purchase').textContent));
+    }
+</script>
+{% endif %}
 {% if payment_pending and keep_checking %}
 <script>
     // בדיקה חוזרת של סטטוס התשלום עד שמגיע האישור מחברת הסליקה
